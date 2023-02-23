@@ -45,7 +45,7 @@
           <v-row align="center" justify="space-between">
             <v-col cols="4">
               <v-btn :style="func(bucket)" @click="addNewBucketBefore(bucket)">
-                <v-icon>mdi-plus</v-icon>
+                <v-icon icon="mdi-plus"></v-icon>
               </v-btn>
             </v-col>
             <v-col cols="4">
@@ -65,14 +65,14 @@
             </v-col>
             <v-col cols="4">
               <v-btn :style="func(bucket)" @click="addNewBucketAfter(bucket)">
-                <v-icon>mdi-plus</v-icon>
+                <v-icon icon="mdi-plus"></v-icon>
               </v-btn>
             </v-col>
           </v-row>
           <v-row>
             <v-col cols="8" offset="4">
               <v-btn @click="loeschenBucket" :style="func(bucket)">
-                <v-icon>mdi-minus</v-icon>
+                <v-icon icon="mdi-minus"></v-icon>
               </v-btn>
             </v-col>
           </v-row>
