@@ -49,10 +49,6 @@ export default {
           field: 'ticket_nr',
           headerName: 'Ticket-NR',
           minWidth: 5,
-          cellStyle: (params) => {
-            console.log(params)
-            return {backgroundColor: 'green'}
-          }
         },
         {
           field: 'thema',
