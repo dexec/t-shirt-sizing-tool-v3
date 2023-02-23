@@ -58,6 +58,12 @@
         </tbody>
       </template>
     </v-table>
+    <v-icon
+        size="large"
+        color="green-darken-2"
+    >
+      mdi-domain
+    </v-icon>
   </div>
 </template>
 
