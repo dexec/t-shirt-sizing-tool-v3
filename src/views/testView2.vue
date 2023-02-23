@@ -6,7 +6,6 @@
         :columnDefs="columnDefs"
         :rowData="rowData"
         :defaultColDef="defaultColDef"
-        :getRowId="getRowId"
         @grid-ready="onGridReady"></ag-grid-vue>
   </div>
 </template>
@@ -15,16 +14,14 @@
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import {AgGridVue} from "ag-grid-vue3";
-import TestComp from "@/components/TestComp.vue";
+import TreeDataCellRenderer from "@/components/TreeDataCellRenderer.vue";
 
 export default {
   name: "testView2",
   data() {
     return {
-      getRowId: null,
       gridApi: null,
       columnApi: null,
-      rowData: null,
       defaultColDef: {
         sortable: true,
         filter: true,
@@ -34,11 +31,7 @@ export default {
         {
           field: 'ticket_nr',
           headerName: 'Ticket-NR',
-          minWidth: 5,
-          cellRenderer: 'TestComp',
-          cellRendererParams: {
-            items: null
-          }
+          cellRenderer: TreeDataCellRenderer
         },
         {
           field: 'thema',
@@ -68,27 +61,16 @@ export default {
       ]
     }
   },
-  computed: {
-    paketeAsList() {
-      return this.$store.getters.asList
-    }
-  },
-  setup() {
-    this.rowData = []
-  },
-  beforeCreate() {
 
-  },
-  created() {
-    this.getRowId = (params) => params.data.id
-  },
-  mounted() {
-    //this.rowData = this.paketeAsList
+  computed: {
+    rowData() {
+      return this.$store.getters.asList.filter(paket => paket.visible)
+    }
   },
   components: {
     AgGridVue,
     // eslint-disable-next-line vue/no-unused-components
-    TestComp
+    TreeDataCellRenderer
   },
   methods: {
     onGridReady(params) {
