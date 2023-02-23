@@ -106,13 +106,13 @@ export default {
   name: "VergleichView",
   data() {
     return {
-      checked: true,
-      drawer: null,
-      drawer2: null,
-      mini: true,
-      selected: [0, 1, 2, 3, 4],
-      buckets: [{id: 0, name: 'XS'}, {id: 1, name: 'S'}, {id: 2, name: 'M'}, {id: 3, name: 'L'}, {id: 4, name: 'XL'}],
-      tickets: [{id: 0, thema: 'UI erstellen', bucket: 'S'}, {id: 1, thema: 'Suchfunktion', bucket: 'XS'}, {
+          checked: true,
+          drawer: null,
+          drawer2: null,
+          mini: true,
+          selected: [0, 1, 2, 3, 4],
+          buckets: [{id: 0, name: 'XS'}, {id: 1, name: 'S'}, {id: 2, name: 'M'}, {id: 3, name: 'L'}, {id: 4, name: 'XL'}],
+          tickets: [{id: 0, thema: 'UI erstellen', bucket: 'S'}, {id: 1, thema: 'Suchfunktion', bucket: 'XS'}, {
         id: 2,
         thema: 'Migration',
         bucket: 'M'
