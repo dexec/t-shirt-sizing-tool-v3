@@ -27,81 +27,97 @@
   ],
   "pakete": [
     {
-      "id": "0",
+      "id": 0,
       "ticket_nr": "123",
       "thema": "UI erstellen",
       "beschreibung": "Es soll eine UI erstellt werden",
       "komponente": "A",
       "bucket": "S",
       "schaetzung": "321",
+      "visible": true,
+      "open": false,
       "children": [
         {
-          "id": "1",
+          "id": 1,
           "ticket_nr": "ANP-50",
           "thema": "Entwicklung eines Log-In-Systems",
           "beschreibung": "Es soll ein Log-In System für Nutzer und Manager entwickelt werden",
           "komponente": "Komp-A",
           "bucket": null,
           "schaetzung": null,
+          "visible": false,
+          "open": false,
           "children": [
             {
-              "id": "2",
+              "id": 2,
               "ticket_nr": "P-5",
               "thema": "Implementieren",
               "beschreibung": "Implementieren, auf Basis der UI und des Prototypen",
               "komponente": "Komp-B",
               "bucket": "XS",
               "schaetzung": null,
+              "visible": false,
+              "open": false,
               "children": []
             }
           ]
         },
         {
-          "id": "3",
+          "id": 3,
           "ticket_nr": "F-20",
           "thema": "Dokumentieren",
           "beschreibung": "Implementierung vollständig dokumentieren, um später den Code nachvollziehen zu können",
           "komponente": "Komp-C",
           "bucket": "M",
           "schaetzung": null,
+          "visible": false,
+          "open": false,
           "children": []
         },
         {
-          "id": "4",
+          "id": 4,
           "ticket_nr": "A-2",
           "thema": "Einen Prototypen bauen",
           "beschreibung": "Einen Protoypen bauen, um den Testern eine klickbare Oberfläche zu bieten",
           "komponente": "Komp-A",
           "bucket": "XL",
           "schaetzung": "500",
+          "visible": false,
+          "open": false,
           "children": [
             {
-              "id": "5",
+              "id": 5,
               "ticket_nr": "C-99",
               "thema": "Versionierung aufstellen",
               "beschreibung": "Eine Git-Verwaltung soll aufgesetzt werden, um eine Versionierung des Codes zu ermöglichen",
               "komponente": "Komp-AB",
               "bucket": "L",
               "schaetzung": "350",
+              "visible": false,
+              "open": false,
               "children": []
             },
             {
-              "id": "6",
+              "id": 6,
               "ticket_nr": "D-90",
               "thema": "Use-Cases definieren",
               "beschreibung": "Es sollen Funktionen bestimmt werden, die von dem System erfüllt werden müssen",
               "komponente": "Komp-ABC",
               "bucket": "M",
               "schaetzung": "150",
+              "visible": false,
+              "open": false,
               "children": [
                 {
-                  "id": "7",
+                  "id": 7,
                   "ticket_nr": "AD-970",
                   "thema": "Testen",
                   "beschreibung": "Es soll eine Testarchitektur entwickelt werden",
                   "komponente": "Komp-F",
                   "bucket": "S",
                   "schaetzung": null,
+                  "visible": false,
+                  "open": false,
                   "children": []
                 }
               ]
@@ -111,13 +127,15 @@
       ]
     },
     {
-      "id": "8",
+      "id": 8,
       "ticket_nr": "PN-50",
       "thema": "Lizenzen einkaufen",
       "beschreibung": "Lizenzen zur Entwicklung für das ganze Team einkaufen",
-      "komponente": "Komp-E",
+      "komponente": "Komp-F",
       "bucket": null,
       "schaetzung": null,
+      "visible": true,
+      "open": false,
       "children": []
     }
   ]
