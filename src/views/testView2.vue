@@ -53,10 +53,6 @@ export default {
         {
           field: 'schaetzung',
           headerName: 'Schätzung',
-        },
-        {
-          field: 'visible',
-          headerName: 'visible'
         }
       ]
     }
@@ -64,7 +60,7 @@ export default {
 
   computed: {
     rowData() {
-      return this.$store.getters.asList.filter(paket => paket.visible)
+      return this.$store.state.paketeAsList.filter(paket => paket.visible)
     }
   },
   components: {
