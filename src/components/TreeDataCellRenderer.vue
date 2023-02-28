@@ -18,17 +18,10 @@ export default {
       return "margin-left: " + this.params.node.data.lvl * 20 + "px"
     },
     changeOpenState() {
-      let aktuellesPaket = this.$store.getters.asList.find(paket => paket.id === this.params.node.data.id)
-      //this.$store.commit('unterElementeInvisibleSchalten',aktuellesPaket)
+      let aktuellesPaket = this.params.node.data;
       aktuellesPaket.open = !aktuellesPaket.open
-      /*for (let child of aktuellesPaket.children) {
-        child.visible = !child.visible
-        this.$store.commit('updatePaket', child)
-      }*/
-      this.$store.commit('unterElementeInvisibleSchalten', aktuellesPaket)
       this.$store.commit('updatePaket', aktuellesPaket)
-      /*      const updated = this.params.node.data;
-            this.params.node.updateData(updated)*/
+      this.$store.commit('updateUnterPakete', aktuellesPaket);
     }
   }
 }
