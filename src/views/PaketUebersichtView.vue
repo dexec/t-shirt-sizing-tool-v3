@@ -3,11 +3,11 @@
     <ag-grid-vue
         style="width: 100%;height: 90%"
         class="ag-theme-alpine"
+        :rowData="rowData"
         :columnDefs="columnDefs"
         :defaultColDef="defaultColDef"
         rowSelection="single"
         animateRows="true"
-        :rowData="rowData"
         @grid-ready="onGridReady"
         @first-data-rendered="onFirstDataRendered"></ag-grid-vue>
     <v-card class="d-flex justify-center fixed">
@@ -22,26 +22,15 @@
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import {AgGridVue} from "ag-grid-vue3";
-
-const items = []
-for (let i = 0; i < 30; i++) {
-  items.push({
-    ticket_nr: '123',
-    thema: 'UI erstellen',
-    beschreibung: 'Es soll eine UI erstellt werden',
-    komponente: 'A',
-    bucket: 'S',
-    schaetzung: '321',
-  })
-}
+import TreeDataCellRenderer from "@/components/TreeDataCellRenderer.vue";
 
 export default {
   name: "PaketUebersichtView",
   data() {
     return {
+      gridApi: null,
+      columnApi: null,
       defaultColDef: {
-        sortable: true,
-        filter: true,
         editable: true
       },
       columnDefs: [
@@ -49,6 +38,7 @@ export default {
           field: 'ticket_nr',
           headerName: 'Ticket-NR',
           minWidth: 5,
+          cellRenderer: TreeDataCellRenderer
         },
         {
           field: 'thema',
@@ -72,13 +62,18 @@ export default {
           headerName: 'Schätzung',
         },
       ],
-      rowData: items,
-      gridApi: null,
-      columnApi: null,
+
+    }
+  },
+  computed: {
+    rowData() {
+      return this.$store.state.paketeAsList.filter(paket => paket.visible)
     }
   },
   components: {
     AgGridVue,
+    // eslint-disable-next-line vue/no-unused-components
+    TreeDataCellRenderer
   },
   methods: {
     onFirstDataRendered(params) {
@@ -89,9 +84,16 @@ export default {
       this.gridApi = params.api
       this.columnApi = params.columnApi;
     },
-    deselect() {
-      this.gridApi.deselectAll()
-    }
+    addNew() {
+      const selectedRows = this.gridApi.getSelectedRows()[0];
+      console.log(selectedRows)
+    },
+    removeItem() {
+      const selectedRow = this.gridApi.getSelectedRows()[0];
+      if(typeof selectedRow !== 'undefined') {
+        this.$store.commit('deletePaket',selectedRow.id)
+      }
+    },
   }
 }
 
