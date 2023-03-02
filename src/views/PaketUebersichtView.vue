@@ -6,14 +6,14 @@
         :rowData="rowData"
         :columnDefs="columnDefs"
         :defaultColDef="defaultColDef"
-        rowSelection="single"
-        animateRows="true"
+        suppressRowHoverHighlight="true"
         @grid-ready="onGridReady"
-        @first-data-rendered="onFirstDataRendered"></ag-grid-vue>
+        @first-data-rendered="onFirstDataRendered">
+    </ag-grid-vue>
     <v-card class="d-flex justify-center fixed">
-      <v-btn class="mx-5" @click="addNew">Neues Arbeitspaket anlegen</v-btn>
-      <v-btn class="mx-5" @click="removeItem">Arbeitspaket löschen</v-btn>
-      <v-btn class="mx-5">Bucket zuweisen</v-btn>
+      <v-btn :disabled="this.selectedRow === null" class="mx-5" @click="addNewPaket">Neues Arbeitspaket anlegen</v-btn>
+      <v-btn :disabled="this.selectedRow === null" class="mx-5" @click="removeItem">Arbeitspaket löschen</v-btn>
+      <v-btn :disabled="this.selectedRow === null" class="mx-5">Bucket zuweisen</v-btn>
     </v-card>
   </div>
 </template>
@@ -30,6 +30,7 @@ export default {
     return {
       gridApi: null,
       columnApi: null,
+      selectedRow: null,
       defaultColDef: {
         editable: true
       },
@@ -67,7 +68,7 @@ export default {
   },
   computed: {
     rowData() {
-      return this.$store.state.paketeAsList.filter(paket => paket.visible)
+      return this.$store.getters.paketeAsSortedList
     }
   },
   components: {
@@ -83,15 +84,18 @@ export default {
     onGridReady(params) {
       this.gridApi = params.api
       this.columnApi = params.columnApi;
+      //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
     },
-    addNew() {
-      const selectedRows = this.gridApi.getSelectedRows()[0];
-      console.log(selectedRows)
+    onRowSelected() {
+      this.selectedRow = this.gridApi.getSelectedRows()[0];
+    },
+    addNewPaket() {
+      this.$store.commit('addNew',this.selectedRow);
     },
     removeItem() {
       const selectedRow = this.gridApi.getSelectedRows()[0];
-      if(typeof selectedRow !== 'undefined') {
-        this.$store.commit('deletePaket',selectedRow.id)
+      if (typeof selectedRow !== 'undefined') {
+        this.$store.commit('deletePaket', selectedRow.id)
       }
     },
   }
