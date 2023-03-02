@@ -1,8 +1,16 @@
 <template>
-  <div>
-    <v-data-table :headers="headers" :items="items" item-key="id" @click:row="selectRow"
+  <div style="width: 100%;height: 100%">
+    <ag-grid-vue style="width: 100%;height: 90%"
+                 class="ag-theme-alpine"
+                 :rowData="rowData"
+                 :columnDefs="columnDefs"
+                 rowSelection="single"
+                 animateRows="true"
+                 @grid-ready="onGridReady"
+    ></ag-grid-vue>
+<!--    <v-data-table :headers="headers" :rowData="rowData" item-key="id" @click:row="selectRow"
                   single-select hide-default-footer fixed-header height="500"></v-data-table>
-    <v-btn @click="zwischensummeErstellen">Zwischensumme erstellen</v-btn>
+    --><v-btn @click="zwischensummeErstellen">Zwischensumme erstellen</v-btn>
     <v-btn>Zeile entfernen</v-btn>
     <v-dialog max-width="10%" v-model="dialog_createAufschlag">
       <template v-slot:activator="{on}">
@@ -32,17 +40,32 @@
 </template>
 
 <script>
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import {AgGridVue} from "ag-grid-vue3";
+
 export default {
   name: "ProjektkalkulationView",
-  created() {
-    this.items.push({
-          id: 0,
-          bezeichnung: 'Gesamtaufwand Durchschnitt',
-          aufwand: 20,
-          anteilZwischensumme: 20,
-          anteilGesamtprojekt: 50,
-          zwischensummen_id: null
-        },
+  components: {AgGridVue},
+  data() {
+    return {
+      gridApi: null,
+      columnApi: null,
+      columnDefs: [
+        {headerName: 'Bezeichnung', field: 'bezeichnung'},
+        {headerName: 'Aufschlag', field: 'aufschlag'},
+        {headerName: 'Aufwand', field: 'aufwand'},
+        {headerName: 'Anteil an nächster Zwischensumme', field: 'anteilZwischensumme'},
+        {headerName: 'Anteil am Gesamtprojekt', field: 'anteilGesamtprojekt'},
+      ],
+      rowData: [{
+        id: 0,
+        bezeichnung: 'Gesamtaufwand Durchschnitt',
+        aufwand: 20,
+        anteilZwischensumme: 20,
+        anteilGesamtprojekt: 50,
+        zwischensummen_id: null
+      },
         {
           id: 1,
           bezeichnung: "Summe",
@@ -50,18 +73,7 @@ export default {
           anteilZwischensumme: '',
           anteilGesamtprojekt: '',
           zwischensummen_id: null
-        })
-  },
-  data() {
-    return {
-      headers: [
-        {text: 'Bezeichnung', value: 'bezeichnung'},
-        {text: 'Aufschlag', value: 'aufschlag'},
-        {text: 'Aufwand', value: 'aufwand'},
-        {text: 'Anteil an nächster Zwischensumme', value: 'anteilZwischensumme'},
-        {text: 'Anteil am Gesamtprojekt', value: 'anteilGesamtprojekt'},
-      ],
-      items: [],
+        }],
       selectedItem: -1,
       dialog_createAufschlag: false,
       aufschlag_bezeichnung: '',
@@ -69,6 +81,10 @@ export default {
     }
   },
   methods: {
+    onGridReady(params) {
+      this.gridApi = params.api
+      this.columnApi = params.columnApi;
+    },
     aufschlagErstellen() {
       this.dialog_createAufschlag = false
       let aufschlag = {
@@ -81,12 +97,12 @@ export default {
         zwischensummen_id: null
       }
       if (this.selectedItem === -1) {
-        this.items.push(aufschlag)
+        this.rowData.push(aufschlag)
       } else {
-        this.items.splice(this.selectedItem + 1, 0, aufschlag);
+        this.rowData.splice(this.selectedItem + 1, 0, aufschlag);
       }
-      for (let i = 0; i < this.items.length; i++) {
-        this.items[i].id = i
+      for (let i = 0; i < this.rowData.length; i++) {
+        this.rowData[i].id = i
       }
       this.aufschlag_bezeichnung = ''
       this.aufschlag_wert = 0.0
@@ -100,24 +116,18 @@ export default {
         zwischensummen_id: null
       }
       if (this.selectedItem === -1) {
-        this.items.push(zwischensumme)
+        this.rowData.push(zwischensumme)
       } else {
-        this.items.splice(this.selectedItem + 1, 0, zwischensumme);
+        this.rowData.splice(this.selectedItem + 1, 0, zwischensumme);
       }
-      for (let i = 0; i < this.items.length; i++) {
-        this.items[i].id = i
+      for (let i = 0; i < this.rowData.length; i++) {
+        this.rowData[i].id = i
       }
-    },
-    selectRow(item, row) {
-      this.selectedItem = this.items.indexOf(item)
-      row.select()
     }
   }
 }
 </script>
 
 <style>
-.v-data-table__selected {
-  background-color: cyan !important
-}
+
 </style>
