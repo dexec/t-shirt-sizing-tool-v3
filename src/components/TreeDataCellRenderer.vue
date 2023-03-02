@@ -18,10 +18,10 @@ export default {
       return "margin-left: " + this.params.node.data.lvl * 20 + "px"
     },
     changeOpenState() {
+      this.params.node.setSelected(true);
       let aktuellesPaket = this.params.node.data;
       aktuellesPaket.open = !aktuellesPaket.open
       this.$store.commit('updatePaket', aktuellesPaket)
-      this.$store.commit('updateUnterPakete', aktuellesPaket);
     }
   }
 }
