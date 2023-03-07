@@ -7,6 +7,7 @@
         :rowData="rowData"
         :defaultColDef="defaultColDef"
         @grid-ready="onGridReady"></ag-grid-vue>
+    <v-btn @click="addNew">Add new</v-btn>
   </div>
 </template>
 
@@ -14,7 +15,9 @@
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import {AgGridVue} from "ag-grid-vue3";
-import TreeDataCellRenderer from "@/components/TreeDataCellRenderer.vue";
+import TestRenderer from "@/components/TestRenderer.vue";
+import {useStore} from "vuex";
+import {computed} from "vue";
 
 export default {
   name: "testView2",
@@ -31,7 +34,7 @@ export default {
         {
           field: 'ticket_nr',
           headerName: 'Ticket-NR',
-          cellRenderer: TreeDataCellRenderer
+          cellRenderer: TestRenderer
         },
         {
           field: 'thema',
@@ -57,21 +60,37 @@ export default {
       ]
     }
   },
-
-  computed: {
-    rowData() {
-      return this.$store.state.paketeAsList.filter(paket => paket.visible)
+  setup() {
+    const store = useStore();
+    return {
+      rowData: computed(() => store.state.paketeAsTreeView)
     }
   },
   components: {
     AgGridVue,
     // eslint-disable-next-line vue/no-unused-components
-    TreeDataCellRenderer
+    TestRenderer
   },
   methods: {
     onGridReady(params) {
       this.gridApi = params.api;
       this.columnApi = params.columnApi;
+    },
+    addNew() {
+      const newItems = [{
+        id: 100,
+        ticket_nr: 111222,
+        thema: "Testticket",
+        beschreibung: "Ticket zum Stresstesten",
+        komponente: "Test",
+        bucket: null,
+        schaetzung: null,
+        visible: null,
+        open: false,
+        parent: null,
+        children: []
+      }]
+      this.gridApi.applyTransaction({add: newItems})
     }
   },
 }
