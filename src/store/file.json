@@ -46,7 +46,7 @@
           "bucket": null,
           "schaetzung": null,
           "visible": false,
-          "open": false,
+          "open": true,
           "children": [
             {
               "id": 2,
