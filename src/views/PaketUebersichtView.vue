@@ -7,8 +7,7 @@
         :columnDefs="columnDefs"
         :defaultColDef="defaultColDef"
         suppressRowHoverHighlight="true"
-        @grid-ready="onGridReady"
-        @first-data-rendered="onFirstDataRendered">
+        @grid-ready="onGridReady">
     </ag-grid-vue>
     <v-card class="d-flex justify-center fixed">
       <v-btn :disabled="this.selectedRow === null" class="mx-5" @click="addNewPaket">Neues Arbeitspaket anlegen</v-btn>
@@ -66,9 +65,17 @@ export default {
 
     }
   },
+  /*setup() {
+    const store = useStore();
+    return {
+      rowData: computed(() => store.state.paketeAsTreeView)
+    }
+  },*/
   computed: {
-    rowData() {
-      return this.$store.getters.paketeAsSortedList
+    rowData: {
+      get() {
+        return this.$store.state.paketeAsTreeView;
+      }
     }
   },
   components: {
@@ -77,25 +84,24 @@ export default {
     TreeDataCellRenderer
   },
   methods: {
-    onFirstDataRendered(params) {
+/*    onFirstDataRendered(params) {
       params.api.sizeColumnsToFit();
       params.columnApi.autoSizeColumns()
-    },
+    },*/
     onGridReady(params) {
       this.gridApi = params.api
       this.columnApi = params.columnApi;
       //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
     },
-    onRowSelected() {
-      this.selectedRow = this.gridApi.getSelectedRows()[0];
+    onCellClicked(params) {
+      this.selectedRow = params.data
     },
     addNewPaket() {
-      this.$store.commit('addNew',this.selectedRow);
+      this.$store.commit('addNew', this.selectedRow);
     },
     removeItem() {
-      const selectedRow = this.gridApi.getSelectedRows()[0];
-      if (typeof selectedRow !== 'undefined') {
-        this.$store.commit('deletePaket', selectedRow.id)
+      if (typeof this.selectedRow !== 'undefined') {
+        this.$store.commit('deletePaket', this.selectedRow.id)
       }
     },
   }
