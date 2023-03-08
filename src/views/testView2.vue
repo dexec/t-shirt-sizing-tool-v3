@@ -16,7 +16,6 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import {AgGridVue} from "ag-grid-vue3";
 import TestRenderer from "@/components/TestRenderer.vue";
-import {useStore} from "vuex";
 import {computed} from "vue";
 
 export default {
@@ -60,12 +59,7 @@ export default {
       ]
     }
   },
-  setup() {
-    const store = useStore();
-    return {
-      rowData: computed(() => store.state.paketeAsTreeView)
-    }
-  },
+
   components: {
     AgGridVue,
     // eslint-disable-next-line vue/no-unused-components
