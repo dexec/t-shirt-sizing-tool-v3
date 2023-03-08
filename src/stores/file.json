@@ -33,9 +33,10 @@
       "beschreibung": "Es soll eine UI erstellt werden",
       "komponente": "A",
       "bucket": "S",
-      "schaetzung": "321",
+      "schaetzung": 321,
       "visible": true,
       "open": false,
+      "lvl": 0,
       "children": [
         {
           "id": 1,
@@ -47,6 +48,7 @@
           "schaetzung": null,
           "visible": false,
           "open": true,
+          "lvl": 1,
           "children": [
             {
               "id": 2,
@@ -58,6 +60,7 @@
               "schaetzung": null,
               "visible": false,
               "open": false,
+              "lvl": 2,
               "children": []
             }
           ]
@@ -72,6 +75,7 @@
           "schaetzung": null,
           "visible": false,
           "open": false,
+          "lvl": 1,
           "children": []
         },
         {
@@ -81,9 +85,10 @@
           "beschreibung": "Einen Protoypen bauen, um den Testern eine klickbare Oberfläche zu bieten",
           "komponente": "Komp-A",
           "bucket": "XL",
-          "schaetzung": "500",
+          "schaetzung": 500,
           "visible": false,
           "open": false,
+          "lvl": 1,
           "children": [
             {
               "id": 5,
@@ -92,9 +97,10 @@
               "beschreibung": "Eine Git-Verwaltung soll aufgesetzt werden, um eine Versionierung des Codes zu ermöglichen",
               "komponente": "Komp-AB",
               "bucket": "L",
-              "schaetzung": "350",
+              "schaetzung": 350,
               "visible": false,
               "open": false,
+              "lvl": 2,
               "children": []
             },
             {
@@ -104,9 +110,10 @@
               "beschreibung": "Es sollen Funktionen bestimmt werden, die von dem System erfüllt werden müssen",
               "komponente": "Komp-ABC",
               "bucket": "M",
-              "schaetzung": "150",
+              "schaetzung": 150,
               "visible": false,
               "open": false,
+              "lvl": 2,
               "children": [
                 {
                   "id": 7,
@@ -118,6 +125,7 @@
                   "schaetzung": null,
                   "visible": false,
                   "open": false,
+                  "lvl": 3,
                   "children": []
                 }
               ]
@@ -136,6 +144,7 @@
       "schaetzung": null,
       "visible": true,
       "open": false,
+      "lvl": 0,
       "children": []
     }
   ]
