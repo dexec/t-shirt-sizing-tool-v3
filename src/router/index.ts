@@ -9,11 +9,11 @@ import testView from "@/views/testView.vue";
 import testView2 from "@/views/testView2.vue";
 
 const router = createRouter({
-    history: createWebHashHistory(process.env.BASE_URL),
+    history: createWebHashHistory(import.meta.env.BASE_URL),
     routes: [
         {
             path: '/',
-            redirect: '/projekt'
+            redirect: '/projekt',
         },
         {
             path: '/projekt',
