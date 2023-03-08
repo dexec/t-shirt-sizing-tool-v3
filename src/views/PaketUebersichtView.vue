@@ -1,30 +1,94 @@
 <template>
-  <div style="width: 100%;height: 100%">
+  <div style='width: 100%;height: 100%'>
     <ag-grid-vue
-        style="width: 100%;height: 90%"
-        class="ag-theme-alpine"
-        :rowData="rowData"
-        :columnDefs="columnDefs"
-        :defaultColDef="defaultColDef"
-        suppressRowHoverHighlight="true"
-        @grid-ready="onGridReady">
+      style='width: 100%;height: 90%'
+      class='ag-theme-alpine'
+      :rowData='rowData'
+      :columnDefs='columnDefs'
+      :defaultColDef='defaultColDef'
+      suppressRowHoverHighlight='true'
+      @grid-ready='onGridReady'>
     </ag-grid-vue>
-    <v-card class="d-flex justify-center fixed">
-      <v-btn :disabled="this.selectedRow === null" class="mx-5" @click="addNewPaket">Neues Arbeitspaket anlegen</v-btn>
-      <v-btn :disabled="this.selectedRow === null" class="mx-5" @click="removeItem">Arbeitspaket löschen</v-btn>
-      <v-btn :disabled="this.selectedRow === null" class="mx-5">Bucket zuweisen</v-btn>
+    <v-card class='d-flex justify-center fixed'>
+      <v-btn :disabled='this.selectedRow === null' class='mx-5' @click='addNewPaket'>Neues Arbeitspaket anlegen</v-btn>
+      <v-btn :disabled='this.selectedRow === null' class='mx-5' @click='removeItem'>Arbeitspaket löschen</v-btn>
+      <v-btn :disabled='this.selectedRow === null' class='mx-5'>Bucket zuweisen</v-btn>
     </v-card>
   </div>
 </template>
-
-<script>
+<!--<script setup>
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import {AgGridVue} from "ag-grid-vue3";
-import TreeDataCellRenderer from "@/components/TreeDataCellRenderer.vue";
+import { ref } from 'vue'
+import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue'
+
+const selectedRow = ref(null)
+const gridApi = ref(null)
+const columnApi = ref(null)
+const defaultColDef = ref({
+  editable: true
+})
+const columnDefs = ref([
+  {
+    field: 'ticket_nr',
+    headerName: 'Ticket-NR',
+    minWidth: 5,
+    cellRenderer: TreeDataCellRenderer
+  },
+  {
+    field: 'thema',
+    headerName: 'Thema'
+  },
+  {
+    field: 'beschreibung',
+    headerName: 'Beschreibung'
+  },
+  {
+    field: 'komponente',
+    headerName: 'Komponente'
+  },
+  {
+    field: 'bucket',
+    headerName: 'Bucket',
+    editable: false
+  },
+  {
+    field: 'schaetzung',
+    headerName: 'Schätzung'
+  }
+])
+
+function onGridReady(params) {
+  this.gridApi = params.api
+  this.columnApi = params.columnApi
+  //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
+}
+
+function onCellClicked(params) {
+  this.selectedRow = params.data
+}
+
+function addNewPaket() {
+  //store.addNew(this.selectedRow)
+}
+
+function removeItem() {
+  if (typeof this.selectedRow !== 'undefined') {
+    //store.deletePaket(this.selectedRow.id)
+  }
+}
+</script>-->
+<script>
+import 'ag-grid-community/styles/ag-grid.css'
+import 'ag-grid-community/styles/ag-theme-alpine.css'
+import { AgGridVue } from 'ag-grid-vue3'
+import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue'
+
+import { usePaketeStore } from '@/stores/pakete'
 
 export default {
-  name: "PaketUebersichtView",
+  name: 'PaketUebersichtView',
   data() {
     return {
       gridApi: null,
@@ -42,15 +106,15 @@ export default {
         },
         {
           field: 'thema',
-          headerName: 'Thema',
+          headerName: 'Thema'
         },
         {
           field: 'beschreibung',
-          headerName: 'Beschreibung',
+          headerName: 'Beschreibung'
         },
         {
           field: 'komponente',
-          headerName: 'Komponente',
+          headerName: 'Komponente'
         },
         {
           field: 'bucket',
@@ -59,23 +123,19 @@ export default {
         },
         {
           field: 'schaetzung',
-          headerName: 'Schätzung',
-        },
-      ],
+          headerName: 'Schätzung'
+        }
+      ]
 
     }
   },
-  /*setup() {
-    const store = useStore();
-    return {
-      rowData: computed(() => store.state.paketeAsTreeView)
-    }
-  },*/
+  setup() {
+    const paketeStore = usePaketeStore()
+    return {paketeStore}
+  },
   computed: {
-    rowData: {
-      get() {
-        return this.$store.state.paketeAsTreeView;
-      }
+    rowData() {
+      return this.paketeStore.getTreeView
     }
   },
   components: {
@@ -84,26 +144,26 @@ export default {
     TreeDataCellRenderer
   },
   methods: {
-/*    onFirstDataRendered(params) {
-      params.api.sizeColumnsToFit();
-      params.columnApi.autoSizeColumns()
-    },*/
+    /*    onFirstDataRendered(params) {
+          params.api.sizeColumnsToFit();
+          params.columnApi.autoSizeColumns()
+        },*/
     onGridReady(params) {
       this.gridApi = params.api
-      this.columnApi = params.columnApi;
+      this.columnApi = params.columnApi
       //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
     },
     onCellClicked(params) {
       this.selectedRow = params.data
     },
     addNewPaket() {
-      this.$store.commit('addNew', this.selectedRow);
+      this.paketeStore.addNew(this.selectedRow)
     },
     removeItem() {
       if (typeof this.selectedRow !== 'undefined') {
-        this.$store.commit('deletePaket', this.selectedRow.id)
+        this.paketeStore.deletePaket(this.selectedRow.id)
       }
-    },
+    }
   }
 }
 
