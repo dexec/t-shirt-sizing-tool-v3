@@ -12,6 +12,7 @@
 <script>
 
 import {nextTick} from "vue";
+import { usePaketeStore } from '@/stores/pakete'
 
 export default {
   name: "TestComp",
@@ -20,10 +21,11 @@ export default {
       return "margin-left: " + this.params.node.data.lvl * 20 + "px"
     },
     changeOpenState() {
+      const paketeStore = usePaketeStore()
       //this.params.node.setSelected(true);
       let aktuellesPaket = this.params.node.data;
-      this.$store.commit('changeOpenState', aktuellesPaket)
-      nextTick(() => this.params.api.setRowData(this.$store.state.paketeAsTreeView))
+      paketeStore.changeOpenState(aktuellesPaket)
+      nextTick(() => this.params.api.setRowData(paketeStore.getTreeView))
     }
   }
 }
