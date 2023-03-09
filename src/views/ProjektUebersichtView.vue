@@ -92,6 +92,7 @@
 }
 </style>
 <script>
+import { useBucketsStore } from "@/stores/buckets";
 
 export default {
   name: "ProjektkalkulationView",
@@ -101,6 +102,10 @@ export default {
       currentSelectedBucket: -1,
       currentEditBucket: -1,
     }
+  },
+  setup() {
+    const bucketStore = useBucketsStore();
+    return { bucketStore };
   },
   methods: {
     func(bucket) {
@@ -136,7 +141,7 @@ export default {
     },
     speichernBuckets() {
       this.clearData()
-      this.$store.commit('updateAllBuckets', this.copyBuckets)
+      this.bucketStore.updateAllBuckets(this.copyBuckets)
     },
     clearData() {
       this.newBucketName = ''
@@ -146,11 +151,8 @@ export default {
   },
   computed: {
     copyBuckets() {
-      return JSON.parse(JSON.stringify(this.buckets))
+      return JSON.parse(JSON.stringify(this.bucketStore.buckets))
     },
-    buckets() {
-      return this.$store.state.buckets
-    }
   }
 }
 </script>
