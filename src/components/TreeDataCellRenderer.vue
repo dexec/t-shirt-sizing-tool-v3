@@ -1,11 +1,11 @@
 <template>
-  <div :style="'margin-left:' + this.params.node.data.lvl * 20 + 'px'">
-    <v-btn size="x-small" :style="this.params.node.data.children.length>0 ? 'visibility:visible':'visibility:hidden'"
+  <div :style="'margin-left:' + stuff.node.data.lvl * 20 + 'px'">
+    <v-btn size="x-small" :style="stuff.node.data.children.length>0 ? 'visibility:visible':'visibility:hidden'"
            @click="changeOpenState">
-      <v-icon size="x-small" v-if="!this.params.node.data.open">mdi-plus</v-icon>
+      <v-icon size="x-small" v-if="!stuff.node.data.open">mdi-plus</v-icon>
       <v-icon size="x-small" v-else>mdi-minus</v-icon>
     </v-btn>
-    {{ this.params.value }}
+    {{ stuff.value }}
   </div>
 </template>
 
@@ -16,16 +16,17 @@ import { usePaketeStore } from '@/stores/pakete'
 
 export default {
   name: "TestComp",
+  setup(props) {
+    return { stuff: props.params };
+  },
   methods: {
-    shift() {
-      return "margin-left: " + this.params.node.data.lvl * 20 + "px"
-    },
     changeOpenState() {
-      const paketeStore = usePaketeStore()
-      //this.params.node.setSelected(true);
-      let aktuellesPaket = this.params.node.data;
-      paketeStore.changeOpenState(aktuellesPaket)
-      nextTick(() => this.params.api.setRowData(paketeStore.getTreeView))
+      const paketeStore = usePaketeStore();
+      let aktuellesPaket = this.stuff.node.data;
+      aktuellesPaket.open = !aktuellesPaket.open;
+      this.stuff.node.setData(aktuellesPaket);
+      paketeStore.updateTreeView(aktuellesPaket);
+      nextTick(() => this.stuff.api.setRowData(paketeStore.getTreeView))
     }
   }
 }

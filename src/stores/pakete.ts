@@ -86,9 +86,8 @@ export const usePaketeStore = defineStore("pakete", {
       let oldPaket = this.paketeAsMap.get(newPaket.id);
       if (typeof oldPaket !== "undefined") oldPaket = newPaket;
     },
-    changeOpenState(changedPaket: Paket) {
+    updateTreeView(changedPaket: Paket) {
       const indexOfChangedPaket = this.paketeAsTreeView.indexOf(changedPaket);
-      changedPaket.open = !changedPaket.open;
       let counter = 0;
       const stack = [...changedPaket.children];
       if (changedPaket.open) {
@@ -147,8 +146,8 @@ export const usePaketeStore = defineStore("pakete", {
       } else {
         newPaket.lvl = parent.lvl + 1;
         newPaket.parent = parent;
-        if (!parent.open){
-          this.changeOpenState(parent);
+        if (!parent.open) {
+          this.updateTreeView(parent);
         }
         else parent.open = true;
         parent.children.unshift(newPaket);
