@@ -6,6 +6,7 @@
       :rowData="rowData"
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
+      :getRowId="getRowId"
       suppressRowHoverHighlight="true"
       @cellClicked="onCellClicked"
       @grid-ready="onGridReady">
@@ -128,14 +129,14 @@ export default {
           field: "schaetzung",
           headerName: "Schätzung"
         }
-      ]
-
+      ],
     };
   },
   setup() {
+    let getRowId = (params) => params.data.id;
     const paketeStore = usePaketeStore();
     const rowData = paketeStore.paketeAsTreeView;
-    return { rowData, paketeStore };
+    return { rowData, paketeStore, getRowId };
   },
   components: {
     AgGridVue,
