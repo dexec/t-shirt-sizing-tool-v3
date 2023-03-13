@@ -48,9 +48,8 @@ while (stackForTreeView.length > 0) {
     paketeAsTreeView.push(aktuellesPaket);
   }
 }
-/*
 
-for (let i = 0; i < 1000; i++) {
+for (let i = idCounter; i < 10000; i++, idCounter++) {
   loopCounter++;
   paketeAsTreeView.push({
     id: i,
@@ -65,7 +64,6 @@ for (let i = 0; i < 1000; i++) {
     children: []
   });
 }
-*/
 
 
 export const usePaketeStore = defineStore("pakete", {
