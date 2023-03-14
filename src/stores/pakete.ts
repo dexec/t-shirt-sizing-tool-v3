@@ -70,8 +70,7 @@ export const usePaketeStore = defineStore("pakete", {
   state: () => ({
     paketeAsTreeView: paketeAsTreeView,
     paketeAsMap: paketeAsMap,
-    idCounter: idCounter,
-    loopCounter: loopCounter
+    idCounter: idCounter
   }),
   getters: {
     getTreeView(state) {
@@ -92,29 +91,19 @@ export const usePaketeStore = defineStore("pakete", {
       const stack = [...changedPaket.children];
       if (changedPaket.open) {
         while (stack.length > 0) {
-          this.loopCounter++;
           const aktuellesPaket = stack.shift();
           if (aktuellesPaket != undefined) {
-            if (aktuellesPaket.children.length > 0) {
-              for (let i = aktuellesPaket.children.length - 1; i >= 0; i--) {
-                this.loopCounter++;
-                if (aktuellesPaket.open) stack.unshift(aktuellesPaket.children[i]);
-              }
+            if (aktuellesPaket.open) {
+              stack.unshift(...aktuellesPaket.children.reverse());
             }
             this.paketeAsTreeView.splice(indexOfChangedPaket + 1 + counter++, 0, aktuellesPaket);
           }
         }
       } else {
         while (stack.length > 0) {
-          this.loopCounter++;
           const aktuellesPaket = stack.shift();
-          if (aktuellesPaket != undefined) {
-            if (aktuellesPaket.children.length > 0) {
-              for (const child of aktuellesPaket.children) {
-                this.loopCounter++;
-                if (aktuellesPaket.open) stack.unshift(child);
-              }
-            }
+          if (aktuellesPaket != undefined && aktuellesPaket.open) {
+            stack.unshift(...aktuellesPaket.children);
           }
           counter++;
         }
