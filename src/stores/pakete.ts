@@ -40,7 +40,6 @@ while (stackForTreeView.length > 0) {
   if (aktuellesPaket != undefined) {
     if (aktuellesPaket.children.length > 0) {
       for (let i = aktuellesPaket.children.length - 1; i >= 0; i--) {
-        loopCounter++;
         if (aktuellesPaket.open)
           stackForTreeView.unshift(aktuellesPaket.children[i]);
       }
@@ -49,20 +48,10 @@ while (stackForTreeView.length > 0) {
   }
 }
 
-for (let i = idCounter; i < 10000; i++, idCounter++) {
-  loopCounter++;
-  paketeAsTreeView.push({
-    id: i,
-    ticket_nr: "111",
-    thema: "Testticket",
-    beschreibung: "Ticket zum Stresstesten",
-    komponente: "Test",
-    bucket: null,
-    schaetzung: null,
-    open: false,
-    lvl: 0,
-    children: []
-  });
+for (let i = idCounter; i < 10; i++, idCounter++) {
+  const newPaket = new Paket(i, "111", "Testticket","Ticket zum Stresstesten","Test",null,null,false, 0,null,[])
+  paketeAsTreeView.push(newPaket);
+  paketeAsMap.set(i,newPaket);
 }
 
 
@@ -85,7 +74,7 @@ export const usePaketeStore = defineStore("pakete", {
       let oldPaket = this.paketeAsMap.get(newPaket.id);
       if (typeof oldPaket !== "undefined") oldPaket = newPaket;
     },
-    updateTreeView(changedPaket: Paket) {
+    updateTreeViewAfterChangedOpenState(changedPaket: Paket) {
       const indexOfChangedPaket = this.paketeAsTreeView.indexOf(changedPaket);
       let counter = 0;
       const stack = [...changedPaket.children];
@@ -136,13 +125,56 @@ export const usePaketeStore = defineStore("pakete", {
         newPaket.lvl = parent.lvl + 1;
         newPaket.parent = parent;
         if (!parent.open) {
-          this.updateTreeView(parent);
+          this.updateTreeViewAfterChangedOpenState(parent);
         }
         else parent.open = true;
         parent.children.unshift(newPaket);
         this.paketeAsTreeView.splice(this.paketeAsTreeView.indexOf(parent) + 1, 0, newPaket);
       }
       this.paketeAsMap.set(newPaket.id, newPaket)
+    },
+    moveUp(id: number) {
+      const paketToMove = this.paketeAsMap.get(id);
+      const indexOfPaketToMove = this.paketeAsTreeView.indexOf(paketToMove);
+      const paketAbovePaketToMove = this.paketeAsTreeView[indexOfPaketToMove - 1];
+      if(indexOfPaketToMove!=0) {
+        if (paketAbovePaketToMove.lvl == paketToMove.lvl) {
+          if (paketToMove.lvl != 0) {
+            const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove);
+            paketToMove.parent.children[indexOfPaketToMoveAsChild] = paketToMove.parent.children[indexOfPaketToMoveAsChild - 1];
+            paketToMove.parent.children[indexOfPaketToMoveAsChild - 1] = paketToMove;
+          }
+          this.paketeAsTreeView[indexOfPaketToMove] = paketAbovePaketToMove;
+          this.paketeAsTreeView[indexOfPaketToMove - 1] = paketToMove
+        }
+        else if(paketAbovePaketToMove.lvl>paketToMove.lvl) {
+          if(paketToMove.lvl!=0) {
+            paketToMove.parent.children.splice(paketToMove.parent.children.indexOf(paketToMove),1)
+          }
+          paketToMove.parent = paketAbovePaketToMove.parent;
+          paketAbovePaketToMove.parent?.children.push(paketToMove);
+          const diffLevel = paketAbovePaketToMove.lvl - paketToMove.lvl;
+          paketToMove.lvl = paketAbovePaketToMove.lvl;
+          /*const stack = [paketToMove];
+          while(stack.length>0) {
+            const aktuellesPaket = stack.pop();
+            aktuellesPaket.lvl = aktuellesPaket.lvl + diffLevel;
+            for(const child of aktuellesPaket.children) {
+              stack.push(child);
+            }
+          }*/
+        }
+        else if(paketAbovePaketToMove.lvl < paketToMove.lvl) {
+          return;
+        }
+
+      }
+    },
+    moveDown(id: number) {
+      for(const paket of this.paketeAsTreeView) {
+        paket.lvl+=5;
+      }
+
     }
   }
 });
