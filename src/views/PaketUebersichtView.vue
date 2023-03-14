@@ -12,10 +12,12 @@
       @grid-ready="onGridReady">
     </ag-grid-vue>
     <v-card class="d-flex justify-center fixed">
+      <v-btn :disabled="this.selectedRow === null" class="mx-5" @click="moveUp">Arbeitspaket nach oben verschieben</v-btn>
       <v-btn class="mx-5" @click="addNewPaket">Neues Arbeitspaket anlegen</v-btn>
       <v-btn :disabled="this.selectedRow === null" class="mx-5" @click="addNewKindPaket">Neues Arbeitspaket als Kind anlegen</v-btn>
       <v-btn :disabled="this.selectedRow === null" class="mx-5" @click="removeItem">Arbeitspaket löschen</v-btn>
       <v-btn :disabled="this.selectedRow === null" class="mx-5">Bucket zuweisen</v-btn>
+      <v-btn :disabled="this.selectedRow === null" class="mx-5" @click="moveDown">Arbeitspaket nach unten verschieben</v-btn>
     </v-card>
   </div>
 </template>
@@ -170,6 +172,20 @@ export default {
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView));
       }
       this.selectedRow=null
+    },
+    moveUp() {
+      if(this.selectedRow!=null) {
+        this.paketeStore.moveUp(this.selectedRow.id);
+        this.gridApi.refreshCells({force:true});
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView));
+      }
+    },
+    moveDown() {
+      if(this.selectedRow!=null) {
+        this.paketeStore.moveDown(this.selectedRow.id);
+        this.gridApi.refreshCells({force:true});
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView));
+      }
     }
   }
 };
