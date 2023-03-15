@@ -1,5 +1,5 @@
 <template>
-  <div :style="'margin-left:' + params.node.data.lvl * 20 + 'px'">
+  <div :style="'margin-left:' + params.node.data.lvl * 30 + 'px'">
     <v-btn size="x-small" :style="params.node.data.children.length>0 ? 'visibility:visible':'visibility:hidden'"
            @click="changeOpenState">
       <v-icon size="x-small" v-if="!params.node.data.open">mdi-plus</v-icon>
@@ -24,6 +24,7 @@ export default {
       const paketeStore = usePaketeStore();
       let aktuellesPaket = this.params.node.data;
       aktuellesPaket.open = !aktuellesPaket.open;
+      this.params.node.setSelected(true)
       this.params.node.setData(aktuellesPaket);
       paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket);
       nextTick(() => this.params.api.setRowData(paketeStore.getTreeView))
