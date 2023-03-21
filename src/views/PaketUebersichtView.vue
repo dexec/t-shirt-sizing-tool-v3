@@ -1,17 +1,17 @@
 <template>
   <div style='width: 100%;height: 100%'>
     <ag-grid-vue
-      style='width: 100%;height: 90%'
-      class='ag-theme-alpine'
-      :rowData='rowData'
-      :columnDefs='columnDefs'
-      :defaultColDef='defaultColDef'
-      :getRowId='getRowId'
-      suppressRowHoverHighlight='true'
-      @cellClicked='onCellClicked'
-      rowSelection='single'
-      :navigateToNextCell='navigateToNextCell'
-      @grid-ready='onGridReady'>
+        style='width: 100%;height: 90%'
+        class='ag-theme-alpine'
+        :rowData='rowData'
+        :columnDefs='columnDefs'
+        :defaultColDef='defaultColDef'
+        :getRowId='getRowId'
+        suppressRowHoverHighlight='true'
+        @cellClicked='onCellClicked'
+        rowSelection='single'
+        :navigateToNextCell='navigateToNextCell'
+        @grid-ready='onGridReady'>
     </ag-grid-vue>
     <div class='d-flex flex-wrap justify-center fixed'>
       <v-btn class='mx-5' @click='addNewPaket'>Neues Arbeitspaket anlegen</v-btn>
@@ -21,15 +21,19 @@
       <v-btn @click='movePaketLeft' class='mx-5'>
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
-      <v-btn @click='movePaketRight' class='mx-5'>
-        <v-icon>mdi-arrow-right</v-icon>
-      </v-btn>
       <v-btn @click='movePaketUp' class='mx-5'>
         <v-icon>mdi-arrow-up</v-icon>
       </v-btn>
       <v-btn @click='movePaketDown' class='mx-5'>
         <v-icon>mdi-arrow-down</v-icon>
       </v-btn>
+      <v-btn @click='movePaketUpRight' class='mx-5'>
+        <v-icon>mdi-arrow-top-right</v-icon>
+      </v-btn>
+      <v-btn @click='movePaketDownRight' class='mx-5'>
+        <v-icon>mdi-arrow-bottom-right</v-icon>
+      </v-btn>
+      <v-btn @click="switchFlatAndTree">Switch</v-btn>
     </div>
   </div>
 </template>
@@ -99,16 +103,17 @@ function removeItem() {
 <script>
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
-import { AgGridVue } from 'ag-grid-vue3'
+import {AgGridVue} from 'ag-grid-vue3'
 import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue'
 
-import { usePaketeStore } from '@/stores/pakete'
-import { nextTick } from 'vue'
+import {usePaketeStore} from '@/stores/pakete'
+import {nextTick} from 'vue'
 
 export default {
   name: 'PaketUebersichtView',
   data() {
     return {
+      test: true,
       gridApi: null,
       columnApi: null,
       defaultColDef: {
@@ -119,10 +124,7 @@ export default {
           field: 'ticket_nr',
           headerName: 'Ticket-NR',
           minWidth: 5,
-          cellRenderer: TreeDataCellRenderer,
-          cellRendererParams: {
-            selectedRow: this.selectedRow
-          }
+          cellRenderer: TreeDataCellRenderer
         },
         {
           field: 'lvl',
@@ -143,7 +145,6 @@ export default {
         {
           field: 'bucket',
           headerName: 'Bucket',
-          editable: false
         },
         {
           field: 'schaetzung',
@@ -160,7 +161,7 @@ export default {
     let getRowId = (params) => params.data.id
     const paketeStore = usePaketeStore()
     const rowData = paketeStore.paketeAsTreeView
-    return { rowData, paketeStore, getRowId }
+    return {rowData, paketeStore, getRowId}
   },
   components: {
     AgGridVue,
@@ -182,13 +183,13 @@ export default {
     },
     addNewPaket() {
       this.paketeStore.addNew(null)
-      this.gridApi.refreshCells({ force: true })
+      this.gridApi.refreshCells({force: true})
       nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
     },
     addNewKindPaket() {
       if (this.gridApi.getSelectedRows()[0] != null) {
         this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({ force: true })
+        this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
     },
@@ -201,41 +202,56 @@ export default {
     movePaketUp() {
       if (this.gridApi.getSelectedRows()[0] != null) {
         this.paketeStore.moveUp(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({ force: true })
+        this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
     },
     movePaketDown() {
       if (this.gridApi.getSelectedRows()[0] != null) {
         this.paketeStore.moveDown(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({ force: true })
+        this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
     },
     movePaketLeft() {
       if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveLeft(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({ force: true })
+        this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
     },
-    movePaketRight() {
+    movePaketDownRight() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveRight(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({ force: true })
+        this.paketeStore.moveDownRight(this.gridApi.getSelectedRows()[0].id)
+        this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
+    },
+    movePaketUpRight() {
+      if (this.gridApi.getSelectedRows()[0]) {
+        this.paketeStore.moveUpRight(this.gridApi.getSelectedRows()[0].id)
+        this.gridApi.refreshCells({force: true})
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+      }
+    },
+    switchFlatAndTree() {
+      const params = {columns: ['ticket_nr']}
+      const instances = this.gridApi.getCellRendererInstances(params);
+      instances.forEach((instance) => {
+        instance.switchFlatAndTree();
+      })
+
     },
     navigateToNextCell(params) {
       const suggestedNextCell = params.nextCellPosition
       const KEY_UP = 'ArrowUp'
       const KEY_DOWN = 'ArrowDown'
       const noUpOrDownKeyPressed =
-        params.key !== KEY_DOWN && params.key !== KEY_UP
+          params.key !== KEY_DOWN && params.key !== KEY_UP
       if (noUpOrDownKeyPressed || !suggestedNextCell) {
         return suggestedNextCell
       }
-      params.api.forEachNode(function(node) {
+      params.api.forEachNode(function (node) {
         if (node.rowIndex === suggestedNextCell.rowIndex) {
           node.setSelected(true)
         }
