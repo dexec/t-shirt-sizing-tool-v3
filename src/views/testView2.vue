@@ -19,6 +19,7 @@ import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 import { AgGridVue } from 'ag-grid-vue3'
 import { nextTick } from 'vue'
+import {Paket} from "@/Paket";
 
 export default {
   name: 'testView2',
@@ -69,7 +70,7 @@ export default {
   },
   setup() {
     let getRowId = (params) => params.data.id
-    const rowData = [{
+    const rowData = Paket[{
       id: 0,
       ticket_nr: 111222,
       thema: 'Testticket',
