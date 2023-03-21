@@ -8,9 +8,10 @@
                  animateRows="true"
                  @grid-ready="onGridReady"
     ></ag-grid-vue>
-<!--    <v-data-table :headers="headers" :rowData="rowData" item-key="id" @click:row="selectRow"
-                  single-select hide-default-footer fixed-header height="500"></v-data-table>
-    --><v-btn @click="zwischensummeErstellen">Zwischensumme erstellen</v-btn>
+    <!--    <v-data-table :headers="headers" :rowData="rowData" item-key="id" @click:row="selectRow"
+                      single-select hide-default-footer fixed-header height="500"></v-data-table>
+        -->
+    <v-btn @click="zwischensummeErstellen">Zwischensumme erstellen</v-btn>
     <v-btn>Zeile entfernen</v-btn>
     <v-dialog max-width="10%" v-model="dialog_createAufschlag">
       <template v-slot:activator="{on}">
