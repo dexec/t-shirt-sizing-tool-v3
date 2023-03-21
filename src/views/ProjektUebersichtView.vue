@@ -53,7 +53,8 @@
                 <v-card :class="{'on-hover':hover}" class="bucket" :elevation="hover ? 12:2"
                         :style="bucket.id===currentSelectedBucket? 'backgroundColor: green': ''
                         || bucket.name===''? 'border: 1px solid red !important':''"
-                        @click="currentSelectedBucket=bucket.id" @dblclick="currentEditBucket=bucket.id; newBucketName=bucket.name">
+                        @click="currentSelectedBucket=bucket.id"
+                        @dblclick="currentEditBucket=bucket.id; newBucketName=bucket.name">
                   {{ bucket.name }}
                 </v-card>
               </v-hover>
@@ -92,7 +93,7 @@
 }
 </style>
 <script>
-import { useBucketsStore } from "@/stores/buckets";
+import {useBucketsStore} from "@/stores/buckets";
 
 export default {
   name: "ProjektkalkulationView",
@@ -105,11 +106,11 @@ export default {
   },
   setup() {
     const bucketStore = useBucketsStore();
-    return { bucketStore };
+    return {bucketStore};
   },
   methods: {
     func(bucket) {
-      if (bucket.id === this.currentSelectedBucket && this.currentEditBucket===-1) return ""
+      if (bucket.id === this.currentSelectedBucket && this.currentEditBucket === -1) return ""
       else return "visibility: hidden"
     },
     addNewBucketBefore(bucket) {
@@ -121,12 +122,12 @@ export default {
       this.currentEditBucket = bucket.id - 1
     },
     addNewBucketAfter(bucket) {
-      this.copyBuckets.splice(bucket.id+1, 0, {id: null, name: ''})
+      this.copyBuckets.splice(bucket.id + 1, 0, {id: null, name: ''})
       for (let i = bucket.id; i < this.copyBuckets.length; i++) {
         this.copyBuckets[i].id = i
       }
       this.speichernBuckets()
-      this.currentEditBucket = bucket.id +1
+      this.currentEditBucket = bucket.id + 1
     },
     editBucket() {
       this.copyBuckets[this.currentEditBucket].name = this.newBucketName
