@@ -9,6 +9,7 @@
         :getRowId='getRowId'
         suppressRowHoverHighlight='true'
         @cellClicked='onCellClicked'
+        @cellValueChanged="onCellValueChanged"
         rowSelection='single'
         :navigateToNextCell='navigateToNextCell'
         @grid-ready='onGridReady'>
@@ -33,7 +34,6 @@
       <v-btn @click='movePaketDownRight' class='mx-5'>
         <v-icon>mdi-arrow-bottom-right</v-icon>
       </v-btn>
-      <v-btn @click="switchFlatAndTree">Switch</v-btn>
     </div>
   </div>
 </template>
@@ -113,7 +113,6 @@ export default {
   name: 'PaketUebersichtView',
   data() {
     return {
-      test: true,
       gridApi: null,
       columnApi: null,
       defaultColDef: {
@@ -180,6 +179,9 @@ export default {
     },
     onCellClicked(params) {
       this.selectedRow = params.data
+    },
+    onCellValueChanged(params) {
+      this.paketeStore.updatePaket(params.data)
     },
     addNewPaket() {
       this.paketeStore.addNew(null)
