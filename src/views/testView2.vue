@@ -1,160 +1,69 @@
 <template>
-  <div style='height: 100%; width: 100%'>
-    <ag-grid-vue
-      style='width: 100%; height: 90%'
-      class='ag-theme-alpine'
-      :columnDefs='columnDefs'
-      :rowData='rowData'
-      :getRowId='getRowId'
-      :defaultColDef='defaultColDef'
-      rowSelection='single'
-      :navigateToNextCell='navigateToNextCell'
-      @grid-ready='onGridReady'></ag-grid-vue>
-    <v-btn @click='update'>update</v-btn>
-  </div>
+  <v-container>
+    <v-row>
+      <v-col v-for="bucket of this.buckets" :key="bucket.id">
+        <draggable
+                   class="list-group ma-4"
+                   :list="getPaketSortedByBucket(bucket.name)"
+                   group="people"
+                   itemKey="name"
+                   @change="change($event,bucket)"
+        >
+          <template #header>
+            <div class="paket ma-4">{{bucket.name}}</div>
+          </template>
+          <template #item="{ element }">
+            <div class="list-group-item ma-4 paket">{{ element.thema }}</div>
+          </template>
+        </draggable>
+      </v-col>
+    </v-row>
+  </v-container>
+
 </template>
 
 <script>
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
-import { AgGridVue } from 'ag-grid-vue3'
-import { nextTick } from 'vue'
-import {Paket} from "@/Paket";
+import {usePaketeStore} from "@/stores/pakete";
+import draggable from 'vuedraggable'
+import {useBucketsStore} from "@/stores/buckets";
 
 export default {
   name: 'testView2',
   data() {
-    return {
-      selectedRow: null,
-      gridApi: null,
-      columnApi: null,
-      defaultColDef: {
-        editable: true
-      },
-      columnDefs: [
-        {
-          field: 'id',
-          headerName: 'ID'
-        },
-        {
-          field: 'ticket_nr',
-          headerName: 'Ticket-NR'
-        },
-        {
-          field: 'thema',
-          headerName: 'Thema'
-        },
-        {
-          field: 'beschreibung',
-          headerName: 'Beschreibung'
-        },
-        {
-          field: 'komponente',
-          headerName: 'Komponente'
-        },
-        {
-          field: 'bucket',
-          headerName: 'Bucket',
-          editable: false
-        },
-        {
-          field: 'schaetzung',
-          headerName: 'Schätzung'
-        }
-      ]
-    }
+    return {}
   },
-
   components: {
-    AgGridVue
+    draggable
   },
+  computed: {},
   setup() {
-    let getRowId = (params) => params.data.id
-    const rowData = Paket[{
-      id: 0,
-      ticket_nr: 111222,
-      thema: 'Testticket',
-      beschreibung: 'Ticket zum Stresstesten',
-      komponente: 'Test',
-      bucket: null,
-      schaetzung: null
-    },
-      {
-        id: 1,
-        ticket_nr: 111222,
-        thema: 'Testticket',
-        beschreibung: 'Ticket zum Stresstesten',
-        komponente: 'Test',
-        bucket: null,
-        schaetzung: null
-      },
-      {
-        id: 2,
-        ticket_nr: 111222,
-        thema: 'Testticket',
-        beschreibung: 'Ticket zum Stresstesten',
-        komponente: 'Test',
-        bucket: null,
-        schaetzung: null
-      }]
-    return { rowData, getRowId }
+    const paketeStore = usePaketeStore()
+    const bucketStore = useBucketsStore();
+    const rowData = paketeStore.paketeAsTreeView
+    const buckets = bucketStore.getBuckets;
+    return {rowData, paketeStore, buckets}
   },
   methods: {
-    onGridReady(params) {
-      this.gridApi = params.api
-      this.columnApi = params.columnApi
-    },
-    update() {
-      const rowData = [{
-        id: 5,
-        ticket_nr: 111222,
-        thema: 'Testticket',
-        beschreibung: 'Ticket zum Stresstesten',
-        komponente: 'Test',
-        bucket: null,
-        schaetzung: null
-      },
-        {
-          id: 6,
-          ticket_nr: 111222,
-          thema: 'Testticket',
-          beschreibung: 'Ticket zum Stresstesten',
-          komponente: 'Test',
-          bucket: null,
-          schaetzung: null
-        },
-        {
-          id: 7,
-          ticket_nr: 111222,
-          thema: 'Testticket',
-          beschreibung: 'Ticket zum Stresstesten',
-          komponente: 'Test',
-          bucket: null,
-          schaetzung: null
-        }]
-      nextTick(() => this.gridApi.setRowData(rowData))
-    },
-    navigateToNextCell(params) {
-      const suggestedNextCell = params.nextCellPosition
-      const KEY_UP = 'ArrowUp'
-      const KEY_DOWN = 'ArrowDown'
-      const noUpOrDownKeyPressed =
-        params.key !== KEY_DOWN && params.key !== KEY_UP
-      if (noUpOrDownKeyPressed || !suggestedNextCell) {
-        return suggestedNextCell
-      }
-      params.api.forEachNode(function(node) {
-        if (node.rowIndex === suggestedNextCell.rowIndex) {
-          node.setSelected(true)
-        }
+    getPaketSortedByBucket(bucket) {
+      const result = [];
+      this.paketeStore.paketeAsMap.forEach(paket => {
+        if (paket.bucket === bucket) result.push(paket)
       })
-      this.selectedRow = params.api.getSelectedRows()[0]
-      return suggestedNextCell
+      return result
+    },
+    change(evt, bucket) {
+      if (evt.added !== undefined) {
+        const updatePaket = evt.added.element
+        updatePaket.bucket = bucket.name
+        this.paketeStore.updatePaket(updatePaket)
+      }
     }
   }
 }
 </script>
 
-<style scoped>
+<style>
 
 </style>
