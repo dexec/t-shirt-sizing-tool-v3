@@ -62,6 +62,15 @@ export const usePaketeStore = defineStore('pakete', {
         },
         getFlatView(state) {
             return Array.from(state.paketeAsMap.values())
+        },
+        getMap(state) {
+            return state.paketeAsMap
+        },
+        getChildren(state) {
+            return Array.from(state.paketeAsMap.values()).filter(paket => paket.children.length==0)
+        },
+        getChildrenWithNoBucket(state) {
+            return Array.from(state.paketeAsMap.values()).filter(paket => paket.children.length==0 && paket.bucket == null)
         }
     },
     actions: {
@@ -115,6 +124,7 @@ export const usePaketeStore = defineStore('pakete', {
             let counter = 0
             while (stack.length > 0) {
                 const aktuellesPaket = stack.shift()
+                this.paketeAsMap.delete(aktuellesPaket.id)
                 if (aktuellesPaket.open) {
                     for (const child of aktuellesPaket.children) {
                         stack.push(child)
@@ -187,21 +197,23 @@ export const usePaketeStore = defineStore('pakete', {
         moveDown(id: number) {
             const paketToMove = this.paketeAsMap.get(id)
             if (paketToMove.parent != null && paketToMove.parent.children.indexOf(paketToMove) == paketToMove.parent.children.length - 1) return
-            let indexOfPaketToMove = this.paketeAsTreeView.indexOf(paketToMove)
-            if (paketToMove.lvl == 0 && indexOfPaketToMove == this.paketeAsTreeView.length - 1) return
-            let indexOfPaketUnder = -1
-            for (let i = indexOfPaketToMove + 1; indexOfPaketUnder == -1; i++) {
-                if (this.paketeAsTreeView[i].lvl == paketToMove.lvl) {
-                    indexOfPaketUnder = i
-                }
-            }
-            const paketUnder = this.paketeAsTreeView[indexOfPaketUnder]
             const paketToMoveOpenAfter = paketToMove.open
-            const paketUnderOpenAfter = paketUnder.open
             if (paketToMove.open) {
                 paketToMove.open = false
                 this.updateTreeViewAfterChangedOpenState(paketToMove)
             }
+            let indexOfPaketToMove = this.paketeAsTreeView.indexOf(paketToMove)
+            if (paketToMove.lvl == 0 && indexOfPaketToMove == this.paketeAsTreeView.length - 1) {
+                if (paketToMoveOpenAfter) {
+                    paketToMove.open = true
+                    this.updateTreeViewAfterChangedOpenState(paketToMove)
+                }
+                return;
+            }
+            let indexOfPaketUnder = indexOfPaketToMove + 1;
+            const paketUnder = this.paketeAsTreeView[indexOfPaketUnder]
+            const paketUnderOpenAfter = paketUnder.open
+
             if (paketUnder.open) {
                 paketUnder.open = false
                 this.updateTreeViewAfterChangedOpenState(paketUnder)
