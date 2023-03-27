@@ -6,21 +6,32 @@
           <v-btn class="ma-2" color="primary" dark>
             <v-icon dark right>mdi-arrow-left</v-icon>
           </v-btn>
-          <v-table style="width: 30%;">
-            <tr>
-              <th style="width: 30%">ID</th>
-              <th>Thema</th>
-            </tr>
-            <tr>
-              <td>{{ currentPaket.id }}</td>
-              <td>{{ currentPaket.thema }}</td>
-            </tr>
-          </v-table>
+          <!--          <v-table style="width: 30%;">
+                      <tr>
+                        <th style="width: 30%">ID</th>
+                        <th>Thema</th>
+                      </tr>
+                      <tr>
+                        <td>{{ currentPaket.id }}</td>
+                        <td>{{ currentPaket.thema }}</td>
+                      </tr>
+                    </v-table>-->
+          <draggable
+              class="list-group ma-4"
+              :list="listCurrentPaket"
+              group="pakete"
+              itemKey="name"
+              @change="addCurrentPaket"
+          >
+            <template #item="{ element }">
+              <div class="list-group-item ma-4 paket">{{ element.thema }}</div>
+            </template>
+          </draggable>
           <v-btn class="ma-2" color="primary" dark>
             <v-icon dark right>mdi-arrow-right</v-icon>
           </v-btn>
         </v-row>
-        <v-row class="d-flex flex-nowrap">
+        <v-row class="d-flex flex-nowrap justify-center">
           <!--          <v-table v-for="selectedBuckedId in selected" :key="selected.indexOf(selectedBuckedId)" class="mr-4"
                              style="width: 30%">
                       <tr>
@@ -34,20 +45,20 @@
                         <td>{{ paket.thema }}</td>
                       </tr>
                     </v-table>-->
-          <div v-for="bucket in buckets" :key="bucket.id"  class="mr-4">
+          <div v-for="bucket in buckets" :key="bucket.id">
             <draggable
                 v-if="this.selected.includes(bucket.id)"
-                class="list-group ma-4"
+                class="list-group ma-2"
                 :list="getPaketSortedByBucket(bucket)"
                 group="pakete"
                 itemKey="name"
-                @change="change($event,bucket)"
+                @change="changeBucketOfPaket($event,bucket)"
             >
               <template #header>
-                <div class="paket ma-4">{{ bucket.name }}</div>
+                <div class="paket ma-2">{{ bucket.name }}</div>
               </template>
               <template #item="{ element }">
-                <div class="list-group-item ma-4 paket">{{ element.thema }}</div>
+                <div class="list-group-item ma-2 paket">{{ element.thema }}</div>
               </template>
             </draggable>
           </div>
@@ -69,17 +80,20 @@
         <v-table>
           <thead>
           <tr>
-            <th>Ticket-NR</th>
+            <th style="width: 30%">Ticket-NR</th>
             <th>Thema</th>
           </tr>
           </thead>
-          <tbody>
-          <tr v-for="paket of getPaketeWithNoBucket()" :key="paket.id">
-            <td>{{ paket.ticket_nr }}</td>
+          <tbody v-if="this.allPaketeWithNoBucket.length>0">
+          <tr v-for="paket of this.allPaketeWithNoBucket" :key="paket.id">
+            <td>{{ paket.id }}</td>
             <td>{{ paket.thema }}</td>
           </tr>
           </tbody>
         </v-table>
+        <span v-if="this.allPaketeWithNoBucket.length===0">
+          Es gibt keine Pakete ohne Bucket
+        </span>
       </v-col>
     </v-row>
   </v-container>
@@ -97,19 +111,23 @@ export default {
   },
   data() {
     return {
-      currentPaket: this.allPaketeWithNoBucket[0],
       dialog: false,
       checked: true,
-      selected: [0,1,2],
+      selected: this.bucketStore.getBuckets.map(bucket => bucket.id),
+      updateTable: true,
+      buckets: this.bucketStore.getBuckets,
+      allPakete: this.paketeStore.getChildren,
+      allPaketeWithNoBucket: this.paketeStore.getChildrenWithNoBucket,
+      listCurrentPaket: []
     }
   },
   setup() {
     const paketeStore = usePaketeStore()
     const bucketStore = useBucketsStore()
-    const buckets = bucketStore.getBuckets
-    const allPakete = paketeStore.getChildren
-    const allPaketeWithNoBucket = paketeStore.getChildrenWithNoBucket
-    return {allPakete, buckets, allPaketeWithNoBucket, paketeStore}
+    return {bucketStore, paketeStore}
+  },
+  mounted() {
+    if (this.paketeStore.getChildrenWithNoBucket.length > 0) this.listCurrentPaket = [this.paketeStore.getChildrenWithNoBucket[0]]
   },
   methods: {
     sortSelectedBuckets() {
@@ -124,19 +142,22 @@ export default {
       })
       return result
     },
-    getPaketeWithNoBucket() {
-      return this.allPaketeWithNoBucket
-    },
     getSelectedBuckets() {
       return this.buckets.filter(bucket => {
         this.selected.find(bucket.id)
       })
     },
-    change(evt, bucket) {
+    changeBucketOfPaket(evt, bucket) {
       if (evt.added !== undefined) {
         const updatePaket = evt.added.element
         updatePaket.bucket = bucket.name
         this.paketeStore.updatePaket(updatePaket)
+      }
+    },
+    addCurrentPaket(evt) {
+      if (evt.removed) {
+        this.allPaketeWithNoBucket = this.paketeStore.getChildrenWithNoBucket
+        if (this.paketeStore.getChildrenWithNoBucket.length > 0) this.listCurrentPaket = [this.paketeStore.getChildrenWithNoBucket[0]]
       }
     }
   },
