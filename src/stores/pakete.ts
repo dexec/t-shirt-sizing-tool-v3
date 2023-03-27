@@ -44,7 +44,7 @@ while (stackForTreeView.length > 0) {
 }
 
 for (let i = idCounter; i < 10; i++, idCounter++) {
-    const newPaket = new Paket(i, '111', 'Testticket', 'Ticket zum Stresstesten', 'Test', null, null, false, 0, null, [])
+    const newPaket = new Paket(i, '111', 'Testticket', 'Ticket zum Stresstesten', 'Test', "XL", null, false, 0, null, [])
     paketeAsTreeView.push(newPaket)
     paketeAsMap.set(i, newPaket)
 }
@@ -312,7 +312,7 @@ export const usePaketeStore = defineStore('pakete', {
                 this.updateTreeViewAfterChangedOpenState(paketToMove)
             }
         },
-        moveLeft(id: number) {
+        moveLeftUp(id: number) {
             const paketToMove = this.paketeAsMap.get(id)
             if (paketToMove.lvl == 0) return
             const indexOfPaketToMove = this.paketeAsTreeView.indexOf(paketToMove)
@@ -337,6 +337,44 @@ export const usePaketeStore = defineStore('pakete', {
             if (paketToMoveOpenAfter) {
                 paketToMove.open = true
                 this.updateTreeViewAfterChangedOpenState(paketToMove)
+            }
+            if (paketToMove.lvl == 0) paketToMove.parent = null
+            else paketToMove.parent = paketToMove.parent.parent
+        },
+        moveLeftDown(id: number) {
+            const paketToMove = this.paketeAsMap.get(id)
+            if (paketToMove.lvl == 0) return
+            const indexOfPaketToMove = this.paketeAsTreeView.indexOf(paketToMove)
+            const indexOfParent = this.paketeAsTreeView.indexOf(paketToMove.parent)
+            if (paketToMove.lvl >= 1) {
+                const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove)
+                paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1)
+                if (paketToMove.lvl >= 2) {
+                    const indexOfParentAsChild = paketToMove.parent.parent.children.indexOf(paketToMove.parent)
+                    paketToMove.parent.parent.children.splice(indexOfParentAsChild + 1, 0, paketToMove)
+                }
+            }
+            if (paketToMove.parent.children.length == 0) paketToMove.parent.open = false
+            this.updateLvl(-1, paketToMove)
+            const paketToMoveOpenAfter = paketToMove.open
+            if (paketToMove.open) {
+                paketToMove.open = false
+                this.updateTreeViewAfterChangedOpenState(paketToMove)
+            }
+            this.paketeAsTreeView.splice(indexOfPaketToMove, 1)
+            const parentOpenAfter = paketToMove.parent.open;
+            if (paketToMove.parent.open) {
+                paketToMove.parent.open = false
+                this.updateTreeViewAfterChangedOpenState(paketToMove.parent)
+            }
+            this.paketeAsTreeView.splice(indexOfParent+1, 0, paketToMove)
+            if (paketToMoveOpenAfter) {
+                paketToMove.open = true
+                this.updateTreeViewAfterChangedOpenState(paketToMove)
+            }
+            if (parentOpenAfter) {
+                paketToMove.parent.open = true
+                this.updateTreeViewAfterChangedOpenState(paketToMove.parent)
             }
             if (paketToMove.lvl == 0) paketToMove.parent = null
             else paketToMove.parent = paketToMove.parent.parent
