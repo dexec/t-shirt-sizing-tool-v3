@@ -19,8 +19,11 @@
       <v-btn class='mx-5' @click='addNewKindPaket'>Neues Arbeitspaket als Kind anlegen</v-btn>
       <v-btn class='mx-5' @click='removeItem'>Arbeitspaket löschen</v-btn>
       <v-btn class='mx-5'>Bucket zuweisen</v-btn>
-      <v-btn @click='movePaketLeft' class='mx-5'>
-        <v-icon>mdi-arrow-left</v-icon>
+      <v-btn @click='movePaketLeftUp' class='mx-5'>
+        <v-icon>mdi-arrow-top-left</v-icon>
+      </v-btn>
+      <v-btn @click='movePaketLeftDown' class='mx-5'>
+        <v-icon>mdi-arrow-bottom-left</v-icon>
       </v-btn>
       <v-btn @click='movePaketUp' class='mx-5'>
         <v-icon>mdi-arrow-up</v-icon>
@@ -215,9 +218,16 @@ export default {
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
     },
-    movePaketLeft() {
+    movePaketLeftUp() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveLeft(this.gridApi.getSelectedRows()[0].id)
+        this.paketeStore.moveLeftUp(this.gridApi.getSelectedRows()[0].id)
+        this.gridApi.refreshCells({force: true})
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+      }
+    },
+    movePaketLeftDown() {
+      if (this.gridApi.getSelectedRows()[0]) {
+        this.paketeStore.moveLeftDown(this.gridApi.getSelectedRows()[0].id)
         this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
