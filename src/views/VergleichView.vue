@@ -2,7 +2,7 @@
   <v-container fluid class="fill-height">
     <v-row class="fill-height">
       <v-col cols="9" class="d-flex flex-column">
-        <v-row justify="center">
+        <v-row style="height: 30%" v-if="allPaketeWithNoBucket.length>0" justify="center">
           <v-btn class="ma-2" color="primary" dark>
             <v-icon dark right>mdi-arrow-left</v-icon>
           </v-btn>
@@ -17,7 +17,8 @@
                       </tr>
                     </v-table>-->
           <draggable
-              class="list-group ma-4"
+              class="dragArea list-group ma-4"
+              ghost-class="destination-item"
               :list="listCurrentPaket"
               group="pakete"
               itemKey="name"
@@ -31,7 +32,8 @@
             <v-icon dark right>mdi-arrow-right</v-icon>
           </v-btn>
         </v-row>
-        <v-row class="d-flex flex-nowrap justify-center">
+        <v-row style="height: 30%" justify="center" v-else>Keine Tickets da!</v-row>
+        <v-row style="height: 70%" class="d-flex flex-nowrap justify-center">
           <!--          <v-table v-for="selectedBuckedId in selected" :key="selected.indexOf(selectedBuckedId)" class="mr-4"
                              style="width: 30%">
                       <tr>
@@ -48,7 +50,8 @@
           <div v-for="bucket in buckets" :key="bucket.id">
             <draggable
                 v-if="this.selected.includes(bucket.id)"
-                class="list-group ma-2"
+                class="dragArea list-group ma-2"
+                ghost-class="destination-item"
                 :list="getPaketSortedByBucket(bucket)"
                 group="pakete"
                 itemKey="name"
@@ -170,5 +173,14 @@ export default {
   width: 170px !important;
   height: 50px !important;
   text-align: center !important;
+}
+
+.list-group {
+  width: 200px;
+  min-height: 250px;
+}
+
+.destination-item {
+  display: none;
 }
 </style>
