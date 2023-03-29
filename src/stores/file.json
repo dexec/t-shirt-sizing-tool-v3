@@ -1,4 +1,58 @@
 {
+  "aufschlaege": [
+    {
+      "bezeichnung": "And. analyse",
+      "aufschlag": 55
+    },
+    {
+      "bezeichnung": "Entwurf",
+      "aufschlag": 20
+    },
+    {
+      "bezeichnung": "QS",
+      "aufschlag": 40
+    },
+    {
+      "bezeichnung": "PM",
+      "aufschlag": 20
+    },
+    {
+      "bezeichnung": "Kommunikation",
+      "aufschlag": 10
+    },
+    {
+      "bezeichnung": "Techn. Doku",
+      "aufschlag": 4
+    },
+    {
+      "bezeichnung": "Puffer",
+      "aufschlag": 10
+    },
+    {
+      "bezeichnung": "Unit-Tests",
+      "aufschlag": 15
+    },
+    {
+      "bezeichnung": "E2E-Tests",
+      "aufschlag": 15
+    },
+    {
+      "bezeichnung": "Perf-Tests",
+      "aufschlag": 3
+    },
+    {
+      "bezeichnung": "Berechtigungen",
+      "aufschlag": 5
+    },
+    {
+      "bezeichnung": "ZWISCHENSUMME",
+      "aufschlag": 0
+    },
+    {
+      "bezeichnung": "Adressmodul aus Bucket E",
+      "aufschlag": 10
+    }
+  ],
   "buckets": [
     {
       "id": 0,
@@ -34,7 +88,6 @@
       "komponente": "A",
       "bucket": null,
       "schaetzung": 321,
-      "visible": true,
       "open": false,
       "lvl": 0,
       "children": [
@@ -46,7 +99,6 @@
           "komponente": "Komp-A",
           "bucket": null,
           "schaetzung": null,
-          "visible": false,
           "open": true,
           "lvl": 1,
           "children": [
@@ -58,7 +110,6 @@
               "komponente": "Komp-B",
               "bucket": "XS",
               "schaetzung": null,
-              "visible": false,
               "open": false,
               "lvl": 2,
               "children": []
@@ -73,7 +124,6 @@
           "komponente": "Komp-C",
           "bucket": "M",
           "schaetzung": null,
-          "visible": false,
           "open": false,
           "lvl": 1,
           "children": []
@@ -86,7 +136,6 @@
           "komponente": "Komp-A",
           "bucket": null,
           "schaetzung": 500,
-          "visible": false,
           "open": false,
           "lvl": 1,
           "children": [
@@ -98,7 +147,6 @@
               "komponente": "Komp-AB",
               "bucket": "L",
               "schaetzung": 350,
-              "visible": false,
               "open": false,
               "lvl": 2,
               "children": []
@@ -111,7 +159,6 @@
               "komponente": "Komp-ABC",
               "bucket": "M",
               "schaetzung": 150,
-              "visible": false,
               "open": false,
               "lvl": 2,
               "children": [
@@ -123,7 +170,6 @@
                   "komponente": "Komp-F",
                   "bucket": "S",
                   "schaetzung": null,
-                  "visible": false,
                   "open": false,
                   "lvl": 3,
                   "children": []
@@ -142,7 +188,6 @@
       "komponente": "Komp-F",
       "bucket": null,
       "schaetzung": null,
-      "visible": true,
       "open": false,
       "lvl": 0,
       "children": []
