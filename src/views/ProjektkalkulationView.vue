@@ -5,38 +5,18 @@
                  :rowData="rowData"
                  :columnDefs="columnDefs"
                  rowSelection="single"
-                 animateRows="true"
+                 :rowClassRules="rowClassRules"
+                 @cellValueChanged="onCellValueChanged"
+                 @cellClicked='onCellClicked'
+                 :navigateToNextCell='navigateToNextCell'
                  @grid-ready="onGridReady"
     ></ag-grid-vue>
     <!--    <v-data-table :headers="headers" :rowData="rowData" item-key="id" @click:row="selectRow"
                       single-select hide-default-footer fixed-header height="500"></v-data-table>
         -->
     <v-btn @click="zwischensummeErstellen">Zwischensumme erstellen</v-btn>
-    <v-btn>Zeile entfernen</v-btn>
-    <v-dialog max-width="10%" v-model="dialog_createAufschlag">
-      <template v-slot:activator="{on}">
-        <v-btn v-on="on">Aufschlag hinzufügen</v-btn>
-      </template>
-      <v-card>
-        <v-form>
-          <v-container>
-            <v-card-text>
-              <v-row justify="center">
-                <v-text-field v-model="aufschlag_bezeichnung" label="Bezeichnung" clearable></v-text-field>
-              </v-row>
-              <v-row justify="center">
-                <v-text-field type="number" v-model="aufschlag_wert" label="Aufschlag" clearable></v-text-field>
-              </v-row>
-            </v-card-text>
-            <v-card-actions>
-              <v-row justify="center">
-                <v-btn @click="aufschlagErstellen">Anlegen</v-btn>
-              </v-row>
-            </v-card-actions>
-          </v-container>
-        </v-form>
-      </v-card>
-    </v-dialog>
+    <v-btn @click="zeileEntfernen">Zeile entfernen</v-btn>
+    <v-btn @click="aufschlagErstellen">Aufschlag hinzufügen</v-btn>
   </div>
 </template>
 
@@ -44,6 +24,8 @@
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import {AgGridVue} from "ag-grid-vue3";
+
+import {useAufschlaegeStore} from '@/stores/aufschlag'
 
 export default {
   name: "ProjektkalkulationView",
@@ -53,82 +35,150 @@ export default {
       gridApi: null,
       columnApi: null,
       columnDefs: [
-        {headerName: 'Bezeichnung', field: 'bezeichnung'},
-        {headerName: 'Aufschlag', field: 'aufschlag'},
-        {headerName: 'Aufwand', field: 'aufwand'},
-        {headerName: 'Anteil an nächster Zwischensumme', field: 'anteilZwischensumme'},
-        {headerName: 'Anteil am Gesamtprojekt', field: 'anteilGesamtprojekt'},
-      ],
-      rowData: [{
-        id: 0,
-        bezeichnung: 'Gesamtaufwand Durchschnitt',
-        aufwand: 20,
-        anteilZwischensumme: 20,
-        anteilGesamtprojekt: 50,
-        zwischensummen_id: null
-      },
         {
-          id: 1,
-          bezeichnung: "Summe",
-          aufwand: 20,
-          anteilZwischensumme: '',
-          anteilGesamtprojekt: '',
-          zwischensummen_id: null
-        }],
-      selectedItem: -1,
-      dialog_createAufschlag: false,
-      aufschlag_bezeichnung: '',
-      aufschlag_wert: 0.0,
+          headerName: 'Bezeichnung',
+          field: 'bezeichnung',
+          editable: params => !(params.data.bezeichnung === "ZWISCHENSUMME" || params.data.bezeichnung === "ENDSUMME" || params.data.bezeichnung === "STARTSUMME")
+        },
+        {
+          headerName: 'Aufschlag',
+          field: 'aufschlag',
+          editable: params => !(params.data.bezeichnung === "ZWISCHENSUMME" || params.data.bezeichnung === "ENDSUMME" || params.data.bezeichnung === "STARTSUMME"),
+          cellRenderer: params => params.value === null || params.value === 0 ? null : params.value + "%"
+        },
+        {headerName: 'Aufwand', field: 'aufwand'},
+        {
+          headerName: 'Anteil an nächster Zwischensumme',
+          field: 'anteilZwischensumme',
+          cellRenderer: params => params.value === null || params.value === 0 ? null : params.value + "%"
+        },
+        {
+          headerName: 'Anteil am Gesamtprojekt',
+          field: 'anteilGesamtprojekt',
+          cellRenderer: params => params.value === null || params.value === 0 ? null : params.value + "%"
+        },
+      ],
+    }
+  },
+  setup() {
+    const aufschlaegeStore = useAufschlaegeStore()
+    const rowData = [];
+    aufschlaegeStore.getAufschlage.forEach(aufschlag => {
+      rowData.push({
+        bezeichnung: aufschlag.bezeichnung,
+        aufschlag: aufschlag.aufschlag,
+      })
+    })
+    return {aufschlaegeStore, rowData}
+  },
+  created() {
+    this.rowClassRules = {
+      'zwischensumme': (params) => {
+        return params.data.bezeichnung === "ZWISCHENSUMME" || params.data.bezeichnung === "ENDSUMME" || params.data.bezeichnung === "STARTSUMME"
+      }
     }
   },
   methods: {
     onGridReady(params) {
       this.gridApi = params.api
       this.columnApi = params.columnApi;
+      this.berechne();
+    },
+    onCellClicked(params) {
+      this.selectedRow = params.data
+    },
+    onCellValueChanged(params) {
+      this.aufschlaegeStore.updateAufschlag(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]), params.data)
+      this.rowData = this.aufschlaegeStore.getAufschlage
+      this.gridApi.setRowData(this.aufschlaegeStore.getAufschlage)
+      this.berechne()
+    },
+    berechne() {
+      this.rowData[0].aufwand =  3272.75
+      this.rowData[0].anteilZwischensumme=null
+      this.rowData[0].anteilGesamtprojekt=null
+      let startSumme = this.rowData[0].aufwand
+      let zwischenSummeReferenz = startSumme;
+      let zwischenSummeAufschlag = 0;
+      let zwischenSummeAufwand = startSumme;
+      let endSumme = startSumme;
+
+      for (let i = 1; i < this.rowData.length; i++) {
+        if (this.rowData[i].bezeichnung === "ZWISCHENSUMME") {
+          this.rowData[i].aufschlag = zwischenSummeAufschlag;
+          this.rowData[i].aufwand = zwischenSummeAufwand
+          zwischenSummeReferenz = zwischenSummeAufwand
+          zwischenSummeAufschlag = 0
+        } else {
+          this.rowData[i].aufwand = zwischenSummeReferenz * this.rowData[i].aufschlag / 100
+          zwischenSummeAufschlag += this.rowData[i].aufschlag
+          zwischenSummeAufwand += this.rowData[i].aufwand
+          endSumme += this.rowData[i].aufwand
+        }
+      }
+      for (let i = this.rowData.length - 2; i >= 1; i--) {
+        if (this.rowData[i].bezeichnung === "ZWISCHENSUMME") {
+          zwischenSummeAufwand = this.rowData[i].aufwand
+          this.rowData[i].anteilZwischensumme = null
+          this.rowData[i].anteilGesamtprojekt = null
+        } else {
+          this.rowData[i].anteilZwischensumme = Math.round(this.rowData[i].aufwand / zwischenSummeAufwand * 100)
+          this.rowData[i].anteilGesamtprojekt = Math.round(this.rowData[i].aufwand / endSumme * 100)
+        }
+      }
+      this.rowData[this.rowData.length - 1].aufwand = endSumme
+      this.rowData[this.rowData.length - 1].anteilZwischensumme = null
+      this.rowData[this.rowData.length - 1].anteilGesamtprojekt = null
+      this.gridApi.refreshCells({force: true})
     },
     aufschlagErstellen() {
-      this.dialog_createAufschlag = false
-      let aufschlag = {
-        id: -1,
-        bezeichnung: this.aufschlag_bezeichnung,
-        aufschlag: this.aufschlag_wert,
-        aufwand: 20,
-        anteilZwischensumme: 2,
-        anteilGesamtprojekt: 50,
-        zwischensummen_id: null
-      }
-      if (this.selectedItem === -1) {
-        this.rowData.push(aufschlag)
-      } else {
-        this.rowData.splice(this.selectedItem + 1, 0, aufschlag);
-      }
-      for (let i = 0; i < this.rowData.length; i++) {
-        this.rowData[i].id = i
-      }
-      this.aufschlag_bezeichnung = ''
-      this.aufschlag_wert = 0.0
+      if (this.gridApi.getSelectedRows()[0].bezeichnung === "ENDSUMME") return
+      this.aufschlaegeStore.addNewAufschlag(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]), "beispiel", 0)
+      this.rowData = this.aufschlaegeStore.getAufschlage
+      this.gridApi.setRowData(this.aufschlaegeStore.getAufschlage)
+      this.berechne()
     },
     zwischensummeErstellen() {
-      let zwischensumme = {
-        id: -1,
-        bezeichnung: 'Zwischensumme',
-        aufschlag: 100,
-        aufwand: 150,
-        zwischensummen_id: null
+      if (this.gridApi.getSelectedRows()[0].bezeichnung === "ZWISCHENSUMME") return
+      if (this.gridApi.getSelectedRows()[0].bezeichnung === "ENDSUMME") return
+      if (this.gridApi.getSelectedRows()[0].bezeichnung === "STARTSUMME") return
+      if (this.rowData[this.rowData.indexOf(this.gridApi.getSelectedRows()[0]) + 1].bezeichnung === "ZWISCHENSUMME") return
+      if (this.rowData[this.rowData.indexOf(this.gridApi.getSelectedRows()[0]) + 1].bezeichnung === "ENDSUMME") return
+      if (this.rowData[this.rowData.indexOf(this.gridApi.getSelectedRows()[0]) + 1].bezeichnung === "STARTSUMME") return
+      this.aufschlaegeStore.addNewZwischensumme(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]))
+      this.rowData = this.aufschlaegeStore.getAufschlage
+      this.gridApi.setRowData(this.aufschlaegeStore.getAufschlage)
+      this.berechne()
+    },
+    zeileEntfernen() {
+      if (this.gridApi.getSelectedRows()[0].bezeichnung === "ENDSUMME") return
+      this.aufschlaegeStore.deleteAufschlag(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]))
+      this.rowData = this.aufschlaegeStore.getAufschlage
+      this.gridApi.setRowData(this.aufschlaegeStore.getAufschlage)
+      this.berechne()
+    },
+    navigateToNextCell(params) {
+      const suggestedNextCell = params.nextCellPosition
+      const KEY_UP = 'ArrowUp'
+      const KEY_DOWN = 'ArrowDown'
+      const noUpOrDownKeyPressed =
+          params.key !== KEY_DOWN && params.key !== KEY_UP
+      if (noUpOrDownKeyPressed || !suggestedNextCell) {
+        return suggestedNextCell
       }
-      if (this.selectedItem === -1) {
-        this.rowData.push(zwischensumme)
-      } else {
-        this.rowData.splice(this.selectedItem + 1, 0, zwischensumme);
-      }
-      for (let i = 0; i < this.rowData.length; i++) {
-        this.rowData[i].id = i
-      }
+      params.api.forEachNode(function (node) {
+        if (node.rowIndex === suggestedNextCell.rowIndex) {
+          node.setSelected(true)
+        }
+      })
+      return suggestedNextCell
     }
   }
 }
 </script>
 
 <style>
-
+.zwischensumme {
+  font-weight: bold !important;
+}
 </style>
