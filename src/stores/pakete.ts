@@ -79,7 +79,7 @@ export const usePaketeStore = defineStore('pakete', {
         },
         updatePaket(newPaket: Paket) {
             let oldPaket = this.paketeAsMap.get(newPaket.id)
-            if (typeof oldPaket !== 'undefined') oldPaket = newPaket
+            if (typeof oldPaket != 'undefined') oldPaket = newPaket
         },
         updateTreeViewAfterChangedOpenState(changedPaket: Paket) {
             const indexOfChangedPaket = this.paketeAsTreeView.indexOf(changedPaket)
