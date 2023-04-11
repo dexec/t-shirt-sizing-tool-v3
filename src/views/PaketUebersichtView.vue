@@ -111,6 +111,7 @@ import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue'
 
 import {usePaketeStore} from '@/stores/pakete'
 import {nextTick} from 'vue'
+import DropDownCellRenderer from "@/components/DropDownCellRenderer.vue";
 
 export default {
   name: 'PaketUebersichtView',
@@ -147,6 +148,8 @@ export default {
         {
           field: 'bucket',
           headerName: 'Bucket',
+          editable: false,
+          cellRenderer: DropDownCellRenderer
         },
         {
           field: 'schaetzung',
@@ -163,12 +166,14 @@ export default {
     let getRowId = (params) => params.data.id
     const paketeStore = usePaketeStore()
     const rowData = paketeStore.paketeAsTreeView
-    return {rowData, paketeStore, getRowId}
+    return { rowData, paketeStore, getRowId}
   },
   components: {
     AgGridVue,
     // eslint-disable-next-line vue/no-unused-components
-    TreeDataCellRenderer
+    TreeDataCellRenderer,
+    // eslint-disable-next-line vue/no-unused-components
+    DropDownCellRenderer
   },
   methods: {
     /*    onFirstDataRendered(params) {
@@ -192,27 +197,27 @@ export default {
       nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
     },
     addNewKindPaket() {
-      if (this.gridApi.getSelectedRows()[0] != null) {
+      if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id)
         this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
     },
     removeItem() {
-      if (this.gridApi.getSelectedRows()[0] != null) {
+      if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.deletePaket(this.gridApi.getSelectedRows()[0].id)
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
     },
     movePaketUp() {
-      if (this.gridApi.getSelectedRows()[0] != null) {
+      if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveUp(this.gridApi.getSelectedRows()[0].id)
         this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
     },
     movePaketDown() {
-      if (this.gridApi.getSelectedRows()[0] != null) {
+      if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveDown(this.gridApi.getSelectedRows()[0].id)
         this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
