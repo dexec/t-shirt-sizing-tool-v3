@@ -1,15 +1,38 @@
 import { AbstrakterAufschlag } from "@/AbstrakterAufschlag";
 
-export class Zwischensumme extends AbstrakterAufschlag{
-    vorigerAbschnittAufschlag: number
-    vorigerAbschnittAufwand: number
-    zwischensummeAufwand: number
+export class Zwischensumme extends AbstrakterAufschlag {
+  private _vorigerAbschnittAufschlag: number;
+  private _vorigerAbschnittAufwand: number;
+  private _zwischensummeAufwand: number;
 
+  constructor(bezeichnung: string, anteilGesamtprojekt: number, vorigerAbschnittAufschlag: number, vorigerAbschnittAufwand: number, zwischensummeAufwand: number) {
+    super(bezeichnung, vorigerAbschnittAufwand / zwischensummeAufwand, anteilGesamtprojekt);
+    this._vorigerAbschnittAufschlag = vorigerAbschnittAufschlag;
+    this._vorigerAbschnittAufwand = vorigerAbschnittAufwand;
+    this._zwischensummeAufwand = zwischensummeAufwand;
+  }
 
-    constructor(bezeichnung: string, anteilZwischensumme: number, anteilGesamtprojekt: number, vorigerAbschnittAufschlag: number, vorigerAbschnittAufwand: number, zwischensummeAufwand: number) {
-        super(bezeichnung, anteilZwischensumme, anteilGesamtprojekt);
-        this.vorigerAbschnittAufschlag = vorigerAbschnittAufschlag;
-        this.vorigerAbschnittAufwand = vorigerAbschnittAufwand;
-        this.zwischensummeAufwand = zwischensummeAufwand;
-    }
+  get vorigerAbschnittAufschlag(): number {
+    return this._vorigerAbschnittAufschlag;
+  }
+
+  set vorigerAbschnittAufschlag(value: number) {
+    this._vorigerAbschnittAufschlag = value;
+  }
+
+  get vorigerAbschnittAufwand(): number {
+    return this._vorigerAbschnittAufwand;
+  }
+
+  set vorigerAbschnittAufwand(value: number) {
+    this._vorigerAbschnittAufwand = value;
+  }
+
+  get zwischensummeAufwand(): number {
+    return this._zwischensummeAufwand;
+  }
+
+  set zwischensummeAufwand(value: number) {
+    this._zwischensummeAufwand = value;
+  }
 }
