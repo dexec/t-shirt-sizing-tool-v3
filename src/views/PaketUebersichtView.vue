@@ -111,7 +111,6 @@ import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue'
 
 import {usePaketeStore} from '@/stores/pakete'
 import {nextTick} from 'vue'
-import DropDownCellRenderer from "@/components/DropDownCellRenderer.vue";
 
 export default {
   name: 'PaketUebersichtView',
@@ -148,8 +147,6 @@ export default {
         {
           field: 'bucket',
           headerName: 'Bucket',
-          editable: false,
-          cellRenderer: DropDownCellRenderer
         },
         {
           field: 'schaetzung',
@@ -166,14 +163,12 @@ export default {
     let getRowId = (params) => params.data.id
     const paketeStore = usePaketeStore()
     const rowData = paketeStore.paketeAsTreeView
-    return { rowData, paketeStore, getRowId}
+    return {rowData, paketeStore, getRowId}
   },
   components: {
     AgGridVue,
     // eslint-disable-next-line vue/no-unused-components
-    TreeDataCellRenderer,
-    // eslint-disable-next-line vue/no-unused-components
-    DropDownCellRenderer
+    TreeDataCellRenderer
   },
   methods: {
     /*    onFirstDataRendered(params) {
@@ -192,15 +187,21 @@ export default {
       this.paketeStore.updatePaket(params.data)
     },
     addNewPaket() {
-      this.paketeStore.addNew(null)
+      const newPaketID = this.paketeStore.addNew(null)
       this.gridApi.refreshCells({force: true})
-      nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+      nextTick(() => {
+        this.gridApi.setRowData(this.paketeStore.getTreeView);
+        this.gridApi.getRowNode(newPaketID).setSelected(true);
+      })
     },
     addNewKindPaket() {
-      if (this.gridApi.getSelectedRows()[0]) {
+      if (this.gridApi.getSelectedRows()[0] != null) {
         this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id)
         this.gridApi.refreshCells({force: true})
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+        nextTick(() => {
+          this.gridApi.setRowData(this.paketeStore.getTreeView);
+          this.gridApi.getRowNode(newPaketID).setSelected(true);
+        })
       }
     },
     removeItem() {

@@ -8,9 +8,9 @@ const paketeAsTreeView: Paket[] = []
 
 let idCounter = 0
 
-const paketeAsMap = new Map()
+const paketeAsMap = new Map<number, Paket>()
 for (const paketFile of saveFile.pakete) {
-    const paket = new Paket(paketFile.id, paketFile.ticket_nr, paketFile.thema, paketFile.beschreibung, paketFile.komponente, paketFile.bucket, paketFile.schaetzung, paketFile.open, paketFile.lvl, null, paketFile.children)
+    const paket = new Paket(paketFile.id, paketFile.ticket_nr, paketFile.thema, paketFile.beschreibung, paketFile.komponente, paketFile.bucket, paketFile.schaetzung, paketFile.open, paketFile.lvl, null, paketFile.children as Paket[])
     stackForTreeView.push(paket)
     stackForMap.push(paket)
 }
@@ -24,7 +24,6 @@ while (stackForMap.length > 0) {
                 stackForMap.push(child)
             }
         }
-
         aktuellesPaket.id = idCounter++
         paketeAsMap.set(aktuellesPaket.id, aktuellesPaket)
     }
@@ -70,16 +69,13 @@ export const usePaketeStore = defineStore('pakete', {
             return Array.from(state.paketeAsMap.values()).filter(paket => paket.children.length==0)
         },
         getChildrenWithNoBucket(state) {
-            return Array.from(state.paketeAsMap.values()).filter(paket => paket.children.length==0 && paket.bucket == null)
+            return Array.from(state.paketeAsMap.values()).filter(paket => paket.children.length==0 && !paket.bucket)
         }
     },
     actions: {
-        loadData() {
-
-        },
         updatePaket(newPaket: Paket) {
             let oldPaket = this.paketeAsMap.get(newPaket.id)
-            if (typeof oldPaket != 'undefined') oldPaket = newPaket
+            if (oldPaket) oldPaket = newPaket
         },
         updateTreeViewAfterChangedOpenState(changedPaket: Paket) {
             const indexOfChangedPaket = this.paketeAsTreeView.indexOf(changedPaket)
@@ -87,18 +83,16 @@ export const usePaketeStore = defineStore('pakete', {
             const stack = [...changedPaket.children]
             if (changedPaket.open) {
                 while (stack.length > 0) {
-                    const aktuellesPaket = stack.shift()
-                    if (aktuellesPaket != undefined) {
+                    const aktuellesPaket = stack.shift() as Paket
                         if (aktuellesPaket.open) {
                             stack.unshift(...aktuellesPaket.children.reverse())
                         }
                         this.paketeAsTreeView.splice(indexOfChangedPaket + 1 + counter++, 0, aktuellesPaket)
-                    }
                 }
             } else {
                 while (stack.length > 0) {
-                    const aktuellesPaket = stack.shift()
-                    if (aktuellesPaket != undefined && aktuellesPaket.open) {
+                    const aktuellesPaket = stack.shift() as Paket
+                    if (aktuellesPaket.open) {
                         stack.unshift(...aktuellesPaket.children)
                     }
                     counter++
@@ -109,38 +103,37 @@ export const usePaketeStore = defineStore('pakete', {
         updateLvl(addLvl: number, paket: Paket) {
             const stack = [paket]
             while (stack.length > 0) {
-                const aktuellesPaket = stack.pop()
-                if (aktuellesPaket != null) {
+                const aktuellesPaket = stack.pop() as Paket
                     aktuellesPaket.lvl += addLvl
                     for (const child of aktuellesPaket.children) {
                         stack.push(child)
                     }
-                }
+
             }
         },
         deletePaket(id: number) {
-            const paketToDelete = this.paketeAsMap.get(id)
-            const stack = [paketToDelete]
-            let counter = 0
+            const paketToDelete = this.paketeAsMap.get(id) as Paket;
+            const stack = [paketToDelete];
+            let counter = 0;
             while (stack.length > 0) {
-                const aktuellesPaket = stack.shift()
-                this.paketeAsMap.delete(aktuellesPaket.id)
+                const aktuellesPaket = stack.shift() as Paket;
+                this.paketeAsMap.delete(aktuellesPaket.id);
                 if (aktuellesPaket.open) {
                     for (const child of aktuellesPaket.children) {
-                        stack.push(child)
+                        stack.push(child);
                     }
                 }
-                counter++
+                counter++;
             }
-            this.paketeAsTreeView.splice(this.paketeAsTreeView.indexOf(paketToDelete), counter)
-            if (paketToDelete.parent !== null) paketToDelete.parent.children.splice(paketToDelete.parent.children.indexOf(paketToDelete), 1)
-            paketToDelete.children = []
-            this.paketeAsMap.delete(id)
+            this.paketeAsTreeView.splice(this.paketeAsTreeView.indexOf(paketToDelete), counter);
+            if (paketToDelete.parent) paketToDelete.parent.children.splice(paketToDelete.parent.children.indexOf(paketToDelete), 1);
+            paketToDelete.children = [];
+            this.paketeAsMap.delete(id);
         },
-        addNew(id: number) {
+        addNew(id: number): number {
             const parentOfNewPaket = this.paketeAsMap.get(id)
             const newPaket = new Paket(this.idCounter++, 'beispiel', 'beispiel', 'beispiel', 'beispiel', null, 1234, false, 0, null, [])
-            if (parentOfNewPaket == null) {
+            if (!parentOfNewPaket) {
                 this.paketeAsTreeView.unshift(newPaket)
             } else {
                 newPaket.lvl = parentOfNewPaket.lvl + 1
@@ -153,10 +146,11 @@ export const usePaketeStore = defineStore('pakete', {
                 this.paketeAsTreeView.splice(this.paketeAsTreeView.indexOf(parentOfNewPaket) + 1, 0, newPaket)
             }
             this.paketeAsMap.set(newPaket.id, newPaket)
+            return newPaket.id;
         },
         moveUp(id: number) {
-            const paketToMove = this.paketeAsMap.get(id)
-            if (paketToMove.parent != null && paketToMove.parent.children.indexOf(paketToMove) == 0) return
+            const paketToMove = this.paketeAsMap.get(id) as Paket
+            if (paketToMove.parent && paketToMove.parent.children.indexOf(paketToMove) == 0) return
             let indexOfPaketToMove = this.paketeAsTreeView.indexOf(paketToMove)
             if (indexOfPaketToMove == 0) return
             let indexOfPaketAbove = -1
@@ -165,7 +159,7 @@ export const usePaketeStore = defineStore('pakete', {
                     indexOfPaketAbove = i
                 }
             }
-            const paketAbove = this.paketeAsTreeView[indexOfPaketAbove]
+            const paketAbove = this.paketeAsTreeView[indexOfPaketAbove] as Paket
             const paketToMoveOpenAfter = paketToMove.open
             const paketAboveOpenAfter = paketAbove.open
             if (paketToMove.open) {
@@ -176,7 +170,7 @@ export const usePaketeStore = defineStore('pakete', {
                 paketAbove.open = false
                 this.updateTreeViewAfterChangedOpenState(paketAbove)
             }
-            if (paketToMove.parent != null) {
+            if (paketToMove.parent) {
                 const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove)
                 paketToMove.parent.children[indexOfPaketToMoveAsChild] = paketToMove.parent.children[indexOfPaketToMoveAsChild - 1]
                 paketToMove.parent.children[indexOfPaketToMoveAsChild - 1] = paketToMove
@@ -195,8 +189,8 @@ export const usePaketeStore = defineStore('pakete', {
             }
         },
         moveDown(id: number) {
-            const paketToMove = this.paketeAsMap.get(id)
-            if (paketToMove.parent != null && paketToMove.parent.children.indexOf(paketToMove) == paketToMove.parent.children.length - 1) return
+            const paketToMove = this.paketeAsMap.get(id) as Paket
+            if (paketToMove.parent && paketToMove.parent.children.indexOf(paketToMove) == paketToMove.parent.children.length - 1) return
             const paketToMoveOpenAfter = paketToMove.open
             if (paketToMove.open) {
                 paketToMove.open = false
@@ -211,14 +205,13 @@ export const usePaketeStore = defineStore('pakete', {
                 return;
             }
             let indexOfPaketUnder = indexOfPaketToMove + 1;
-            const paketUnder = this.paketeAsTreeView[indexOfPaketUnder]
+            const paketUnder = this.paketeAsTreeView[indexOfPaketUnder] as Paket
             const paketUnderOpenAfter = paketUnder.open
-
             if (paketUnder.open) {
                 paketUnder.open = false
                 this.updateTreeViewAfterChangedOpenState(paketUnder)
             }
-            if (paketToMove.parent != null) {
+            if (paketToMove.parent) {
                 const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove)
                 paketToMove.parent.children[indexOfPaketToMoveAsChild] = paketToMove.parent.children[indexOfPaketToMoveAsChild + 1]
                 paketToMove.parent.children[indexOfPaketToMoveAsChild + 1] = paketToMove
@@ -237,8 +230,8 @@ export const usePaketeStore = defineStore('pakete', {
             }
         },
         moveDownRight(id: number) {
-            const paketToMove = this.paketeAsMap.get(id)
-            if (paketToMove.parent != null && paketToMove.parent.children.indexOf(paketToMove) == paketToMove.parent.children.length - 1) return
+            const paketToMove = this.paketeAsMap.get(id) as Paket
+            if (paketToMove.parent && paketToMove.parent.children.indexOf(paketToMove) == paketToMove.parent.children.length - 1) return
             const indexOfPaketToMove = this.paketeAsTreeView.indexOf(paketToMove)
             if (paketToMove.lvl == 0 && indexOfPaketToMove == this.paketeAsTreeView.length - 1) return
             const paketToMoveOpenAfter = paketToMove.open
@@ -247,8 +240,8 @@ export const usePaketeStore = defineStore('pakete', {
                 this.updateTreeViewAfterChangedOpenState(paketToMove)
             }
             const indexOfNewParent = indexOfPaketToMove + 1
-            const newParent = this.paketeAsTreeView[indexOfNewParent]
-            if (paketToMove.lvl > 0) {
+            const newParent = this.paketeAsTreeView[indexOfNewParent] as Paket
+            if (paketToMove.lvl > 0 && paketToMove.parent) {
                 const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove)
                 paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1)
             }
@@ -268,8 +261,8 @@ export const usePaketeStore = defineStore('pakete', {
             }
         },
         moveUpRight(id: number) {
-            const paketToMove = this.paketeAsMap.get(id)
-            if (paketToMove.parent != null && paketToMove.parent.children.indexOf(paketToMove) == 0) return
+            const paketToMove = this.paketeAsMap.get(id) as Paket
+            if (paketToMove.parent && paketToMove.parent.children.indexOf(paketToMove) == 0) return
             const indexOfPaketToMove = this.paketeAsTreeView.indexOf(paketToMove)
             if (indexOfPaketToMove == 0) return
             // Paket wird geschlossen
@@ -279,7 +272,7 @@ export const usePaketeStore = defineStore('pakete', {
                 this.updateTreeViewAfterChangedOpenState(paketToMove)
             }
             // Wenn Paket ein Elternelement hat, wird es aus dem Elternteil gelöscht
-            if (paketToMove.lvl > 0) {
+            if (paketToMove.lvl > 0 && paketToMove.parent) {
                 const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove)
                 paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1)
             }
@@ -291,7 +284,7 @@ export const usePaketeStore = defineStore('pakete', {
                 }
             }
             // Paket wird dem neuen Elternteil als Kind zugewiesen
-            const newParent = this.paketeAsTreeView[indexOfNewParent]
+            const newParent = this.paketeAsTreeView[indexOfNewParent] as Paket
             newParent.children.unshift(paketToMove)
             //Pakets Elternteil wird neu zugewiesen
             paketToMove.parent = newParent
@@ -313,14 +306,14 @@ export const usePaketeStore = defineStore('pakete', {
             }
         },
         moveLeftUp(id: number) {
-            const paketToMove = this.paketeAsMap.get(id)
-            if (paketToMove.lvl == 0) return
+            const paketToMove = this.paketeAsMap.get(id) as Paket
+            if (paketToMove.lvl == 0 || !paketToMove.parent) return
             const indexOfPaketToMove = this.paketeAsTreeView.indexOf(paketToMove)
             const indexOfParent = this.paketeAsTreeView.indexOf(paketToMove.parent)
             if (paketToMove.lvl >= 1) {
                 const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove)
                 paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1)
-                if (paketToMove.lvl >= 2) {
+                if (paketToMove.lvl >= 2 && paketToMove.parent.parent) {
                     const indexOfParentAsChild = paketToMove.parent.parent.children.indexOf(paketToMove.parent)
                     paketToMove.parent.parent.children.splice(indexOfParentAsChild, 0, paketToMove)
                 }
@@ -342,14 +335,14 @@ export const usePaketeStore = defineStore('pakete', {
             else paketToMove.parent = paketToMove.parent.parent
         },
         moveLeftDown(id: number) {
-            const paketToMove = this.paketeAsMap.get(id)
-            if (paketToMove.lvl == 0) return
+            const paketToMove = this.paketeAsMap.get(id) as Paket
+            if (paketToMove.lvl == 0 || !paketToMove.parent) return
             const indexOfPaketToMove = this.paketeAsTreeView.indexOf(paketToMove)
             const indexOfParent = this.paketeAsTreeView.indexOf(paketToMove.parent)
             if (paketToMove.lvl >= 1) {
                 const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove)
                 paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1)
-                if (paketToMove.lvl >= 2) {
+                if (paketToMove.lvl >= 2 && paketToMove.parent.parent) {
                     const indexOfParentAsChild = paketToMove.parent.parent.children.indexOf(paketToMove.parent)
                     paketToMove.parent.parent.children.splice(indexOfParentAsChild + 1, 0, paketToMove)
                 }

@@ -1,65 +1,85 @@
 {
-  "aufschlaegeZwischenspeicher":[
-    {"bezeichnung": "A","aufschlag": 10},
-    {"bezeichnung": "B","aufschlag": 20},
-    {"bezeichnung": "C","aufschlag": 30},
-    {"bezeichnung": "ZWISCHENSUMME","aufschlag": 0},
-    {"bezeichnung": "D","aufschlag": 100}
-  ] ,
   "aufschlaege": [
-  {
-    "bezeichnung": "And. analyse",
-    "aufschlag": 55
-  },
-  {
-    "bezeichnung": "Entwurf",
-    "aufschlag": 20
-  },
-  {
-    "bezeichnung": "QS",
-    "aufschlag": 40
-  },
-  {
-    "bezeichnung": "PM",
-    "aufschlag": 20
-  },
-  {
-    "bezeichnung": "Kommunikation",
-    "aufschlag": 10
-  },
-  {
-    "bezeichnung": "Techn. Doku",
-    "aufschlag": 4
-  },
-  {
-    "bezeichnung": "Puffer",
-    "aufschlag": 10
-  },
-  {
-    "bezeichnung": "Unit-Tests",
-    "aufschlag": 15
-  },
-  {
-    "bezeichnung": "E2E-Tests",
-    "aufschlag": 15
-  },
-  {
-    "bezeichnung": "Perf-Tests",
-    "aufschlag": 3
-  },
-  {
-    "bezeichnung": "Berechtigungen",
-    "aufschlag": 5
-  },
-  {
-    "bezeichnung": "ZWISCHENSUMME",
-    "aufschlag": 0
-  },
-  {
-    "bezeichnung": "Adressmodul aus Bucket E",
-    "aufschlag": 10
-  }
-],
+    {
+      "bezeichnung": "A",
+      "aufschlagWert": 10,
+      "aufwandWert": null
+    },
+    {
+      "bezeichnung": "B",
+      "aufschlagWert": 20,
+      "aufwandWert": null
+    },
+    {
+      "bezeichnung": "C",
+      "aufschlagWert": 30,
+      "aufwandWert": null
+    },
+    {
+      "bezeichnung": "ZWISCHENSUMME",
+      "aufschlagWert": 0,
+      "aufwandWert": 0
+    },
+    {
+      "bezeichnung": "D",
+      "aufschlagWert": null,
+      "aufwandWert": 100
+    }
+  ],
+  "aufschlaegeZwischenspeicher": [
+    {
+      "bezeichnung": "And. analyse",
+      "aufschlagWert": 55
+    },
+    {
+      "bezeichnung": "Entwurf",
+      "aufschlagWert": 20
+    },
+    {
+      "bezeichnung": "QS",
+      "aufschlagWert": 40
+    },
+    {
+      "bezeichnung": "PM",
+      "aufschlagWert": 20
+    },
+    {
+      "bezeichnung": "Kommunikation",
+      "aufschlagWert": 10
+    },
+    {
+      "bezeichnung": "Techn. Doku",
+      "aufschlagWert": 4
+    },
+    {
+      "bezeichnung": "Puffer",
+      "aufschlagWert": 10
+    },
+    {
+      "bezeichnung": "Unit-Tests",
+      "aufschlagWert": 15
+    },
+    {
+      "bezeichnung": "E2E-Tests",
+      "aufschlagWert": 15
+    },
+    {
+      "bezeichnung": "Perf-Tests",
+      "aufschlagWert": 3
+    },
+    {
+      "bezeichnung": "Berechtigungen",
+      "aufschlagWert": 5
+    },
+    {
+      "bezeichnung": "ZWISCHENSUMME",
+      "aufschlagWert": 0
+    },
+    {
+      "bezeichnung": "Adressmodul aus Bucket E",
+      "aufschlagWert": 10
+    }
+  ],
   "buckets": [
     {
       "id": 0,
