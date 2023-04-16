@@ -25,18 +25,29 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import { AgGridVue } from "ag-grid-vue3";
 
 import { useAufschlaegeStore } from "@/stores/aufschlag";
-import { Aufschlag } from "@/Aufschag";
-import ProjektkalkulationCellRenderer from "@/components/ProjektkalkulationCellRenderer.vue";
 import { nextTick } from "vue";
+import BezeichnungCellRenderer from "@/components/projektkalkulation/BezeichnungCellRenderer.vue";
+import AufschlagCellRenderer from "@/components/projektkalkulation/AufschlagCellRenderer.vue";
+import AufwandCellRenderer from "@/components/projektkalkulation/AufwandCellRenderer.vue";
+import AnteilAnZwischensummeCellRenderer from "@/components/projektkalkulation/AnteilAnZwischensummeCellRenderer.vue";
+import AnteilAmGesamtprojektCellRenderer from "@/components/projektkalkulation/AnteilAmGesamtprojektCellRenderer.vue";
 
 export default {
   name: "ProjektkalkulationView",
   components: {
     AgGridVue,
     // eslint-disable-next-line vue/no-unused-components
-    ProjektkalkulationCellRenderer
+    BezeichnungCellRenderer,
+    // eslint-disable-next-line vue/no-unused-components
+    AufschlagCellRenderer,
+    // eslint-disable-next-line vue/no-unused-components
+    AufwandCellRenderer,
+    // eslint-disable-next-line vue/no-unused-components
+    AnteilAnZwischensummeCellRenderer,
+    // eslint-disable-next-line vue/no-unused-components
+    AnteilAmGesamtprojektCellRenderer
   },
-  data() {
+  data: function() {
     return {
       gridApi: null,
       columnApi: null,
@@ -45,93 +56,67 @@ export default {
           headerName: "Bezeichnung",
           field: "bezeichnung",
           editable: params => !(params.data.bezeichnung === "ZWISCHENSUMME" || params.data.bezeichnung === "ENDSUMME" || params.data.bezeichnung === "STARTSUMME"),
-          cellRenderer: ProjektkalkulationCellRenderer,
-          cellRendererParams: {
-            type: "bezeichnung"
-          }
+          cellRenderer: BezeichnungCellRenderer
         },
         {
           headerName: "Aufschlag",
-          field: "aufschlag",
-          valueParser: params => Number(params.newValue),
+          field: "aufschlagWert",
           editable: params => !(params.data.bezeichnung === "ZWISCHENSUMME" || params.data.bezeichnung === "ENDSUMME" || params.data.bezeichnung === "STARTSUMME"),
-          cellRenderer: ProjektkalkulationCellRenderer,
-          cellRendererParams: {
-            type: "aufschlag"
-          }
+          cellRenderer: AufschlagCellRenderer
         },
         {
           headerName: "Aufwand",
-          field: "aufwand",
+          field: "aufwandWert",
           editable: params => !(params.data.bezeichnung === "ZWISCHENSUMME" || params.data.bezeichnung === "ENDSUMME" || params.data.bezeichnung === "STARTSUMME"),
-          cellRenderer: ProjektkalkulationCellRenderer,
-          cellRendererParams: {
-            type: "aufwand"
-          }
+          cellRenderer: AufwandCellRenderer
         },
         {
           headerName: "Anteil an nächster Zwischensumme",
           field: "anteilZwischensumme",
-          cellRenderer: ProjektkalkulationCellRenderer,
-          cellRendererParams: {
-            type: "anteilAnZwischensumme"
-          }
+          cellRenderer: AnteilAnZwischensummeCellRenderer
         },
         {
           headerName: "Anteil am Gesamtprojekt",
           field: "anteilGesamtprojekt",
-          cellRenderer: ProjektkalkulationCellRenderer,
-          cellRendererParams: {
-            type: "anteilAmGesamtprojekt"
-          }
+          cellRenderer: AnteilAmGesamtprojektCellRenderer
         }
       ]
     };
   },
   setup() {
     const aufschlaegeStore = useAufschlaegeStore();
-    const rowData = [];
-    aufschlaegeStore.getAufschlage.forEach(aufschlag => {
-      rowData.push({
-        bezeichnung: aufschlag.bezeichnung,
-        aufschlag: aufschlag.aufschlag
-      });
-    });
+    aufschlaegeStore.berechne();
+    const rowData = aufschlaegeStore.getAufschlage;
     return { aufschlaegeStore, rowData };
   },
   methods: {
     onGridReady(params) {
       this.gridApi = params.api;
       this.columnApi = params.columnApi;
-      this.berechne();
       this.refreshGrid();
     },
     onCellClicked(params) {
       this.selectedRow = params.data;
     },
     onCellValueChanged(params) {
-      let newAufschlag;
-      if (params.data.aufschlag === "") newAufschlag = 0;
-      else newAufschlag = params.data.aufschlag;
-      this.aufschlaegeStore.updateAufschlag(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]), new Aufschlag(params.data.bezeichnung, newAufschlag));
-      this.refreshTable()
-    },
-    refreshGrid() {
-      this.gridApi.forEachNode(function(node) {
-        if (node.data.bezeichnung === "ZWISCHENSUMME") node.setRowHeight(80);
-      });
-      this.gridApi.onRowHeightChanged();
-      this.gridApi.refreshCells({ force: true });
-    },
-    refreshRowData() {
-      this.rowData = this.aufschlaegeStore.getAufschlage;
-      this.gridApi.setRowData(this.aufschlaegeStore.getAufschlage);
+      switch (params.colDef.field) {
+        case "bezeichnung":
+          this.aufschlaegeStore.updateBezeichnung(params.rowIndex, params.newValue);
+          break;
+        case "aufschlagWert":
+          this.aufschlaegeStore.updateAufschlag(params.rowIndex, +params.newValue);
+          break;
+        case "aufwandWert":
+          this.aufschlaegeStore.updateAufwand(params.rowIndex, +params.newValue);
+          break;
+      }
+      this.refreshTable();
     },
     aufschlagErstellen() {
       if (this.gridApi.getSelectedRows()[0]) {
         if (this.gridApi.getSelectedRows()[0].bezeichnung === "ENDSUMME") return;
-        this.aufschlaegeStore.addNewAufschlag(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]), "beispiel", 0);
-        this.refreshTable()
+        this.aufschlaegeStore.addNewAufschlag(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]));
+        this.refreshTable();
       }
     },
     zwischensummeErstellen() {
@@ -142,25 +127,37 @@ export default {
         if (this.rowData[this.rowData.indexOf(this.gridApi.getSelectedRows()[0]) + 1].bezeichnung === "ZWISCHENSUMME") return;
         if (this.rowData[this.rowData.indexOf(this.gridApi.getSelectedRows()[0]) + 1].bezeichnung === "STARTSUMME") return;
         this.aufschlaegeStore.addNewZwischensumme(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]));
-        this.refreshTable();
+        nextTick(() => this.refreshTable());
       }
     },
     zeileEntfernen() {
       if (this.gridApi.getSelectedRows()[0]) {
         if (this.gridApi.getSelectedRows()[0].bezeichnung === "ENDSUMME") return;
         this.aufschlaegeStore.deleteAufschlag(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]));
-        this.refreshTable()
+        this.refreshTable();
       }
     },
     refreshTable() {
-      this.refreshRowData();
-      this.berechne();
-      this.refreshGrid();
+      nextTick(() => {
+        this.refreshRowData();
+        this.refreshGrid();
+      });
+    },
+    refreshRowData() {
+      this.rowData = this.aufschlaegeStore.getAufschlage;
+      this.gridApi.setRowData(this.aufschlaegeStore.getAufschlage);
+    },
+    refreshGrid() {
+      this.gridApi.forEachNode(function(node) {
+        if (node.data.bezeichnung === "ZWISCHENSUMME") node.setRowHeight(80);
+      });
+      this.gridApi.onRowHeightChanged();
+      this.gridApi.refreshCells({ force: true });
     },
     moveAufschlagDown() {
       if (this.gridApi.getSelectedRows()[0] != null) {
-        this.aufschlaegeStore.moveDown(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]))
-        this.refreshTable()
+        this.aufschlaegeStore.moveDown(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]));
+        this.refreshTable();
       }
     },
     navigateToNextCell(params) {
