@@ -187,32 +187,38 @@ export default {
       this.paketeStore.updatePaket(params.data)
     },
     addNewPaket() {
-      this.paketeStore.addNew(null)
+      const newPaketID = this.paketeStore.addNew(null)
       this.gridApi.refreshCells({force: true})
-      nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+      nextTick(() => {
+        this.gridApi.setRowData(this.paketeStore.getTreeView);
+        this.gridApi.getRowNode(newPaketID).setSelected(true);
+      })
     },
     addNewKindPaket() {
-      if (this.gridApi.getSelectedRows()[0] != null) {
-        this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id)
+      if (this.gridApi.getSelectedRows()[0]) {
+        const newPaketID = this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id)
         this.gridApi.refreshCells({force: true})
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+        nextTick(() => {
+          this.gridApi.setRowData(this.paketeStore.getTreeView);
+          this.gridApi.getRowNode(newPaketID).setSelected(true);
+        })
       }
     },
     removeItem() {
-      if (this.gridApi.getSelectedRows()[0] != null) {
+      if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.deletePaket(this.gridApi.getSelectedRows()[0].id)
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
     },
     movePaketUp() {
-      if (this.gridApi.getSelectedRows()[0] != null) {
+      if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveUp(this.gridApi.getSelectedRows()[0].id)
         this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
       }
     },
     movePaketDown() {
-      if (this.gridApi.getSelectedRows()[0] != null) {
+      if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveDown(this.gridApi.getSelectedRows()[0].id)
         this.gridApi.refreshCells({force: true})
         nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
