@@ -104,7 +104,7 @@ export default {
       this.berechne()
     },
     berechne() {
-      this.rowData[0].aufwand = 3272.75
+      this.rowData[0].aufwandWert = 3272.75
       this.rowData[0].anteilZwischensumme = null
       this.rowData[0].anteilGesamtprojekt = null
       let startSumme = this.rowData[0].aufwand
@@ -115,12 +115,12 @@ export default {
 
       for (let i = 1; i < this.rowData.length; i++) {
         if (this.rowData[i].bezeichnung === "ZWISCHENSUMME") {
-          this.rowData[i].aufschlag = zwischenSummeAufschlag;
-          this.rowData[i].aufwand = zwischenSummeAufwand
+          this.rowData[i].aufschlagWert = zwischenSummeAufschlag;
+          this.rowData[i].aufwandWert = zwischenSummeAufwand
           zwischenSummeReferenz = zwischenSummeAufwand
           zwischenSummeAufschlag = 0
         } else {
-          this.rowData[i].aufwand = Math.round((zwischenSummeReferenz * this.rowData[i].aufschlag+Number.EPSILON) / 100)
+          this.rowData[i].aufwandWert = Math.round((zwischenSummeReferenz * this.rowData[i].aufschlag+Number.EPSILON) / 100)
           zwischenSummeAufschlag += this.rowData[i].aufschlag
           zwischenSummeAufwand += this.rowData[i].aufwand
           endSumme += this.rowData[i].aufwand
@@ -136,7 +136,7 @@ export default {
           this.rowData[i].anteilGesamtprojekt = Math.round((this.rowData[i].aufwand / endSumme+Number.EPSILON) * 100)
         }
       }
-      this.rowData[this.rowData.length - 1].aufwand = endSumme
+      this.rowData[this.rowData.length - 1].aufwandWert = endSumme
       this.rowData[this.rowData.length - 1].anteilZwischensumme = null
       this.rowData[this.rowData.length - 1].anteilGesamtprojekt = null
       this.gridApi.refreshCells({force: true})
