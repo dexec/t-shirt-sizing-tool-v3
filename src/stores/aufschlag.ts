@@ -1,18 +1,21 @@
-import {defineStore} from 'pinia'
-import saveFile from './file.json'
-import {Aufschlag} from "@/Aufschag";
+import { defineStore } from "pinia";
+import saveFile from "./file.json";
+import { Aufschlag } from "@/Aufschag";
 import { Zwischensumme } from "@/Zwischensumme";
 import type { AbstrakterAufschlag } from "@/AbstrakterAufschlag";
 
 const aufschlaege: AbstrakterAufschlag[] = [];
+aufschlaege.unshift(new Zwischensumme("STARTSUMME",0,0,0,100));
+let aktuelleZwischensumme = aufschlaege[0] as Zwischensumme;
 for(const aufschlag of saveFile.aufschlaege) {
-  if(aufschlag.bezeichnung=="ZWISCHENSUMME" || aufschlag.bezeichnung=="ENDSUMME") {
-    aufschlaege.push(new Zwischensumme(aufschlag.bezeichnung, 0,0,0,0,0));
+  if(aufschlag.bezeichnung=="ZWISCHENSUMME") {
+    const newZwischsumme = new Zwischensumme(aufschlag.bezeichnung, 0,0,0,0)
+    aktuelleZwischensumme = newZwischsumme;
+    aufschlaege.push(newZwischsumme);
   }
-  else aufschlaege.push(new Aufschlag(aufschlag.bezeichnung,0,0,aufschlag.aufschlag,0));
+  else aufschlaege.push(new Aufschlag(aufschlag.bezeichnung,0,0, aufschlag.aufschlagWert, aufschlag.aufwandWert,aktuelleZwischensumme));
 }
-aufschlaege.unshift(new Zwischensumme("STARTSUMME",0,0,0,0,100))
-aufschlaege.push(new Zwischensumme("ENDSUMME", 0,0,0,0,100))
+aufschlaege.push(new Zwischensumme( "ENDSUMME",0,0,0,100))
 export const useAufschlaegeStore = defineStore('aufschlaege', {
     state: () => ({
         aufschlaege: aufschlaege
@@ -23,68 +26,84 @@ export const useAufschlaegeStore = defineStore('aufschlaege', {
         }
     },
     actions: {
-      berechne() {
-        const startsumme = this.aufschlaege[0] as Zwischensumme;
-        const endsumme = this.aufschlaege[this.aufschlaege.length-1] as Zwischensumme
-        let zwischensummeReferenz = startsumme.zwischensummeAufwand;
-        let vorigerAbschnittAufschlag = 0;
-        let vorigerAbschnittAufwand = 0;
-        endsumme.zwischensummeAufwand = startsumme.zwischensummeAufwand;
-
-        for (let i = 1; i < this.aufschlaege.length; i++) {
-          if (this.aufschlaege[i].bezeichnung === "ZWISCHENSUMME") {
-            const zwischensumme = this.aufschlaege[i] as Zwischensumme;
-            zwischensumme.vorigerAbschnittAufschlag = vorigerAbschnittAufschlag;
-            zwischensumme.vorigerAbschnittAufwand = vorigerAbschnittAufwand;
-            zwischensumme.zwischensummeAufwand = zwischensummeReferenz + vorigerAbschnittAufwand;
-            zwischensummeReferenz += vorigerAbschnittAufwand;
-            vorigerAbschnittAufschlag = 0;
-            vorigerAbschnittAufwand = 0;
-          } else {
-            const aktuellerAufschlag = this.aufschlaege[i] as Aufschlag
-            aktuellerAufschlag.aufwand = zwischensummeReferenz * aktuellerAufschlag.aufschlag / 100;
-            vorigerAbschnittAufschlag += aktuellerAufschlag.aufschlag;
-            vorigerAbschnittAufwand += aktuellerAufschlag.aufwand;
-            endsumme.zwischensummeAufwand += aktuellerAufschlag.aufwand;
-          }
-        }
-        for (let i = this.aufschlaege.length - 2; i >= 1; i--) {
-          if (this.aufschlaege[i].bezeichnung === "ZWISCHENSUMME") {
-            const zwischensumme = this.aufschlaege[i] as Zwischensumme
-            vorigerAbschnittAufwand = zwischensumme.vorigerAbschnittAufwand;
-            zwischensumme.anteilZwischensumme = Math.round((zwischensumme.vorigerAbschnittAufwand / zwischensumme.zwischensummeAufwand + Number.EPSILON) * 100);
-            zwischensumme.anteilGesamtprojekt = Math.round((zwischensumme.vorigerAbschnittAufwand / endsumme.zwischensummeAufwand + Number.EPSILON) * 100);
-          } else {
-            const aktuellerAufschlag = this.aufschlaege[i] as Aufschlag
-            aktuellerAufschlag.anteilZwischensumme = Math.round((aktuellerAufschlag.aufwand / vorigerAbschnittAufwand + Number.EPSILON) * 100);
-            aktuellerAufschlag.anteilGesamtprojekt = Math.round((aktuellerAufschlag.aufwand / endsumme.zwischensummeAufwand + Number.EPSILON) * 100);
-          }
-        }
-        endsumme.anteilZwischensumme = 0;
-        endsumme.anteilGesamtprojekt = 0;
-      },
-        updateAufschlag(rowDataIndex:number, newAufschlag: Aufschlag) {
-            const oldAufschlag = aufschlaege[rowDataIndex] as Aufschlag;
-            if (typeof oldAufschlag != 'undefined') {
-                oldAufschlag.bezeichnung=newAufschlag.bezeichnung;
-                oldAufschlag.aufschlag=parseInt(String(newAufschlag.aufschlag));
+        berechne() {
+          //Startsumme ist Ergebnis der Projektkalkulation
+          const startsumme = this.aufschlaege[0] as Zwischensumme;
+          const endsumme = this.aufschlaege[this.aufschlaege.length-1] as Zwischensumme
+          let zwischensumme = startsumme;
+          let vorigerAbschnittAufschlag = 0;
+          for (let i = 1; i < this.aufschlaege.length; i++) {
+            if (this.aufschlaege[i] instanceof Aufschlag) {
+              const aktuellerAufschlag = this.aufschlaege[i] as Aufschlag
+              aktuellerAufschlag.referenzierteZwischensumme = zwischensumme
+              vorigerAbschnittAufschlag+=aktuellerAufschlag.berechneAufschlag();
+            } else {
+              const aktuelleZwischensumme = this.aufschlaege[i] as Zwischensumme;
+              aktuelleZwischensumme.vorigerAbschnittAufschlag = vorigerAbschnittAufschlag;
+              aktuelleZwischensumme.vorigerAbschnittAufwand = vorigerAbschnittAufschlag*zwischensumme.zwischensummeAufwand/100;
+              aktuelleZwischensumme.zwischensummeAufwand = zwischensumme.zwischensummeAufwand + aktuelleZwischensumme.vorigerAbschnittAufwand;
+              zwischensumme = aktuelleZwischensumme;
+              vorigerAbschnittAufschlag = 0;
             }
+          }
+          for (let i = this.aufschlaege.length - 2; i >= 1; i--) {
+            if (this.aufschlaege[i] instanceof Aufschlag) {
+              const aktuellerAufschlag = this.aufschlaege[i] as Aufschlag
+              aktuellerAufschlag.anteilZwischensumme = Math.round((aktuellerAufschlag.berechneAufwand() / zwischensumme.zwischensummeAufwand + Number.EPSILON) * 100);
+              aktuellerAufschlag.anteilGesamtprojekt = Math.round((aktuellerAufschlag.berechneAufwand() / endsumme.zwischensummeAufwand + Number.EPSILON) * 100);
+              } else {
+              const aktuelleZwischensumme = this.aufschlaege[i] as Zwischensumme
+              zwischensumme = aktuelleZwischensumme
+              aktuelleZwischensumme.anteilZwischensumme = Math.round((aktuelleZwischensumme.vorigerAbschnittAufwand / aktuelleZwischensumme.zwischensummeAufwand + Number.EPSILON) * 100);
+              aktuelleZwischensumme.anteilGesamtprojekt = Math.round((aktuelleZwischensumme.vorigerAbschnittAufwand / endsumme.zwischensummeAufwand + Number.EPSILON) * 100);
+
+            }
+          }
+        },
+        updateBezeichnung(rowDataIndex: number, newBezeichnung: string) {
+            const aufschlag = aufschlaege[rowDataIndex] as Aufschlag;
+            if (typeof aufschlag != 'undefined') {
+                aufschlag.bezeichnung = newBezeichnung;
+            }
+        },
+        updateAufschlag(rowDataIndex: number, newAufschlag: number) {
+          const aufschlag = aufschlaege[rowDataIndex] as Aufschlag;
+          if (typeof aufschlag != 'undefined') {
+            if(aufschlag.aufwandWert) {
+              aufschlag.aufwandWert=null;
+            }
+            aufschlag.aufschlagWert = newAufschlag;
+            this.berechne()
+          }
+        },
+        updateAufwand(rowDataIndex: number, newAufschlag: number) {
+          const aufschlag = aufschlaege[rowDataIndex] as Aufschlag;
+          if (typeof aufschlag != 'undefined') {
+            if(aufschlag.aufschlagWert) {
+              aufschlag.aufschlagWert=null;
+            }
+            aufschlag.aufwandWert = newAufschlag;
+            this.berechne()
+          }
         },
         updateAllAufschlage(newAufschlaege: Aufschlag[]) {
             this.aufschlaege = newAufschlaege;
         },
-        addNewAufschlag(rowDataIndex: number, bezeichnung: string, aufschlag: number) {
-            const newAufschlag = new Aufschlag(bezeichnung, aufschlag);
-            if (rowDataIndex == -1) aufschlaege.splice(rowDataIndex, 0, newAufschlag)
-            else aufschlaege.splice(rowDataIndex+1, 0, newAufschlag)
+        addNewAufschlag(rowDataIndex: number) {
+          const newAufschlag = new Aufschlag("Neuer Aufschlag", 0, 0, 0, 0, aktuelleZwischensumme);
+          if (rowDataIndex == -1) aufschlaege.splice(rowDataIndex, 0, newAufschlag);
+          else aufschlaege.splice(rowDataIndex + 1, 0, newAufschlag);
+          this.berechne();
         },
         addNewZwischensumme(rowDataIndex: number) {
-            const newAufschlag = new Aufschlag("ZWISCHENSUMME", 0)
+            const newAufschlag = new Zwischensumme("ZWISCHENSUMME", 0,0,0,0)
             if (rowDataIndex == -1) aufschlaege.splice(aufschlaege.length - 1, 0, newAufschlag)
             else aufschlaege.splice(rowDataIndex + 1, 0, newAufschlag)
+          this.berechne();
         },
         deleteAufschlag(rowDataIndex: number) {
-            this.aufschlaege.splice(rowDataIndex, 1)
+          this.aufschlaege.splice(rowDataIndex, 1)
+          this.berechne();
         },
       moveDown: function(rowDataIndex: number) {
         if (this.aufschlaege[rowDataIndex + 1].bezeichnung == "ENDSUMME") return;
