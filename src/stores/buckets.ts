@@ -1,20 +1,23 @@
-import { defineStore } from 'pinia'
-import saveFile from './file.json'
-import type { Bucket } from "@/Bucket";
+import {defineStore} from 'pinia';
+import saveFile from './file.json';
+import {Bucket} from "@/Bucket";
+import {ref} from "vue";
 
-const buckets: Bucket[] = saveFile.buckets;
-export const useBucketsStore = defineStore('buckets', {
-  state: () => ({
-    buckets: buckets
-  }),
-  getters: {
-    getBuckets(state) {
-      return state.buckets
+export const useBucketsStore = defineStore('buckets', () => {
+    const buckets = ref<Array<Bucket>>([]);
+
+    for (const bucketFile of saveFile.buckets) {
+        buckets.value.push(new Bucket(bucketFile.name))
     }
-  },
-  actions: {
-    updateAllBuckets(newBuckets: Bucket[]) {
-      this.buckets = newBuckets;
+    function getBuckets() {
+        return buckets.value;
     }
-  }
-})
+    function updateAllBuckets(newBuckets: Bucket[]) {
+        //TODO EINFÜGEN VON NEUEN BUCKETS UND LÖSCHEN VON ALTEN BUCKETS
+        for(const bucket of newBuckets) {
+            const oldBucket = buckets.value.find(currentBucket => currentBucket.id==bucket.id) as Bucket
+            if(oldBucket) oldBucket.name=bucket.name
+        }
+    }
+    return {getBuckets, updateAllBuckets}
+});
