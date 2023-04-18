@@ -82,27 +82,21 @@
   ],
   "buckets": [
     {
-      "id": 0,
       "name": "XS"
     },
     {
-      "id": 1,
       "name": "S"
     },
     {
-      "id": 2,
       "name": "M"
     },
     {
-      "id": 3,
       "name": "L"
     },
     {
-      "id": 4,
       "name": "XL"
     },
     {
-      "id": 5,
       "name": "XXL"
     }
   ],
@@ -115,97 +109,77 @@
       "komponente": "A",
       "bucket": null,
       "schaetzung": 321,
-      "open": false,
-      "lvl": 0,
-      "children": [
-        {
-          "id": 1,
-          "ticket_nr": "ANP-50",
-          "thema": "Entwicklung eines Log-In-Systems",
-          "beschreibung": "Es soll ein Log-In System für Nutzer und Manager entwickelt werden",
-          "komponente": "Komp-A",
-          "bucket": null,
-          "schaetzung": null,
-          "open": true,
-          "lvl": 1,
-          "children": [
-            {
-              "id": 2,
-              "ticket_nr": "P-5",
-              "thema": "Implementieren",
-              "beschreibung": "Implementieren, auf Basis der UI und des Prototypen",
-              "komponente": "Komp-B",
-              "bucket": "XS",
-              "schaetzung": null,
-              "open": false,
-              "lvl": 2,
-              "children": []
-            }
-          ]
-        },
-        {
-          "id": 3,
-          "ticket_nr": "F-20",
-          "thema": "Dokumentieren",
-          "beschreibung": "Implementierung vollständig dokumentieren, um später den Code nachvollziehen zu können",
-          "komponente": "Komp-C",
-          "bucket": "M",
-          "schaetzung": null,
-          "open": false,
-          "lvl": 1,
-          "children": []
-        },
-        {
-          "id": 4,
-          "ticket_nr": "A-2",
-          "thema": "Einen Prototypen bauen",
-          "beschreibung": "Einen Protoypen bauen, um den Testern eine klickbare Oberfläche zu bieten",
-          "komponente": "Komp-A",
-          "bucket": null,
-          "schaetzung": 500,
-          "open": false,
-          "lvl": 1,
-          "children": [
-            {
-              "id": 5,
-              "ticket_nr": "C-99",
-              "thema": "Versionierung aufstellen",
-              "beschreibung": "Eine Git-Verwaltung soll aufgesetzt werden, um eine Versionierung des Codes zu ermöglichen",
-              "komponente": "Komp-AB",
-              "bucket": "L",
-              "schaetzung": 350,
-              "open": false,
-              "lvl": 2,
-              "children": []
-            },
-            {
-              "id": 6,
-              "ticket_nr": "D-90",
-              "thema": "Use-Cases definieren",
-              "beschreibung": "Es sollen Funktionen bestimmt werden, die von dem System erfüllt werden müssen",
-              "komponente": "Komp-ABC",
-              "bucket": "M",
-              "schaetzung": 150,
-              "open": false,
-              "lvl": 2,
-              "children": [
-                {
-                  "id": 7,
-                  "ticket_nr": "AD-970",
-                  "thema": "Testen",
-                  "beschreibung": "Es soll eine Testarchitektur entwickelt werden",
-                  "komponente": "Komp-F",
-                  "bucket": "S",
-                  "schaetzung": null,
-                  "open": false,
-                  "lvl": 3,
-                  "children": []
-                }
-              ]
-            }
-          ]
-        }
-      ]
+      "open": true
+    },
+    {
+      "id": 1,
+      "ticket_nr": "ANP-50",
+      "thema": "Entwicklung eines Log-In-Systems",
+      "beschreibung": "Es soll ein Log-In System für Nutzer und Manager entwickelt werden",
+      "komponente": "Komp-A",
+      "bucket": null,
+      "schaetzung": null,
+      "open": false
+    },
+    {
+      "id": 2,
+      "ticket_nr": "P-5",
+      "thema": "Implementieren",
+      "beschreibung": "Implementieren, auf Basis der UI und des Prototypen",
+      "komponente": "Komp-B",
+      "bucket": "XS",
+      "schaetzung": null,
+      "open": false
+    },
+    {
+      "id": 3,
+      "ticket_nr": "F-20",
+      "thema": "Dokumentieren",
+      "beschreibung": "Implementierung vollständig dokumentieren, um später den Code nachvollziehen zu können",
+      "komponente": "Komp-C",
+      "bucket": "M",
+      "schaetzung": null,
+      "open": false
+    },
+    {
+      "id": 4,
+      "ticket_nr": "A-2",
+      "thema": "Einen Prototypen bauen",
+      "beschreibung": "Einen Protoypen bauen, um den Testern eine klickbare Oberfläche zu bieten",
+      "komponente": "Komp-A",
+      "bucket": null,
+      "schaetzung": 500,
+      "open": false
+    },
+    {
+      "id": 5,
+      "ticket_nr": "C-99",
+      "thema": "Versionierung aufstellen",
+      "beschreibung": "Eine Git-Verwaltung soll aufgesetzt werden, um eine Versionierung des Codes zu ermöglichen",
+      "komponente": "Komp-AB",
+      "bucket": "XL",
+      "schaetzung": 350,
+      "open": false
+    },
+    {
+      "id": 6,
+      "ticket_nr": "D-90",
+      "thema": "Use-Cases definieren",
+      "beschreibung": "Es sollen Funktionen bestimmt werden, die von dem System erfüllt werden müssen",
+      "komponente": "Komp-ABC",
+      "bucket": "XXL",
+      "schaetzung": 150,
+      "open": false
+    },
+    {
+      "id": 7,
+      "ticket_nr": "AD-970",
+      "thema": "Testen",
+      "beschreibung": "Es soll eine Testarchitektur entwickelt werden",
+      "komponente": "Komp-F",
+      "bucket": "S",
+      "schaetzung": null,
+      "open": false
     },
     {
       "id": 8,
@@ -213,11 +187,23 @@
       "thema": "Lizenzen einkaufen",
       "beschreibung": "Lizenzen zur Entwicklung für das ganze Team einkaufen",
       "komponente": "Komp-F",
-      "bucket": null,
+      "bucket": "XS",
       "schaetzung": null,
-      "open": false,
-      "lvl": 0,
-      "children": []
+      "open": false
+    }
+  ],
+  "paketeTree": [
+    {
+      "key": 0,
+      "children": [1,2]
+    },
+    {
+      "key": 1,
+      "children": [3]
+    },
+    {
+      "key": 4,
+      "children": [5,6,7]
     }
   ]
 }
