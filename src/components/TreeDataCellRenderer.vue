@@ -29,7 +29,7 @@ export default {
       this.params.node.setSelected(true)
       this.params.node.setData(aktuellesPaket);
       paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket);
-      nextTick(() => this.params.api.setRowData(paketeStore.getTreeView))
+      nextTick(() => this.params.api.setRowData(paketeStore.getTreeView()))
     },
     switchFlatAndTree() {
 
