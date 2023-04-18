@@ -1,17 +1,17 @@
 <template>
   <div style='width: 100%;height: 100%'>
     <ag-grid-vue
-        style='width: 100%;height: 90%'
-        class='ag-theme-alpine'
-        :rowData='rowData'
         :columnDefs='columnDefs'
         :defaultColDef='defaultColDef'
         :getRowId='getRowId'
+        :navigateToNextCell='navigateToNextCell'
+        :rowData='rowData'
+        class='ag-theme-alpine'
+        rowSelection='single'
+        style='width: 100%;height: 90%'
         suppressRowHoverHighlight='true'
         @cellClicked='onCellClicked'
         @cellValueChanged="onCellValueChanged"
-        rowSelection='single'
-        :navigateToNextCell='navigateToNextCell'
         @grid-ready='onGridReady'>
     </ag-grid-vue>
     <div class='d-flex flex-wrap justify-center fixed'>
@@ -19,22 +19,22 @@
       <v-btn class='mx-5' @click='addNewKindPaket'>Neues Arbeitspaket als Kind anlegen</v-btn>
       <v-btn class='mx-5' @click='removeItem'>Arbeitspaket löschen</v-btn>
       <v-btn class='mx-5'>Bucket zuweisen</v-btn>
-      <v-btn @click='movePaketLeftUp' class='mx-5'>
+      <v-btn class='mx-5' @click='movePaketLeftUp'>
         <v-icon>mdi-arrow-top-left</v-icon>
       </v-btn>
-      <v-btn @click='movePaketLeftDown' class='mx-5'>
+      <v-btn class='mx-5' @click='movePaketLeftDown'>
         <v-icon>mdi-arrow-bottom-left</v-icon>
       </v-btn>
-      <v-btn @click='movePaketUp' class='mx-5'>
+      <v-btn class='mx-5' @click='movePaketUp'>
         <v-icon>mdi-arrow-up</v-icon>
       </v-btn>
-      <v-btn @click='movePaketDown' class='mx-5'>
+      <v-btn class='mx-5' @click='movePaketDown'>
         <v-icon>mdi-arrow-down</v-icon>
       </v-btn>
-      <v-btn @click='movePaketUpRight' class='mx-5'>
+      <v-btn class='mx-5' @click='movePaketUpRight'>
         <v-icon>mdi-arrow-top-right</v-icon>
       </v-btn>
-      <v-btn @click='movePaketDownRight' class='mx-5'>
+      <v-btn class='mx-5' @click='movePaketDownRight'>
         <v-icon>mdi-arrow-bottom-right</v-icon>
       </v-btn>
     </div>
@@ -104,13 +104,14 @@ function removeItem() {
 }
 </script>-->
 <script>
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-alpine.css'
-import {AgGridVue} from 'ag-grid-vue3'
-import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue'
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import {AgGridVue} from 'ag-grid-vue3';
+import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue';
 
-import {usePaketeStore} from '@/stores/pakete'
-import {nextTick} from 'vue'
+import {usePaketeStore} from '@/stores/pakete';
+import {nextTick} from 'vue';
+import DropDownCellRenderer from "@/components/DropDownCellRenderer.vue";
 
 export default {
   name: 'PaketUebersichtView',
@@ -130,7 +131,8 @@ export default {
         },
         {
           field: 'lvl',
-          headerName: 'LVL'
+          headerName: 'LVL',
+          editable: false
         },
         {
           field: 'thema',
@@ -147,6 +149,8 @@ export default {
         {
           field: 'bucket',
           headerName: 'Bucket',
+          editable: false,
+          cellRenderer: DropDownCellRenderer
         },
         {
           field: 'schaetzung',
@@ -154,21 +158,24 @@ export default {
         },
         {
           field: 'id',
-          headerName: 'ID'
+          headerName: 'ID',
+          editable: false
         }
       ]
-    }
+    };
   },
   setup() {
-    let getRowId = (params) => params.data.id
-    const paketeStore = usePaketeStore()
-    const rowData = paketeStore.paketeAsTreeView
-    return {rowData, paketeStore, getRowId}
+    let getRowId = (params) => params.data.id;
+    const paketeStore = usePaketeStore();
+    const rowData = paketeStore.getTreeView();
+    return {rowData, paketeStore, getRowId};
   },
   components: {
     AgGridVue,
     // eslint-disable-next-line vue/no-unused-components
-    TreeDataCellRenderer
+    TreeDataCellRenderer,
+    // eslint-disable-next-line vue/no-unused-components
+    DropDownCellRenderer
   },
   methods: {
     /*    onFirstDataRendered(params) {
@@ -176,108 +183,108 @@ export default {
           params.columnApi.autoSizeColumns()
         },*/
     onGridReady(params) {
-      this.gridApi = params.api
-      this.columnApi = params.columnApi
+      this.gridApi = params.api;
+      this.columnApi = params.columnApi;
       //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
     },
     onCellClicked(params) {
-      this.selectedRow = params.data
+      this.selectedRow = params.data;
     },
     onCellValueChanged(params) {
-      this.paketeStore.updatePaket(params.data)
+      this.paketeStore.updatePaket(params.data);
     },
     addNewPaket() {
       const newPaketID = this.paketeStore.addNew(null)
       this.gridApi.refreshCells({force: true})
       nextTick(() => {
-        this.gridApi.setRowData(this.paketeStore.getTreeView);
+        this.gridApi.setRowData(this.paketeStore.getTreeView());
         this.gridApi.getRowNode(newPaketID).setSelected(true);
-      })
+      });
     },
     addNewKindPaket() {
       if (this.gridApi.getSelectedRows()[0] != null) {
-        this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({force: true})
+        const newPaketID = this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id);
+        this.gridApi.refreshCells({force: true});
         nextTick(() => {
-          this.gridApi.setRowData(this.paketeStore.getTreeView);
+          this.gridApi.setRowData(this.paketeStore.getTreeView());
           this.gridApi.getRowNode(newPaketID).setSelected(true);
-        })
+        });
       }
     },
     removeItem() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.deletePaket(this.gridApi.getSelectedRows()[0].id)
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+        this.paketeStore.deletePaket(this.gridApi.getSelectedRows()[0].id);
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
       }
     },
     movePaketUp() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveUp(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({force: true})
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+        this.paketeStore.moveUp(this.gridApi.getSelectedRows()[0].id);
+        this.gridApi.refreshCells({force: true});
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
       }
     },
     movePaketDown() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveDown(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({force: true})
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+        this.paketeStore.moveDown(this.gridApi.getSelectedRows()[0].id);
+        this.gridApi.refreshCells({force: true});
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
       }
     },
     movePaketLeftUp() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveLeftUp(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({force: true})
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+        this.paketeStore.moveLeftUp(this.gridApi.getSelectedRows()[0].id);
+        this.gridApi.refreshCells({force: true});
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
       }
     },
     movePaketLeftDown() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveLeftDown(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({force: true})
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+        this.paketeStore.moveLeftDown(this.gridApi.getSelectedRows()[0].id);
+        this.gridApi.refreshCells({force: true});
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
       }
     },
     movePaketDownRight() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveDownRight(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({force: true})
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+        this.paketeStore.moveDownRight(this.gridApi.getSelectedRows()[0].id);
+        this.gridApi.refreshCells({force: true});
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
       }
     },
     movePaketUpRight() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveUpRight(this.gridApi.getSelectedRows()[0].id)
-        this.gridApi.refreshCells({force: true})
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView))
+        this.paketeStore.moveUpRight(this.gridApi.getSelectedRows()[0].id);
+        this.gridApi.refreshCells({force: true});
+        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
       }
     },
     switchFlatAndTree() {
-      const params = {columns: ['ticket_nr']}
+      const params = {columns: ['ticket_nr']};
       const instances = this.gridApi.getCellRendererInstances(params);
       instances.forEach((instance) => {
         instance.switchFlatAndTree();
-      })
+      });
 
     },
     navigateToNextCell(params) {
-      const suggestedNextCell = params.nextCellPosition
-      const KEY_UP = 'ArrowUp'
-      const KEY_DOWN = 'ArrowDown'
+      const suggestedNextCell = params.nextCellPosition;
+      const KEY_UP = 'ArrowUp';
+      const KEY_DOWN = 'ArrowDown';
       const noUpOrDownKeyPressed =
-          params.key !== KEY_DOWN && params.key !== KEY_UP
+          params.key !== KEY_DOWN && params.key !== KEY_UP;
       if (noUpOrDownKeyPressed || !suggestedNextCell) {
-        return suggestedNextCell
+        return suggestedNextCell;
       }
       params.api.forEachNode(function (node) {
         if (node.rowIndex === suggestedNextCell.rowIndex) {
-          node.setSelected(true)
+          node.setSelected(true);
         }
-      })
-      return suggestedNextCell
+      });
+      return suggestedNextCell;
     }
   }
-}
+};
 
 </script>
 
