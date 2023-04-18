@@ -1,13 +1,13 @@
 <template>
   <div style="width: 100%;height: 100%">
-    <ag-grid-vue style="width: 100%;height: 90%"
-                 class="ag-theme-alpine"
-                 :rowData="rowData"
-                 :columnDefs="columnDefs"
-                 rowSelection="single"
-                 @cellValueChanged="onCellValueChanged"
-                 @cellClicked="onCellClicked"
+    <ag-grid-vue :columnDefs="columnDefs"
                  :navigateToNextCell="navigateToNextCell"
+                 :rowData="rowData"
+                 class="ag-theme-alpine"
+                 rowSelection="single"
+                 style="width: 100%;height: 90%"
+                 @cellClicked="onCellClicked"
+                 @cellValueChanged="onCellValueChanged"
                  @grid-ready="onGridReady"
     ></ag-grid-vue>
     <!--    <v-data-table :headers="headers" :rowData="rowData" item-key="id" @click:row="selectRow"
@@ -22,10 +22,10 @@
 <script>
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import { AgGridVue } from "ag-grid-vue3";
+import {AgGridVue} from "ag-grid-vue3";
 
-import { useAufschlaegeStore } from "@/stores/aufschlag";
-import { nextTick } from "vue";
+import {useAufschlaegeStore} from "@/stores/aufschlag";
+import {nextTick} from "vue";
 import BezeichnungCellRenderer from "@/components/projektkalkulation/BezeichnungCellRenderer.vue";
 import AufschlagCellRenderer from "@/components/projektkalkulation/AufschlagCellRenderer.vue";
 import AufwandCellRenderer from "@/components/projektkalkulation/AufwandCellRenderer.vue";
@@ -47,7 +47,7 @@ export default {
     // eslint-disable-next-line vue/no-unused-components
     AnteilAmGesamtprojektCellRenderer
   },
-  data: function() {
+  data: function () {
     return {
       gridApi: null,
       columnApi: null,
@@ -87,7 +87,7 @@ export default {
     const aufschlaegeStore = useAufschlaegeStore();
     aufschlaegeStore.berechne();
     const rowData = aufschlaegeStore.getAufschlage;
-    return { aufschlaegeStore, rowData };
+    return {aufschlaegeStore, rowData};
   },
   methods: {
     onGridReady(params) {
@@ -122,7 +122,7 @@ export default {
     zwischensummeErstellen() {
       if (this.gridApi.getSelectedRows()[0]) {
         if (this.gridApi.getSelectedRows()[0].bezeichnung === "ZWISCHENSUMME") return;
-        if (this.gridApi.getSelectedRows()[0].bezeichnung === "ENDSUMME") return;
+        if (this.gridApi.getSelectedRows()[0].bezeichnung === "ENDSUMME") return
         if (this.gridApi.getSelectedRows()[0].bezeichnung === "STARTSUMME") return;
         if (this.rowData[this.rowData.indexOf(this.gridApi.getSelectedRows()[0]) + 1].bezeichnung === "ZWISCHENSUMME") return;
         if (this.rowData[this.rowData.indexOf(this.gridApi.getSelectedRows()[0]) + 1].bezeichnung === "STARTSUMME") return;
@@ -148,11 +148,11 @@ export default {
       this.gridApi.setRowData(this.aufschlaegeStore.getAufschlage);
     },
     refreshGrid() {
-      this.gridApi.forEachNode(function(node) {
+      this.gridApi.forEachNode(function (node) {
         if (node.data.bezeichnung === "ZWISCHENSUMME") node.setRowHeight(80);
       });
       this.gridApi.onRowHeightChanged();
-      this.gridApi.refreshCells({ force: true });
+      this.gridApi.refreshCells({force: true});
     },
     moveAufschlagDown() {
       if (this.gridApi.getSelectedRows()[0] != null) {
@@ -165,11 +165,11 @@ export default {
       const KEY_UP = "ArrowUp";
       const KEY_DOWN = "ArrowDown";
       const noUpOrDownKeyPressed =
-        params.key !== KEY_DOWN && params.key !== KEY_UP;
+          params.key !== KEY_DOWN && params.key !== KEY_UP;
       if (noUpOrDownKeyPressed || !suggestedNextCell) {
         return suggestedNextCell;
       }
-      params.api.forEachNode(function(node) {
+      params.api.forEachNode(function (node) {
         if (node.rowIndex === suggestedNextCell.rowIndex) {
           node.setSelected(true);
         }
