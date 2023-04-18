@@ -40,7 +40,7 @@
               </div>
             </div>-->
     <div class="d-flex flex-wrap align-center mb-5" style="height: 100%; width: 100%">
-      <div v-for="bucket in copyBuckets" :key="bucket.id">
+      <div v-for="bucket in copyBuckets" :key="bucket._id">
         <v-container style="max-width: 300px;height: 150px">
           <v-row align="center" justify="space-between">
             <v-col cols="4">
@@ -49,13 +49,13 @@
               </v-btn>
             </v-col>
             <v-col cols="4">
-              <v-hover v-slot="{hover}" v-if="currentEditBucket!==bucket.id">
+              <v-hover v-slot="{hover}" v-if="currentEditBucket!==bucket._id">
                 <v-card :class="{'on-hover':hover}" class="bucket" :elevation="hover ? 12:2"
-                        :style="bucket.id===currentSelectedBucket? 'backgroundColor: green': ''
-                        || bucket.name===''? 'border: 1px solid red !important':''"
-                        @click="currentSelectedBucket=bucket.id"
-                        @dblclick="currentEditBucket=bucket.id; newBucketName=bucket.name">
-                  {{ bucket.name }}
+                        :style="bucket._id===currentSelectedBucket? 'backgroundColor: green': ''
+                        || bucket._name===''? 'border: 1px solid red !important':''"
+                        @click="currentSelectedBucket=bucket._id"
+                        @dblclick="currentEditBucket=bucket._id; newBucketName=bucket._name">
+                  {{bucket._name}}
                 </v-card>
               </v-hover>
               <v-hover v-else v-slot="{hover}">
@@ -94,9 +94,10 @@
 </style>
 <script>
 import {useBucketsStore} from "@/stores/buckets";
+import {Bucket} from "@/Bucket";
 
 export default {
-  name: "ProjektkalkulationView",
+  name: "ProjektUbersichtView",
   data() {
     return {
       newBucketName: '',
@@ -110,39 +111,40 @@ export default {
   },
   methods: {
     func(bucket) {
-      if (bucket.id === this.currentSelectedBucket && this.currentEditBucket === -1) return ""
+      if (bucket._id === this.currentSelectedBucket && this.currentEditBucket === -1) return ""
       else return "visibility: hidden"
     },
     addNewBucketBefore(bucket) {
-      this.copyBuckets.splice(bucket.id, 0, {id: null, name: ''})
-      for (let i = bucket.id; i < this.copyBuckets.length; i++) {
-        this.copyBuckets[i].id = i
-      }
+      const newBucket = new Bucket('')
+      const indexOfNewBucket = this.copyBuckets.indexOf(bucket);
+      this.copyBuckets.splice(indexOfNewBucket, 0, newBucket)
       this.speichernBuckets()
-      this.currentEditBucket = bucket.id - 1
+      this.currentEditBucket = newBucket.id
     },
     addNewBucketAfter(bucket) {
-      this.copyBuckets.splice(bucket.id + 1, 0, {id: null, name: ''})
-      for (let i = bucket.id; i < this.copyBuckets.length; i++) {
-        this.copyBuckets[i].id = i
-      }
+      const newBucket = new Bucket('')
+      const indexOfNewBucket = this.copyBuckets.indexOf(bucket)+1;
+      this.copyBuckets.splice(indexOfNewBucket, 0, newBucket)
       this.speichernBuckets()
-      this.currentEditBucket = bucket.id + 1
+      this.currentEditBucket = newBucket.id
     },
     editBucket() {
-      this.copyBuckets[this.currentEditBucket].name = this.newBucketName
+      this.copyBuckets.find(bucket => bucket._id===this.currentEditBucket)._name = this.newBucketName
       this.speichernBuckets()
     },
     loeschenBucket() {
-      this.copyBuckets.splice(this.currentSelectedBucket, 1)
-      for (let i = 0; i < this.copyBuckets.length; i++) {
-        this.copyBuckets[i].id = i
-      }
+      const indexOfBucketToDelete = this.copyBuckets.indexOf(this.copyBuckets.find(bucket => bucket._id===this.currentSelectedBucket))
+      this.copyBuckets.splice(indexOfBucketToDelete, 1)
       this.speichernBuckets()
     },
     speichernBuckets() {
+      const newBuckets = []
+      for(const bucket of this.copyBuckets) {
+        const newBucket = new Bucket(bucket._name,bucket._id)
+        newBuckets.push(newBucket)
+      }
+      this.bucketStore.updateAllBuckets(newBuckets)
       this.clearData()
-      this.bucketStore.updateAllBuckets(this.copyBuckets)
     },
     clearData() {
       this.newBucketName = ''
@@ -152,7 +154,7 @@ export default {
   },
   computed: {
     copyBuckets() {
-      return JSON.parse(JSON.stringify(this.bucketStore.buckets))
+      return JSON.parse(JSON.stringify(this.bucketStore.getBuckets()))
     },
   }
 }
