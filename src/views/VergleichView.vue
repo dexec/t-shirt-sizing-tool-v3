@@ -1,8 +1,8 @@
 <template>
-  <v-container fluid class="fill-height">
+  <v-container class="fill-height" fluid>
     <v-row class="fill-height">
-      <v-col cols="9" class="d-flex flex-column">
-        <v-row style="height: 30%" v-if="allPaketeWithNoBucket.length>0" justify="center">
+      <v-col class="d-flex flex-column" cols="9">
+        <v-row v-if="allPaketeWithNoBucket.length>0" justify="center" style="height: 30%">
           <v-btn class="ma-2" color="primary" dark>
             <v-icon dark right>mdi-arrow-left</v-icon>
           </v-btn>
@@ -17,9 +17,9 @@
                       </tr>
                     </v-table>-->
           <draggable
+              :list="listCurrentPaket"
               class="dragArea list-group ma-4"
               ghost-class="destination-item"
-              :list="listCurrentPaket"
               group="pakete"
               itemKey="name"
               @change="addCurrentPaket"
@@ -32,8 +32,8 @@
             <v-icon dark right>mdi-arrow-right</v-icon>
           </v-btn>
         </v-row>
-        <v-row style="height: 30%" justify="center" v-else>Keine Tickets da!</v-row>
-        <v-row style="height: 70%" class="d-flex flex-nowrap justify-center">
+        <v-row v-else justify="center" style="height: 30%">Keine Tickets da!</v-row>
+        <v-row class="d-flex flex-nowrap justify-center" style="height: 70%">
           <!--          <v-table v-for="selectedBuckedId in selected" :key="selected.indexOf(selectedBuckedId)" class="mr-4"
                              style="width: 30%">
                       <tr>
@@ -50,9 +50,9 @@
           <div v-for="bucket in buckets" :key="bucket.id">
             <draggable
                 v-if="this.selected.includes(bucket.id)"
+                :list="getPaketSortedByBucket(bucket)"
                 class="dragArea list-group ma-2"
                 ghost-class="destination-item"
-                :list="getPaketSortedByBucket(bucket)"
                 group="pakete"
                 itemKey="name"
                 @change="changeBucketOfPaket($event,bucket)"
@@ -74,8 +74,8 @@
           </template>
           <v-card>
             <v-card-text>
-              <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :value="bucket.id"
-                          :label=bucket.name @change="sortSelectedBuckets">
+              <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
+                          :value="bucket.id" @change="sortSelectedBuckets">
               </v-checkbox>
             </v-card-text>
           </v-card>
@@ -116,21 +116,21 @@ export default {
     return {
       dialog: false,
       checked: true,
-      selected: this.bucketStore.getBuckets.map(bucket => bucket.id),
+      selected: this.bucketStore.getBuckets().map(bucket => bucket.id),
       updateTable: true,
-      buckets: this.bucketStore.getBuckets,
-      allPakete: this.paketeStore.getChildren,
-      allPaketeWithNoBucket: this.paketeStore.getChildrenWithNoBucket,
+      buckets: this.bucketStore.getBuckets(),
+      allPakete: this.paketeStore.getChildren(),
+      allPaketeWithNoBucket: this.paketeStore.getChildrenWithNoBucket(),
       listCurrentPaket: []
     }
   },
   setup() {
-    const paketeStore = usePaketeStore()
-    const bucketStore = useBucketsStore()
+    const paketeStore = usePaketeStore();
+    const bucketStore = useBucketsStore();
     return {bucketStore, paketeStore}
   },
   mounted() {
-    if (this.paketeStore.getChildrenWithNoBucket.length > 0) this.listCurrentPaket = [this.paketeStore.getChildrenWithNoBucket[0]]
+    if (this.paketeStore.getChildrenWithNoBucket().length > 0) this.listCurrentPaket = [this.paketeStore.getChildrenWithNoBucket()[0]]
   },
   methods: {
     sortSelectedBuckets() {
@@ -141,7 +141,7 @@ export default {
     getPaketSortedByBucket(bucket) {
       const result = [];
       this.allPakete.forEach(paket => {
-        if (paket.bucket === bucket.name) result.push(paket)
+        if (paket.bucket && paket.bucket.name === bucket.name) result.push(paket)
       })
       return result
     },
@@ -153,14 +153,14 @@ export default {
     changeBucketOfPaket(evt, bucket) {
       if (evt.added !== undefined) {
         const updatePaket = evt.added.element
-        updatePaket.bucket = bucket.name
+        updatePaket.bucket = this.bucketStore.getBuckets().find(currentBucket => currentBucket.name === bucket.name)
         this.paketeStore.updatePaket(updatePaket)
       }
     },
     addCurrentPaket(evt) {
       if (evt.removed) {
-        this.allPaketeWithNoBucket = this.paketeStore.getChildrenWithNoBucket
-        if (this.paketeStore.getChildrenWithNoBucket.length > 0) this.listCurrentPaket = [this.paketeStore.getChildrenWithNoBucket[0]]
+        this.allPaketeWithNoBucket = this.paketeStore.getChildrenWithNoBucket()
+        if (this.paketeStore.getChildrenWithNoBucket().length > 0) this.listCurrentPaket = [this.paketeStore.getChildrenWithNoBucket()[0]]
       }
     }
   },
