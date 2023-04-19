@@ -10,7 +10,6 @@
         rowSelection='single'
         style='width: 100%;height: 90%'
         suppressRowHoverHighlight='true'
-        @cellClicked='onCellClicked'
         @cellValueChanged="onCellValueChanged"
         @grid-ready='onGridReady'>
     </ag-grid-vue>
@@ -18,7 +17,7 @@
       <v-btn class='mx-5' @click='addNewPaket'>Neues Arbeitspaket anlegen</v-btn>
       <v-btn class='mx-5' @click='addNewKindPaket'>Neues Arbeitspaket als Kind anlegen</v-btn>
       <v-btn class='mx-5' @click='removeItem'>Arbeitspaket löschen</v-btn>
-      <v-btn class='mx-5'>Bucket zuweisen</v-btn>
+      <v-btn class='mx-5' @click="log">Bucket zuweisen</v-btn>
       <v-btn class='mx-5' @click='movePaketLeftUp'>
         <v-icon>mdi-arrow-top-left</v-icon>
       </v-btn>
@@ -165,9 +164,9 @@ export default {
     };
   },
   setup() {
-    let getRowId = (params) => params.data.id;
+    let getRowId = (params) => params.data._id;
     const paketeStore = usePaketeStore();
-    const rowData = paketeStore.getTreeView();
+    const rowData = paketeStore.paketeAsTreeView;
     return {rowData, paketeStore, getRowId};
   },
   components: {
@@ -182,31 +181,29 @@ export default {
           params.api.sizeColumnsToFit();
           params.columnApi.autoSizeColumns()
         },*/
+    log() {
+      console.log(this.rowData)
+    },
     onGridReady(params) {
       this.gridApi = params.api;
       this.columnApi = params.columnApi;
       //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
-    },
-    onCellClicked(params) {
-      this.selectedRow = params.data;
     },
     onCellValueChanged(params) {
       this.paketeStore.updatePaket(params.data);
     },
     addNewPaket() {
       const newPaketID = this.paketeStore.addNew(null)
-      this.gridApi.refreshCells({force: true})
+      this.refreshTable()
       nextTick(() => {
-        this.gridApi.setRowData(this.paketeStore.getTreeView());
         this.gridApi.getRowNode(newPaketID).setSelected(true);
       });
     },
     addNewKindPaket() {
       if (this.gridApi.getSelectedRows()[0] != null) {
         const newPaketID = this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id);
-        this.gridApi.refreshCells({force: true});
+        this.refreshTable()
         nextTick(() => {
-          this.gridApi.setRowData(this.paketeStore.getTreeView());
           this.gridApi.getRowNode(newPaketID).setSelected(true);
         });
       }
@@ -214,58 +211,57 @@ export default {
     removeItem() {
       if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.deletePaket(this.gridApi.getSelectedRows()[0].id);
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
+        this.refreshTable()
       }
     },
     movePaketUp() {
       if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveUp(this.gridApi.getSelectedRows()[0].id);
-        this.gridApi.refreshCells({force: true});
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
+        this.refreshTable()
       }
     },
     movePaketDown() {
       if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveDown(this.gridApi.getSelectedRows()[0].id);
-        this.gridApi.refreshCells({force: true});
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
+        this.refreshTable()
       }
     },
     movePaketLeftUp() {
       if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveLeftUp(this.gridApi.getSelectedRows()[0].id);
-        this.gridApi.refreshCells({force: true});
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
+        this.refreshTable()
       }
     },
     movePaketLeftDown() {
       if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveLeftDown(this.gridApi.getSelectedRows()[0].id);
-        this.gridApi.refreshCells({force: true});
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
+        this.refreshTable()
       }
     },
     movePaketDownRight() {
       if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveDownRight(this.gridApi.getSelectedRows()[0].id);
-        this.gridApi.refreshCells({force: true});
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
+        this.refreshTable()
       }
     },
     movePaketUpRight() {
       if (this.gridApi.getSelectedRows()[0]) {
         this.paketeStore.moveUpRight(this.gridApi.getSelectedRows()[0].id);
-        this.gridApi.refreshCells({force: true});
-        nextTick(() => this.gridApi.setRowData(this.paketeStore.getTreeView()));
+        this.refreshTable()
       }
     },
-    switchFlatAndTree() {
+    /*switchFlatAndTree() {
       const params = {columns: ['ticket_nr']};
       const instances = this.gridApi.getCellRendererInstances(params);
       instances.forEach((instance) => {
         instance.switchFlatAndTree();
       });
-
+    },*/
+    refreshTable() {
+      nextTick(() => {
+        this.gridApi.refreshCells({force: true});
+        this.gridApi.setRowData(this.paketeStore.paketeAsTreeView)
+      });
     },
     navigateToNextCell(params) {
       const suggestedNextCell = params.nextCellPosition;
