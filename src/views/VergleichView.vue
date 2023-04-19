@@ -116,11 +116,11 @@ export default {
     return {
       dialog: false,
       checked: true,
-      selected: this.bucketStore.getBuckets().map(bucket => bucket.id),
+      selected: this.bucketStore.buckets.map(bucket => bucket.id),
       updateTable: true,
-      buckets: this.bucketStore.getBuckets(),
-      allPakete: this.paketeStore.getChildren(),
-      allPaketeWithNoBucket: this.paketeStore.getChildrenWithNoBucket(),
+      buckets: this.bucketStore.buckets,
+      allPakete: this.paketeStore.paketeChildren,
+      allPaketeWithNoBucket: this.paketeStore.paketeChildrenWithNoBucket,
       listCurrentPaket: []
     }
   },
@@ -130,7 +130,7 @@ export default {
     return {bucketStore, paketeStore}
   },
   mounted() {
-    if (this.paketeStore.getChildrenWithNoBucket().length > 0) this.listCurrentPaket = [this.paketeStore.getChildrenWithNoBucket()[0]]
+    if (this.paketeStore.paketeChildrenWithNoBucket.length > 0) this.listCurrentPaket = [this.paketeStore.paketeChildrenWithNoBucket[0]]
   },
   methods: {
     sortSelectedBuckets() {
@@ -153,14 +153,14 @@ export default {
     changeBucketOfPaket(evt, bucket) {
       if (evt.added !== undefined) {
         const updatePaket = evt.added.element
-        updatePaket.bucket = this.bucketStore.getBuckets().find(currentBucket => currentBucket.name === bucket.name)
+        updatePaket.bucket = this.bucketStore.buckets.find(currentBucket => currentBucket.name === bucket.name)
         this.paketeStore.updatePaket(updatePaket)
       }
     },
     addCurrentPaket(evt) {
       if (evt.removed) {
-        this.allPaketeWithNoBucket = this.paketeStore.getChildrenWithNoBucket()
-        if (this.paketeStore.getChildrenWithNoBucket().length > 0) this.listCurrentPaket = [this.paketeStore.getChildrenWithNoBucket()[0]]
+        this.allPaketeWithNoBucket = this.paketeStore.paketeChildrenWithNoBucket
+        if (this.paketeStore.paketeChildrenWithNoBucket.length > 0) this.listCurrentPaket = [this.paketeStore.paketeChildrenWithNoBucket[0]]
       }
     }
   },
