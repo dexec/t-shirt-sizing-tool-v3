@@ -1,32 +1,26 @@
 {
-  "aufschlaege": [
+  "aufschlaegeZwischenspeicher": [
     {
       "bezeichnung": "A",
-      "aufschlagWert": 10,
-      "aufwandWert": null
+      "aufschlagWert": 10
     },
     {
       "bezeichnung": "B",
-      "aufschlagWert": 20,
-      "aufwandWert": null
+      "aufschlagWert": 20
     },
     {
       "bezeichnung": "C",
-      "aufschlagWert": 30,
-      "aufwandWert": null
+      "aufschlagWert": 30
     },
     {
-      "bezeichnung": "ZWISCHENSUMME",
-      "aufschlagWert": 0,
-      "aufwandWert": 0
+      "bezeichnung": "ZWISCHENSUMME"
     },
     {
       "bezeichnung": "D",
-      "aufschlagWert": null,
       "aufwandWert": 100
     }
   ],
-  "aufschlaegeZwischenspeicher": [
+  "aufschlaege": [
     {
       "bezeichnung": "And. analyse",
       "aufschlagWert": 55
@@ -72,12 +66,25 @@
       "aufschlagWert": 5
     },
     {
-      "bezeichnung": "ZWISCHENSUMME",
-      "aufschlagWert": 0
+      "bezeichnung": "ZWISCHENSUMME"
+    },
+    {
+      "bezeichnung": "XGewerbeordnung Schnittstelle aus Bucket E",
+      "aufwandWert": 120
+    },
+    {
+      "bezeichnung": "ZWISCHENSUMME"
     },
     {
       "bezeichnung": "Adressmodul aus Bucket E",
       "aufschlagWert": 10
+    },
+    {
+      "bezeichnung": "ZWISCHENSUMME"
+    },
+    {
+      "bezeichnung": "Risiken",
+      "aufwandWert": 62.5
     }
   ],
   "buckets": [
