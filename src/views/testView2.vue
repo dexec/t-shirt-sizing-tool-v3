@@ -17,7 +17,7 @@ export default {
 
   methods: {
     test() {
-      for(const paket of this.paketeStore.getTreeView())
+      for(const paket of this.paketeStore.paketeAsTreeView)
         console.log(paket.beschreibung)
     }
   }
