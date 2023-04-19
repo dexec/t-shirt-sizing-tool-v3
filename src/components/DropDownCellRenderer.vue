@@ -1,13 +1,12 @@
 <template>
   <div v-if="this.params.node.data.children.length===0">
-  <v-select clearable v-model="selectedBucket" :items="bucketStore.getBuckets().map(bucket => bucket.name)"
-            @update:modelValue="updatePaket" :open-on-clear="false"></v-select></div>
+  <v-select clearable v-model="selectedBucket" :items="bucketStore.buckets.map(bucket => bucket.name)"
+            @update:modelValue="updatePaket" open-on-clear></v-select></div>
 </template>
 
 <script>
 import {useBucketsStore} from "@/stores/buckets";
 import {usePaketeStore} from "@/stores/pakete";
-import {Bucket} from "@/Bucket";
 
 export default {
   name: "DropDownCellRenderer",
@@ -24,7 +23,7 @@ export default {
   methods: {
     updatePaket() {
       let aktuellesPaket = this.params.node.data;
-      aktuellesPaket.bucket = this.bucketStore.getBuckets().find(bucket => bucket.name === this.selectedBucket)
+      aktuellesPaket.bucket = this.bucketStore.buckets.find(bucket => bucket.name === this.selectedBucket)
       this.paketStore.updatePaket(aktuellesPaket);
     }
   }
