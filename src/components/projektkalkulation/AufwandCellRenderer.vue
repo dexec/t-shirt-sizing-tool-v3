@@ -1,7 +1,7 @@
 <template>
   <div v-if="params.data instanceof Zwischensumme">
     <div v-if="params.data.bezeichnung==='STARTSUMME' || params.data.bezeichnung==='ENDSUMME'">
-      <p>{{ zwischensummeAufwand }}</p>
+      <p class="font-weight-bold">{{ zwischensummeAufwand }}</p>
     </div>
     <div v-else>
       <p class="text-caption pt-2">{{ vorigerAbschnittAufwand }}</p>
