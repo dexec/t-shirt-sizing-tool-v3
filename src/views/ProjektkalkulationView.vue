@@ -6,7 +6,6 @@
                  class="ag-theme-alpine"
                  rowSelection="single"
                  style="width: 100%;height: 90%"
-                 @cellClicked="onCellClicked"
                  @cellValueChanged="onCellValueChanged"
                  @grid-ready="onGridReady"
     ></ag-grid-vue>
@@ -94,9 +93,6 @@ export default {
       this.gridApi = params.api;
       this.columnApi = params.columnApi;
       this.refreshGrid();
-    },
-    onCellClicked(params) {
-      this.selectedRow = params.data;
     },
     onCellValueChanged(params) {
       switch (params.colDef.field) {
