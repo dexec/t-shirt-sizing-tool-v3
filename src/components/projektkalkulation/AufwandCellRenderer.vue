@@ -20,7 +20,7 @@ export default {
       return Zwischensumme;
     },
     aufwandWert() {
-      return this.params.data.berechneAufwand()
+      return this.params.data.aufwandWert
     },
     vorigerAbschnittAufwand() {
       return this.params.data.vorigerAbschnittAufwand
