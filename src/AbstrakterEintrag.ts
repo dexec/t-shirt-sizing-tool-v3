@@ -1,4 +1,4 @@
-export abstract class AbstrakterAufschlag {
+export abstract class AbstrakterEintrag {
   private _bezeichnung: string;
   private _anteilZwischensumme: number;
   private _anteilGesamtprojekt: number;
