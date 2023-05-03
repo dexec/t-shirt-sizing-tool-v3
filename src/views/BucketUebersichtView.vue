@@ -11,6 +11,8 @@
           <th rowspan="2">Min</th>
           <th rowspan="2">Max</th>
           <th rowspan="2">Anteil Anzahl</th>
+          <th rowspan="2">Mittelwert</th>
+          <th rowspan="2">Median</th>
           <th colspan="2">Summe Schätzungen</th>
           <th colspan="2">Durchschnittliche Summe</th>
           <th colspan="2">Summe nach Median</th>
@@ -25,35 +27,48 @@
         </tr>
         </thead>
         <tbody>
-        <tr
-            v-for="bucket in buckets"
-            :key="bucket.name"
-        >
-          <td>{{ bucket.name }}</td>
-          <td>{{ bucket.anzahlGeschaetzt }}</td>
-          <td>{{ bucket.anzahlUngeschaetzt }}</td>
-          <td>{{ bucket.min }}</td>
-          <td>{{ bucket.max }}</td>
-          <td>{{ bucket.mittelwert }}</td>
-          <td>{{ bucket.anteilAnzahl }}</td>
-          <td>{{ bucket.summeSchaetzungen.pt }}</td>
-          <td>{{ bucket.summeSchaetzungen.prozent }}</td>
-          <td>{{ bucket.durschnittlicheSumme.pt }}</td>
-          <td>{{ bucket.durschnittlicheSumme.prozent }}</td>
-          <td>{{ bucket.summeNachMedian.pt }}</td>
-          <td>{{ bucket.summeNachMedian.prozent }}</td>
+        <tr v-for="statistik of statistiken.statistiken" :key="statistik.bucket.id">
+          <td>{{ statistik.bucket.name }}</td>
+          <td>{{ statistik.anzahlGeschaetzt }}</td>
+          <td>{{ statistik.anzahlUngeschaetzt }}</td>
+          <td>{{ statistik.anzahlGesamt }}</td>
+          <td>{{ statistik.min }}</td>
+          <td>{{ statistik.max }}</td>
+          <td>{{ statistik.anteilAnzahl !== 0 ? Math.round(statistik.anteilAnzahl * 100) + "%" : '' }}</td>
+          <td>{{ statistik.durchschnitt !== 0 ? Math.round(statistik.durchschnitt) : '' }}</td>
+          <td>{{ statistik.median !== 0 ? Math.round(statistik.median) : '' }}</td>
+          <td>{{ statistik.median !== 0 ? statistik.summeSchaetzungen : '' }}</td>
+          <td>
+            {{
+              statistik.summeSchaetzungen !== 0 ? Math.round((statistik.summeSchaetzungen / statistiken.summeAlleBucketsSchaetzungen() || 0) * 100) + '%' : ''
+            }}
+          </td>
+          <td>{{ statistik.summeDurchschnitt !== 0 ? Math.round(statistik.summeDurchschnitt) : '' }}</td>
+          <td>
+            {{
+              statistik.summeDurchschnitt !== 0 ? Math.round((statistik.summeDurchschnitt / statistiken.summeAlleBucketsDurchschnitt() || 0) * 100) + '%' : ''
+            }}
+          </td>
+          <td>{{ statistik.summeMedian !== 0 ? Math.round(statistik.summeMedian) : '' }}</td>
+          <td>
+            {{
+              statistik.summeMedian !== 0 ? Math.round((statistik.summeMedian / statistiken.summeAlleBucketsMedian() || 0) * 100) + '%' : ''
+            }}
+          </td>
         </tr>
         <tr class="font-weight-bold">
           <td>Summe</td>
-          <td>4</td>
-          <td>0</td>
-          <td>5</td>
+          <td>{{ statistiken.summeAlleBucketsGeschaetzt() }}</td>
+          <td>{{ statistiken.summeAlleBucketsUngeschaetzt() }}</td>
+          <td>{{ statistiken.summeAlleBucketsGesamt() }}</td>
           <td></td>
           <td></td>
           <td></td>
-          <td colspan="2">20</td>
-          <td colspan="2">20</td>
-          <td colspan="2">20</td>
+          <td></td>
+          <td></td>
+          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsSchaetzungen()) }}</td>
+          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsDurchschnitt()) }}</td>
+          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsMedian()) }}</td>
         </tr>
         </tbody>
       </template>
@@ -61,72 +76,11 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "BucketUebersichtView",
-  data() {
-    return {
-      buckets: [
-        {
-          name: 'xs',
-          anzahlGeschaetzt: 1,
-          anzahlUngeschaetzt: 0,
-          anzahlGesamt: 1,
-          min: 5,
-          max: 5,
-          mittelwert: 5,
-          median: 5,
-          anteilAnzahl: 11.11,
-          summeSchaetzungen: {pt: 5, prozent: 3.25},
-          durschnittlicheSumme: {pt: 5, prozent: 3.09},
-          summeNachMedian: {pt: 5, prozent: 3.14}
-        },
-        {
-          name: 's',
-          anzahlGeschaetzt: 1,
-          anzahlUngeschaetzt: 0,
-          anzahlGesamt: 1,
-          min: 5,
-          max: 5,
-          mittelwert: 5,
-          median: 5,
-          anteilAnzahl: 11.11,
-          summeSchaetzungen: {pt: 5, prozent: 3.25},
-          durschnittlicheSumme: {pt: 5, prozent: 3.09},
-          summeNachMedian: {pt: 5, prozent: 3.14}
-        },
-        {
-          name: 'm',
-          anzahlGeschaetzt: 1,
-          anzahlUngeschaetzt: 0,
-          anzahlGesamt: 1,
-          min: 5,
-          max: 5,
-          mittelwert: 5,
-          median: 5,
-          anteilAnzahl: 11.11,
-          summeSchaetzungen: {pt: 5, prozent: 3.25},
-          durschnittlicheSumme: {pt: 5, prozent: 3.09},
-          summeNachMedian: {pt: 5, prozent: 3.14}
-        },
-        {
-          name: 'xl',
-          anzahlGeschaetzt: 1,
-          anzahlUngeschaetzt: 0,
-          anzahlGesamt: 1,
-          min: 5,
-          max: 5,
-          mittelwert: 5,
-          median: 5,
-          anteilAnzahl: 11.11,
-          summeSchaetzungen: {pt: 5, prozent: 3.25},
-          durschnittlicheSumme: {pt: 5, prozent: 3.09},
-          summeNachMedian: {pt: 5, prozent: 3.14}
-        }
-      ]
-    }
-  }
-}
+<script lang="ts" setup>
+import {useStatistikenStore} from "@/stores/statistiken";
+
+const statistiken = useStatistikenStore();
+statistiken.berechne();
 </script>
 
 <style>
