@@ -2,20 +2,10 @@
   <v-container class="fill-height" fluid>
     <v-row class="fill-height">
       <v-col class="d-flex flex-column" cols="9">
-        <v-row v-if="allPaketeWithNoBucket.length>0" justify="center" style="height: 30%">
+        <v-row v-if="paketeWithoutBucket.length > 0" justify="center" style="height: 30%">
           <v-btn class="ma-2" color="primary" dark>
             <v-icon dark right>mdi-arrow-left</v-icon>
           </v-btn>
-          <!--          <v-table style="width: 30%;">
-                      <tr>
-                        <th style="width: 30%">ID</th>
-                        <th>Thema</th>
-                      </tr>
-                      <tr>
-                        <td>{{ currentPaket.id }}</td>
-                        <td>{{ currentPaket.thema }}</td>
-                      </tr>
-                    </v-table>-->
           <draggable
               :list="listCurrentPaket"
               class="dragArea list-group ma-4"
@@ -77,6 +67,7 @@
               <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
                           :value="bucket.id" @change="sortSelectedBuckets">
               </v-checkbox>
+              <div v-if="buckets.length===0">Es gibt keine Buckets</div>
             </v-card-text>
           </v-card>
         </v-dialog>
@@ -87,14 +78,14 @@
             <th>Thema</th>
           </tr>
           </thead>
-          <tbody v-if="this.allPaketeWithNoBucket.length>0">
-          <tr v-for="paket of this.allPaketeWithNoBucket" :key="paket.id">
+          <tbody v-if="this.paketeWithoutBucket.length>0">
+          <tr v-for="paket of this.paketeWithoutBucket" :key="paket.id">
             <td>{{ paket.id }}</td>
             <td>{{ paket.thema }}</td>
           </tr>
           </tbody>
         </v-table>
-        <span v-if="this.allPaketeWithNoBucket.length===0">
+        <span v-if="this.paketeWithoutBucket.length===0">
           Es gibt keine Pakete ohne Bucket
         </span>
       </v-col>
@@ -119,8 +110,8 @@ export default {
       selected: this.bucketStore.buckets.map(bucket => bucket.id),
       updateTable: true,
       buckets: this.bucketStore.buckets,
-      allPakete: this.paketeStore.paketeChildren,
-      allPaketeWithNoBucket: this.paketeStore.paketeChildrenWithNoBucket,
+      paketeLeafs: this.paketeStore.paketeChildren(),
+      paketeWithoutBucket: this.paketeStore.paketeChildrenWithNoBucket(),
       listCurrentPaket: []
     }
   },
@@ -130,7 +121,7 @@ export default {
     return {bucketStore, paketeStore}
   },
   mounted() {
-    if (this.paketeStore.paketeChildrenWithNoBucket.length > 0) this.listCurrentPaket = [this.paketeStore.paketeChildrenWithNoBucket[0]]
+    if (this.paketeStore.paketeChildrenWithNoBucket().length > 0) this.listCurrentPaket = [this.paketeStore.paketeChildrenWithNoBucket()[0]]
   },
   methods: {
     sortSelectedBuckets() {
@@ -140,7 +131,7 @@ export default {
     },
     getPaketSortedByBucket(bucket) {
       const result = [];
-      this.allPakete.forEach(paket => {
+      this.paketeLeafs.forEach(paket => {
         if (paket.bucket && paket.bucket.name === bucket.name) result.push(paket)
       })
       return result
@@ -154,13 +145,12 @@ export default {
       if (evt.added !== undefined) {
         const updatePaket = evt.added.element
         updatePaket.bucket = this.bucketStore.buckets.find(currentBucket => currentBucket.name === bucket.name)
-        this.paketeStore.updatePaket(updatePaket)
       }
     },
     addCurrentPaket(evt) {
       if (evt.removed) {
-        this.allPaketeWithNoBucket = this.paketeStore.paketeChildrenWithNoBucket
-        if (this.paketeStore.paketeChildrenWithNoBucket.length > 0) this.listCurrentPaket = [this.paketeStore.paketeChildrenWithNoBucket[0]]
+        this.paketeWithoutBucket = this.paketeStore.paketeChildrenWithNoBucket()
+        if (this.paketeStore.paketeChildrenWithNoBucket().length > 0) this.listCurrentPaket = [this.paketeStore.paketeChildrenWithNoBucket()[0]]
       }
     }
   },
