@@ -1,6 +1,6 @@
-import { AbstrakterAufschlag } from "@/AbstrakterAufschlag";
+import { AbstrakterEintrag } from "@/AbstrakterEintrag";
 
-export class Zwischensumme extends AbstrakterAufschlag {
+export class Zwischensumme extends AbstrakterEintrag {
   private _vorigerAbschnittAufschlag: number;
   private _vorigerAbschnittAufwand: number;
   private _zwischensummeAufwand: number;
