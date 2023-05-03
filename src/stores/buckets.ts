@@ -2,6 +2,7 @@ import {defineStore} from 'pinia';
 import saveFile from './file.json';
 import {Bucket} from "@/Bucket";
 import {ref} from "vue";
+import {usePaketeStore} from "@/stores/pakete";
 
 export const useBucketsStore = defineStore('buckets', () => {
     const buckets = ref<Array<Bucket>>([]);
@@ -24,10 +25,17 @@ export const useBucketsStore = defineStore('buckets', () => {
     }
 
     function deleteBucket(id: number) {
+        const pakete = usePaketeStore();
         const bucketToDelete = buckets.value.find(bucket => bucket.id == id) as Bucket
         const indexOfBucketToDelete = buckets.value.indexOf(bucketToDelete)
         buckets.value.splice(indexOfBucketToDelete, 1);
+        pakete.paketeOfBucket(bucketToDelete).forEach(paket => paket.bucket=null)
     }
 
-    return {buckets, updateBucketName, deleteBucket, addNewBucket}
+    return {
+        buckets,
+        updateBucketName,
+        deleteBucket,
+        addNewBucket
+    }
 });
