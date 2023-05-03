@@ -1,5 +1,5 @@
 {
-  "aufschlaegeZwischenspeicher": [
+  "eintraege2": [
     {
       "bezeichnung": "A",
       "aufschlagWert": 10
@@ -20,7 +20,7 @@
       "aufwandWert": 100
     }
   ],
-  "aufschlaege": [
+  "eintraege": [
     {
       "bezeichnung": "And. analyse",
       "aufschlagWert": 55
@@ -125,7 +125,7 @@
       "beschreibung": "Es soll ein Log-In System für Nutzer und Manager entwickelt werden",
       "komponente": "Komp-A",
       "bucket": null,
-      "schaetzung": null,
+      "schaetzung": 0,
       "open": false
     },
     {
@@ -135,7 +135,7 @@
       "beschreibung": "Implementieren, auf Basis der UI und des Prototypen",
       "komponente": "Komp-B",
       "bucket": "XS",
-      "schaetzung": null,
+      "schaetzung": 0,
       "open": false
     },
     {
@@ -145,7 +145,7 @@
       "beschreibung": "Implementierung vollständig dokumentieren, um später den Code nachvollziehen zu können",
       "komponente": "Komp-C",
       "bucket": "M",
-      "schaetzung": null,
+      "schaetzung": 0,
       "open": false
     },
     {
@@ -185,7 +185,7 @@
       "beschreibung": "Es soll eine Testarchitektur entwickelt werden",
       "komponente": "Komp-F",
       "bucket": "S",
-      "schaetzung": null,
+      "schaetzung": 0,
       "open": false
     },
     {
@@ -195,7 +195,7 @@
       "beschreibung": "Lizenzen zur Entwicklung für das ganze Team einkaufen",
       "komponente": "Komp-F",
       "bucket": "XS",
-      "schaetzung": null,
+      "schaetzung": 0,
       "open": false
     }
   ],
