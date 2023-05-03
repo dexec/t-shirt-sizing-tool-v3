@@ -146,14 +146,18 @@ export default {
           headerName: 'Komponente'
         },
         {
-          field: 'bucket',
+          field: 'bucket.name',
           headerName: 'Bucket',
           editable: false,
-          cellRenderer: DropDownCellRenderer
         },
         {
           field: 'schaetzung',
-          headerName: 'Schätzung'
+          headerName: 'Schätzung',
+          editable: params => params.data.children.length === 0,
+          valueSetter: params => {
+            if (isNaN(params.newValue)) params.data.schaetzung = Number(0)
+            else params.data.schaetzung = Number(params.newValue)
+          }
         },
         {
           field: 'id',
@@ -190,18 +194,25 @@ export default {
       //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
     },
     onCellValueChanged(params) {
-      this.paketeStore.updatePaket(params.data);
+      if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue) this.paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
+      this.refreshTable();
     },
     addNewPaket() {
-      const newPaketID = this.paketeStore.addNew(null)
-      this.refreshTable()
+      let newPaketID = 0;
+      console.log(this.gridApi.getSelectedRows()[0])
+      if (this.gridApi.getSelectedRows()[0]) {
+        newPaketID = this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id)
+      } else {
+        newPaketID = this.paketeStore.addNew(-1)
+      }
+      this.refreshTable();
       nextTick(() => {
         this.gridApi.getRowNode(newPaketID).setSelected(true);
       });
     },
     addNewKindPaket() {
-      if (this.gridApi.getSelectedRows()[0] != null) {
-        const newPaketID = this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id);
+      if (this.gridApi.getSelectedRows()[0]) {
+        const newPaketID = this.paketeStore.addNewChild(this.gridApi.getSelectedRows()[0].id);
         this.refreshTable()
         nextTick(() => {
           this.gridApi.getRowNode(newPaketID).setSelected(true);
