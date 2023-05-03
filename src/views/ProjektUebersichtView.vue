@@ -40,46 +40,51 @@
               </div>
             </div>-->
     <div class="d-flex flex-wrap align-center mb-5" style="height: 100%; width: 100%">
-      <div v-for="bucket in bucketStore.buckets" :key="bucket.id">
-        <v-container style="max-width: 300px;height: 150px">
-          <v-row align="center" justify="space-between">
-            <v-col cols="4">
-              <v-btn :style="func(bucket)" @click="addNewBucketBefore(bucket)">
-                <v-icon icon="mdi-plus"></v-icon>
-              </v-btn>
-            </v-col>
-            <v-col cols="4">
-              <v-hover v-slot="{hover}" v-if="currentEditBucket!==bucket.id">
-                <v-card :class="{'on-hover':hover}" class="bucket" :elevation="hover ? 12:2"
-                        :style="bucket.id===currentSelectedBucket? 'backgroundColor: green': ''
+        <div v-for="bucket in bucketStore.buckets" :key="bucket.id">
+          <v-container style="max-width: 300px;height: 150px">
+            <v-row align="center" justify="space-between">
+              <v-col cols="4">
+                <v-btn :style="func(bucket)" @click="addNewBucketBefore()">
+                  <v-icon icon="mdi-plus"></v-icon>
+                </v-btn>
+              </v-col>
+              <v-col cols="4">
+                <v-hover v-if="currentEditBucket!==bucket.id" v-slot="{hover}">
+                  <v-card :class="{'on-hover':hover}" :elevation="hover ? 12:2" :style="bucket.id===currentSelectedBucket? 'backgroundColor: green': ''
                         || bucket.name===''? 'border: 1px solid red !important':''"
-                        @click="currentSelectedBucket=bucket.id"
-                        @dblclick="currentEditBucket=bucket.id; newBucketName=bucket.name">
-                  {{ bucket.name }}
-                </v-card>
-              </v-hover>
-              <v-hover v-else v-slot="{hover}">
-                <v-card :class="{'on-hover':hover}" class="bucket">
-                  <v-text-field v-model="newBucketName" @blur="editBucket" autofocus></v-text-field>
-                </v-card>
-              </v-hover>
-            </v-col>
-            <v-col cols="4">
-              <v-btn :style="func(bucket)" @click="addNewBucketAfter(bucket)">
-                <v-icon icon="mdi-plus"></v-icon>
-              </v-btn>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="8" offset="4">
-              <v-btn @click="loeschenBucket" :style="func(bucket)">
-                <v-icon icon="mdi-minus"></v-icon>
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-container>
+                          class="bucket"
+                          @click="currentSelectedBucket=bucket.id"
+                          @dblclick="currentEditBucket=bucket.id; newBucketName=bucket.name">
+                    {{ bucket.name }}
+                  </v-card>
+                </v-hover>
+                <v-hover v-else v-slot="{hover}">
+                  <v-card :class="{'on-hover':hover}" class="bucket">
+                    <v-text-field v-model="newBucketName" autofocus @blur="editBucket"></v-text-field>
+                  </v-card>
+                </v-hover>
+              </v-col>
+              <v-col cols="4">
+                <v-btn :style="func(bucket)" @click="addNewBucketAfter()">
+                  <v-icon icon="mdi-plus"></v-icon>
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="8" offset="4">
+                <v-btn :style="func(bucket)" @click="loeschenBucket">
+                  <v-icon icon="mdi-minus"></v-icon>
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-container>
+        </div>
+      <div v-if="bucketStore.buckets.length===0">
+        <v-btn @click="addFirstBucket()">
+          <v-icon icon="mdi-plus"></v-icon>
+        </v-btn>
       </div>
-    </div>
+      </div>
   </div>
 </template>
 <style>
@@ -113,16 +118,20 @@ export default {
       if (bucket.id === this.currentSelectedBucket && this.currentEditBucket === -1) return ""
       else return "visibility: hidden"
     },
+    addFirstBucket() {
+      this.bucketStore.addNewBucket(0, true);
+      this.currentEditBucket = 0
+    },
     addNewBucketBefore() {
-      const newBucket = this.bucketStore.addNewBucket(this.currentSelectedBucket,true);
+      const newBucket = this.bucketStore.addNewBucket(this.currentSelectedBucket, true);
       this.currentEditBucket = newBucket.id
     },
     addNewBucketAfter() {
-      const newBucket = this.bucketStore.addNewBucket(this.currentSelectedBucket,false);
+      const newBucket = this.bucketStore.addNewBucket(this.currentSelectedBucket, false);
       this.currentEditBucket = newBucket.id
     },
     editBucket() {
-      this.bucketStore.updateBucketName(this.currentEditBucket,this.newBucketName);
+      this.bucketStore.updateBucketName(this.currentEditBucket, this.newBucketName);
       this.clearData();
     },
     loeschenBucket() {
