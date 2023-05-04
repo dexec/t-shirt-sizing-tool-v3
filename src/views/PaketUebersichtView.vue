@@ -110,7 +110,7 @@ import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue';
 
 import {usePaketeStore} from '@/stores/pakete';
 import {nextTick} from 'vue';
-import DropDownCellRenderer from "@/components/DropDownCellRenderer.vue";
+import {useBucketsStore} from "@/stores/buckets";
 
 export default {
   name: 'PaketUebersichtView',
@@ -146,9 +146,20 @@ export default {
           headerName: 'Komponente'
         },
         {
-          field: 'bucket.name',
+          field: 'bucket',
           headerName: 'Bucket',
-          editable: false,
+          valueSetter: (params) => {
+            if(params.newValue==="Zuweisung aufheben") params.data.bucket=null;
+            else params.data.bucket = useBucketsStore().buckets.find(bucket => bucket.name === params.newValue);
+          },
+          valueGetter: (params) => {
+            if(params.data.bucket) return params.data.bucket.name
+            else return ""
+          },
+          cellEditor: 'agSelectCellEditor',
+          cellEditorParams: {
+            values: ["Zuweisung aufheben", ...useBucketsStore().getBucketNames()]
+          }
         },
         {
           field: 'schaetzung',
@@ -170,15 +181,14 @@ export default {
   setup() {
     let getRowId = (params) => params.data._id;
     const paketeStore = usePaketeStore();
+    const bucketStore = useBucketsStore();
     const rowData = paketeStore.paketeAsTreeView;
-    return {rowData, paketeStore, getRowId};
+    return {rowData, paketeStore, bucketStore, getRowId};
   },
   components: {
     AgGridVue,
     // eslint-disable-next-line vue/no-unused-components
-    TreeDataCellRenderer,
-    // eslint-disable-next-line vue/no-unused-components
-    DropDownCellRenderer
+    TreeDataCellRenderer
   },
   methods: {
     /*    onFirstDataRendered(params) {
