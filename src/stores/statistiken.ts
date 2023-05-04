@@ -85,8 +85,6 @@ export const useStatistikenStore = defineStore('statistiken', () => {
             return paketeBucket.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
         } else return 0;
     }
-
-
     function summeSchaetzungen(bucket: Bucket): number {
         let result = 0;
         for (const paket of pakete.paketeAsMap.values()) {
@@ -104,7 +102,22 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function summeMedian(bucket: Bucket): number {
         return median(bucket) * pakete.paketeOfBucket(bucket).length;
     }
-
+    function summeAlleBucketsMin(): number {
+        let result = 0;
+        for (const paket of pakete.paketeAsMap.values()) {
+            if (paket.bucket && paket.schaetzung) {
+                if (result == 0 || paket.schaetzung < result) result = paket.schaetzung
+            }
+        }
+        return result;
+    }
+    function summeAlleBucketsMax():number {
+        let result = 0;
+        for (const paket of pakete.paketeAsMap.values()) {
+            if (paket.bucket && paket.schaetzung > result) result = paket.schaetzung
+        }
+        return result;
+    }
     function summeAlleBucketsGeschaetzt(): number {
         let result = 0;
         for (const bucket of buckets.buckets) {
@@ -159,6 +172,8 @@ export const useStatistikenStore = defineStore('statistiken', () => {
         summeAlleBucketsGeschaetzt,
         summeAlleBucketsUngeschaetzt,
         summeAlleBucketsGesamt,
+        summeAlleBucketsMin,
+        summeAlleBucketsMax,
         summeAlleBucketsSchaetzungen,
         summeAlleBucketsDurchschnitt,
         summeAlleBucketsMedian
