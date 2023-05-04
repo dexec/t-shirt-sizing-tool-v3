@@ -61,8 +61,8 @@
           <td>{{ statistiken.summeAlleBucketsGeschaetzt() }}</td>
           <td>{{ statistiken.summeAlleBucketsUngeschaetzt() }}</td>
           <td>{{ statistiken.summeAlleBucketsGesamt() }}</td>
-          <td></td>
-          <td></td>
+          <td>{{statistiken.summeAlleBucketsMin()}}</td>
+          <td>{{statistiken.summeAlleBucketsMax()}}</td>
           <td></td>
           <td></td>
           <td></td>
