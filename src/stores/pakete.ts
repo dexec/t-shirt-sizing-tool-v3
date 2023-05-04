@@ -151,6 +151,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         if (parentOfPaket) {
             parentOfPaket.children.splice(parentOfPaket.children.indexOf(paketToDelete), 1);
         }
+        updateSchaetzung(paketToDelete, -1 * paketToDelete.schaetzung)
     }
 
     function addNew(id: number): number {
@@ -169,6 +170,7 @@ export const usePaketeStore = defineStore('pakete', () => {
                 const indexOfPaketBeforeAsChild = paketBefore.parent.children.indexOf(paketBefore);
                 paketBefore.parent.children.splice(indexOfPaketBeforeAsChild + 1, 0, newPaket);
                 newPaket.parent = paketBefore.parent;
+                newPaket.bucket = null;
             }
             newPaket.lvl = paketBefore.lvl;
             paketeAsTreeView.value.splice(indexOfPaketBefore + 1, 0, newPaket);
@@ -294,7 +296,13 @@ export const usePaketeStore = defineStore('pakete', () => {
             const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove);
             paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
         }
-        newParent.children.unshift(paketToMove);
+        if (newParent.children.length == 0) {
+            updateSchaetzung(newParent,-1*newParent.schaetzung);
+            newParent.schaetzung = paketToMove.schaetzung;
+        } else {
+            newParent.schaetzung += paketToMove.schaetzung;
+        }        newParent.children.unshift(paketToMove);
+        newParent.bucket = null;
         paketToMove.parent = newParent;
         updateLvl(1, paketToMove);
         paketeAsTreeView.value.splice(indexOfPaketToMove, 1);
@@ -335,10 +343,19 @@ export const usePaketeStore = defineStore('pakete', () => {
         }
         // Paket wird dem neuen Elternteil als Kind zugewiesen
         const newParent = paketeAsTreeView.value[indexOfNewParent] as Paket;
-        newParent.children.unshift(paketToMove);
+        //Schätzung vom neuen Parent anpassen
+        if (newParent.children.length == 0) {
+            updateSchaetzung(newParent,-1*newParent.schaetzung);
+            newParent.schaetzung = paketToMove.schaetzung;
+        } else {
+            newParent.schaetzung += paketToMove.schaetzung;
+        }
+        //Bucket von newParent zurücksetzen
+        newParent.bucket = null;
         //Pakets Elternteil wird neu zugewiesen
         paketToMove.parent = newParent;
         // Alle Level von Paket werden erhöht
+        newParent.children.unshift(paketToMove);
         updateLvl(1, paketToMove);
         // Paket wird aus TreeView entfernt
         paketeAsTreeView.value.splice(indexOfPaketToMove, 1);
@@ -369,6 +386,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         if (paketToMove.lvl >= 1) {
             const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove);
             paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
+            paketToMove.parent.schaetzung-=paketToMove.schaetzung;
             if (paketToMove.lvl >= 2 && paketToMove.parent.parent) {
                 const indexOfParentAsChild = paketToMove.parent.parent.children.indexOf(paketToMove.parent);
                 paketToMove.parent.parent.children.splice(indexOfParentAsChild, 0, paketToMove);
@@ -404,6 +422,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         if (paketToMove.lvl >= 1) {
             const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove);
             paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
+            paketToMove.parent.schaetzung-=paketToMove.schaetzung;
             if (paketToMove.lvl >= 2 && paketToMove.parent.parent) {
                 const indexOfParentAsChild = paketToMove.parent.parent.children.indexOf(paketToMove.parent);
                 paketToMove.parent.parent.children.splice(indexOfParentAsChild + 1, 0, paketToMove);
