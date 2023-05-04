@@ -11,6 +11,9 @@ export const useBucketsStore = defineStore('buckets', () => {
         buckets.value.push(new Bucket(bucketFile.name))
     }
 
+    function getBucketNames() {
+        return buckets.value.map(bucket => bucket.name)
+    }
     function updateBucketName(id: number, newName: string) {
         const bucketToUpdate = buckets.value.find(bucket => bucket.id == id) as Bucket
         bucketToUpdate.name = newName;
@@ -34,6 +37,7 @@ export const useBucketsStore = defineStore('buckets', () => {
 
     return {
         buckets,
+        getBucketNames,
         updateBucketName,
         deleteBucket,
         addNewBucket
