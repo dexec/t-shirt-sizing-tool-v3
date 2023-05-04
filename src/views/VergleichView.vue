@@ -3,7 +3,8 @@
     <v-row class="fill-height">
       <v-col class="d-flex flex-column" cols="9">
         <v-row v-if="paketeWithoutBucket.length > 0" justify="center" style="height: 30%">
-          <v-btn class="ma-2" color="primary" dark>
+          <v-btn @click="selectRow(this.paketeStore.paketeChildrenWithNoBucket().indexOf(this.listCurrentPaket[0])-1)"
+                 class="ma-2" color="primary" dark>
             <v-icon dark right>mdi-arrow-left</v-icon>
           </v-btn>
           <draggable
@@ -12,13 +13,14 @@
               ghost-class="destination-item"
               group="pakete"
               itemKey="name"
-              @change="addCurrentPaket"
+              @change="listCurrentPaketChanged"
           >
             <template #item="{ element }">
-              <div class="list-group-item ma-4 paket">{{ element.thema }}</div>
+              <div class="list-group-item ma-4 paket">ID: {{ element.ticket_nr }}<br> {{ element.thema }}</div>
             </template>
           </draggable>
-          <v-btn class="ma-2" color="primary" dark>
+          <v-btn @click="selectRow(this.paketeStore.paketeChildrenWithNoBucket().indexOf(this.listCurrentPaket[0])+1)"
+                 class="ma-2" color="primary" dark>
             <v-icon dark right>mdi-arrow-right</v-icon>
           </v-btn>
         </v-row>
@@ -51,10 +53,21 @@
                 <div class="paket ma-2">{{ bucket.name }}</div>
               </template>
               <template #item="{ element }">
-                <div class="list-group-item ma-2 paket">{{ element.thema }}</div>
+                <div @contextmenu="show" class="list-group-item ma-2 paket">{{ element.thema }}</div>
+
               </template>
             </draggable>
+            <div style="position: fixed;bottom:500px;right: 500px">
+            <v-menu v-model="showMenu">
+              <v-list>
+                <v-list-item>
+                  <v-list-item-title>Zuweisung aufheben</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+            </div>
           </div>
+
         </v-row>
       </v-col>
       <v-col cols="3">
@@ -71,7 +84,7 @@
             </v-card-text>
           </v-card>
         </v-dialog>
-        <v-table>
+        <v-table id="paketeWithoutBucketTable">
           <thead>
           <tr>
             <th style="width: 30%">Ticket-NR</th>
@@ -79,8 +92,8 @@
           </tr>
           </thead>
           <tbody v-if="this.paketeWithoutBucket.length>0">
-          <tr v-for="paket of this.paketeWithoutBucket" :key="paket.id">
-            <td>{{ paket.id }}</td>
+          <tr @click="selectRow(index)" v-for="(paket, index) of this.paketeWithoutBucket" :key="paket.id">
+            <td>{{ paket.ticket_nr }}</td>
             <td>{{ paket.thema }}</td>
           </tr>
           </tbody>
@@ -105,13 +118,14 @@ export default {
   },
   data() {
     return {
+      showMenu: false,
+      x: 0,
+      y: 0,
       dialog: false,
       checked: true,
       selected: this.bucketStore.buckets.map(bucket => bucket.id),
-      updateTable: true,
       buckets: this.bucketStore.buckets,
       paketeLeafs: this.paketeStore.paketeChildren(),
-      paketeWithoutBucket: this.paketeStore.paketeChildrenWithNoBucket(),
       listCurrentPaket: []
     }
   },
@@ -121,9 +135,35 @@ export default {
     return {bucketStore, paketeStore}
   },
   mounted() {
-    if (this.paketeStore.paketeChildrenWithNoBucket().length > 0) this.listCurrentPaket = [this.paketeStore.paketeChildrenWithNoBucket()[0]]
+    this.listCurrentPaket = [this.paketeStore.paketeChildrenWithNoBucket()[0]];
+    document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[1].style.background = "cyan";
+  },
+  computed: {
+    paketeWithoutBucket() {
+      return this.paketeStore.paketeChildrenWithNoBucket();
+    }
   },
   methods: {
+    show(e) {
+      e.preventDefault()
+      this.showMenu = false
+      this.x = e.clientX
+      this.y = e.clientY
+      this.$nextTick(() => {
+        this.showMenu = true
+      })
+    },
+    selectRow(index) {
+      if (this.paketeStore.paketeChildrenWithNoBucket()[index]) {
+        const rows = document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")
+        for (let i = 0; i < rows.length; i++) {
+          rows[i].style.backgroundColor = "transparent"
+        }
+        document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[index + 1].style.background = "cyan";
+        this.listCurrentPaket.pop();
+        this.listCurrentPaket.push(this.paketeStore.paketeChildrenWithNoBucket()[index]);
+      }
+    },
     sortSelectedBuckets() {
       this.selected.sort(function (a, b) {
         return a - b
@@ -142,16 +182,23 @@ export default {
       })
     },
     changeBucketOfPaket(evt, bucket) {
-      if (evt.added !== undefined) {
+      if (evt.added) {
         const updatePaket = evt.added.element
         updatePaket.bucket = this.bucketStore.buckets.find(currentBucket => currentBucket.name === bucket.name)
       }
     },
-    addCurrentPaket(evt) {
+    listCurrentPaketChanged(evt) {
       if (evt.removed) {
-        this.paketeWithoutBucket = this.paketeStore.paketeChildrenWithNoBucket()
-        if (this.paketeStore.paketeChildrenWithNoBucket().length > 0) this.listCurrentPaket = [this.paketeStore.paketeChildrenWithNoBucket()[0]]
+        this.listCurrentPaket.push(this.paketeStore.paketeChildrenWithNoBucket()[0])
+        document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[1].style.background = "cyan";
       }
+      if (evt.added) {
+        const indexOfAddedPaket = this.listCurrentPaket.indexOf(evt.added.element);
+        this.listCurrentPaket.splice(indexOfAddedPaket, 1);
+      }
+    },
+    removePaketFromBucket(evt) {
+
     }
   },
 }
