@@ -87,16 +87,7 @@
       </div>
   </div>
 </template>
-<style>
-.bucket {
-  border: 1px solid black !important;
-  width: 80px !important;
-  height: 80px !important;
-  display: inline-block !important;
-  text-align: center !important;
-  line-height: 80px !important;
-}
-</style>
+
 <script>
 import {useBucketsStore} from "@/stores/buckets";
 
@@ -146,3 +137,14 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.bucket {
+  border: 1px solid black;
+  width: 80px;
+  height: 80px;
+  display: inline-block;
+  text-align: center;
+  line-height: 80px;
+}
+</style>
