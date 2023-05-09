@@ -5,16 +5,23 @@
                  :rowData="rowData"
                  class="ag-theme-alpine"
                  rowSelection="single"
-                 style="width: 100%;height: 90%"
+                 style="width: 100%;height: 100%"
                  @cellValueChanged="onCellValueChanged"
+                 @contextmenu="rightClickOnCell"
                  @grid-ready="onGridReady"
     ></ag-grid-vue>
     <!--    <v-data-table :headers="headers" :rowData="rowData" item-key="id" @click:row="selectRow"
                       single-select hide-default-footer fixed-header height="500"></v-data-table>
         -->
-    <v-btn @click="zwischensummeErstellen">Zwischensumme erstellen</v-btn>
-    <v-btn @click="zeileEntfernen">Zeile entfernen</v-btn>
-    <v-btn @click="aufschlagErstellen">Aufschlag hinzufügen</v-btn>
+    <div class="wrapper">
+      <div class="content">
+        <div class="menu">
+          <span class="item" @click="aufschlagErstellen">Aufschlag erstellen</span>
+          <span class="item" @click="zwischensummeErstellen">Zwischensumme erstellen</span>
+          <span class="item" @click="zeileEntfernen">Zeile löschen</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -89,6 +96,21 @@ export default {
     return {eintraegeStore: eintraegeStore, rowData};
   },
   methods: {
+    showMenu(e) {
+      e.preventDefault();
+      const contextMenu = document.querySelector(".wrapper")
+      let x = e.clientX
+      let y = e.clientY
+      contextMenu.style.left = `${x}px`;
+      contextMenu.style.top = `${y}px`;
+      contextMenu.style.display = "block";
+      document.addEventListener("click", () => contextMenu.style.display = "none");
+    },
+    rightClickOnCell(e) {
+      this.showMenu(e)
+      const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
+      this.gridApi.getRowNode(focusedRowIndex).setSelected(true)
+    },
     onGridReady(params) {
       this.gridApi = params.api;
       this.columnApi = params.columnApi;
@@ -177,3 +199,42 @@ export default {
   }
 };
 </script>
+
+
+<style scoped>
+.wrapper {
+  display: none;
+  position: absolute;
+  width: 280px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+}
+
+.wrapper .menu {
+  padding: 10px 12px;
+}
+
+.content .item {
+  list-style: none;
+  height: 20px;
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+  align-items: center;
+  border-radius: 5px;
+  margin-bottom: 2px;
+  padding: 0 5px 0 10px;
+  font-size: 0.8rem;
+}
+
+.content .item:hover {
+  background: #f2f2f2;
+}
+
+.content .item span {
+  margin-left: 8px;
+  font-size: 19px;
+}
+</style>
+
