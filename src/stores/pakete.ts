@@ -4,7 +4,7 @@ import {ref} from "vue";
 import saveFile from "@/stores/file.json";
 import type {Bucket} from "@/Bucket";
 import {useBucketsStore} from "@/stores/buckets";
-//TODO BEIM EINFÜGEN VON NEUEN PAKETEN MÜSSEN SCHÄTZUNGEN UND BUCKETANGABEN NEU BERECHNET WERDEN
+
 export const usePaketeStore = defineStore('pakete', () => {
     const buckets = useBucketsStore();
     const stackForTreeView: Paket[] = [];
@@ -188,6 +188,10 @@ export const usePaketeStore = defineStore('pakete', () => {
         const newPaket = new Paket('beispiel', 'beispiel', 'beispiel', 'beispiel', null, 0, false, 0, null, []);
         newPaket.lvl = parentOfNewPaket.lvl + 1;
         newPaket.parent = parentOfNewPaket;
+        if (parentOfNewPaket.children.length == 0) {
+            updateSchaetzung(parentOfNewPaket, -1 * parentOfNewPaket.schaetzung);
+            parentOfNewPaket.schaetzung = 0;
+        }
         if (!parentOfNewPaket.open) {
             parentOfNewPaket.open = true;
             updateTreeViewAfterChangedOpenState(parentOfNewPaket);
@@ -297,11 +301,12 @@ export const usePaketeStore = defineStore('pakete', () => {
             paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
         }
         if (newParent.children.length == 0) {
-            updateSchaetzung(newParent,-1*newParent.schaetzung);
+            updateSchaetzung(newParent, -1 * newParent.schaetzung);
             newParent.schaetzung = paketToMove.schaetzung;
         } else {
             newParent.schaetzung += paketToMove.schaetzung;
-        }        newParent.children.unshift(paketToMove);
+        }
+        newParent.children.unshift(paketToMove);
         newParent.bucket = null;
         paketToMove.parent = newParent;
         updateLvl(1, paketToMove);
@@ -345,7 +350,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         const newParent = paketeAsTreeView.value[indexOfNewParent] as Paket;
         //Schätzung vom neuen Parent anpassen
         if (newParent.children.length == 0) {
-            updateSchaetzung(newParent,-1*newParent.schaetzung);
+            updateSchaetzung(newParent, -1 * newParent.schaetzung);
             newParent.schaetzung = paketToMove.schaetzung;
         } else {
             newParent.schaetzung += paketToMove.schaetzung;
@@ -386,7 +391,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         if (paketToMove.lvl >= 1) {
             const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove);
             paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
-            paketToMove.parent.schaetzung-=paketToMove.schaetzung;
+            paketToMove.parent.schaetzung -= paketToMove.schaetzung;
             if (paketToMove.lvl >= 2 && paketToMove.parent.parent) {
                 const indexOfParentAsChild = paketToMove.parent.parent.children.indexOf(paketToMove.parent);
                 paketToMove.parent.parent.children.splice(indexOfParentAsChild, 0, paketToMove);
@@ -422,7 +427,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         if (paketToMove.lvl >= 1) {
             const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove);
             paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
-            paketToMove.parent.schaetzung-=paketToMove.schaetzung;
+            paketToMove.parent.schaetzung -= paketToMove.schaetzung;
             if (paketToMove.lvl >= 2 && paketToMove.parent.parent) {
                 const indexOfParentAsChild = paketToMove.parent.parent.children.indexOf(paketToMove.parent);
                 paketToMove.parent.parent.children.splice(indexOfParentAsChild + 1, 0, paketToMove);
