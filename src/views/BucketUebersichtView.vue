@@ -61,8 +61,8 @@
           <td>{{ statistiken.summeAlleBucketsGeschaetzt() }}</td>
           <td>{{ statistiken.summeAlleBucketsUngeschaetzt() }}</td>
           <td>{{ statistiken.summeAlleBucketsGesamt() }}</td>
-          <td>{{statistiken.summeAlleBucketsMin()}}</td>
-          <td>{{statistiken.summeAlleBucketsMax()}}</td>
+          <td>{{ statistiken.summeAlleBucketsMin() }}</td>
+          <td>{{ statistiken.summeAlleBucketsMax() }}</td>
           <td></td>
           <td></td>
           <td></td>
@@ -83,7 +83,7 @@ const statistiken = useStatistikenStore();
 statistiken.berechne();
 </script>
 
-<style>
+<style scoped>
 table, th, td {
   border: 1px solid;
   text-align: center !important;
