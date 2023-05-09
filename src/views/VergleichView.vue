@@ -3,8 +3,9 @@
     <v-row class="fill-height">
       <v-col class="d-flex flex-column" cols="9">
         <v-row v-if="paketeWithoutBucket.length > 0" justify="center" style="height: 30%">
-          <v-btn @click="selectRow(this.paketeStore.paketeChildrenWithNoBucket().indexOf(this.listCurrentPaket[0])-1)"
-                 class="ma-2" color="primary" dark>
+          <v-btn class="ma-2"
+                 color="primary" dark
+                 @click="selectRow(this.paketeStore.paketeChildrenWithNoBucket().indexOf(this.listCurrentPaket[0])-1)">
             <v-icon dark right>mdi-arrow-left</v-icon>
           </v-btn>
           <draggable
@@ -19,8 +20,9 @@
               <div class="list-group-item ma-4 paket">ID: {{ element.ticket_nr }}<br> {{ element.thema }}</div>
             </template>
           </draggable>
-          <v-btn @click="selectRow(this.paketeStore.paketeChildrenWithNoBucket().indexOf(this.listCurrentPaket[0])+1)"
-                 class="ma-2" color="primary" dark>
+          <v-btn class="ma-2"
+                 color="primary" dark
+                 @click="selectRow(this.paketeStore.paketeChildrenWithNoBucket().indexOf(this.listCurrentPaket[0])+1)">
             <v-icon dark right>mdi-arrow-right</v-icon>
           </v-btn>
         </v-row>
@@ -53,21 +55,18 @@
                 <div class="paket ma-2">{{ bucket.name }}</div>
               </template>
               <template #item="{ element }">
-                <div @contextmenu="show" class="list-group-item ma-2 paket">{{ element.thema }}</div>
-
+                <div class="list-group-item ma-2 paket" @contextmenu="showMenu($event,element)">{{ element.thema }}
+                </div>
               </template>
             </draggable>
-            <div style="position: fixed;bottom:500px;right: 500px">
-            <v-menu v-model="showMenu">
-              <v-list>
-                <v-list-item>
-                  <v-list-item-title>Zuweisung aufheben</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+            <div class="wrapper">
+              <div class="content">
+                <div class="menu">
+                  <span class="item" @click="this.currentContextMenuPaket.bucket=null;">Zuweisung aufheben</span>
+                </div>
+              </div>
             </div>
           </div>
-
         </v-row>
       </v-col>
       <v-col cols="3">
@@ -92,7 +91,7 @@
           </tr>
           </thead>
           <tbody v-if="this.paketeWithoutBucket.length>0">
-          <tr @click="selectRow(index)" v-for="(paket, index) of this.paketeWithoutBucket" :key="paket.id">
+          <tr v-for="(paket, index) of this.paketeWithoutBucket" :key="paket.id" @click="selectRow(index)">
             <td>{{ paket.ticket_nr }}</td>
             <td>{{ paket.thema }}</td>
           </tr>
@@ -118,15 +117,13 @@ export default {
   },
   data() {
     return {
-      showMenu: false,
-      x: 0,
-      y: 0,
       dialog: false,
       checked: true,
       selected: this.bucketStore.buckets.map(bucket => bucket.id),
       buckets: this.bucketStore.buckets,
       paketeLeafs: this.paketeStore.paketeChildren(),
-      listCurrentPaket: []
+      listCurrentPaket: [],
+      currentContextMenuPaket: {}
     }
   },
   setup() {
@@ -144,14 +141,16 @@ export default {
     }
   },
   methods: {
-    show(e) {
-      e.preventDefault()
-      this.showMenu = false
-      this.x = e.clientX
-      this.y = e.clientY
-      this.$nextTick(() => {
-        this.showMenu = true
-      })
+    showMenu(e, element) {
+      this.currentContextMenuPaket = element;
+      const contextMenu = document.querySelector(".wrapper")
+      e.preventDefault();
+      let x = e.clientX
+      let y = e.clientY
+      contextMenu.style.left = `${x}px`;
+      contextMenu.style.top = `${y}px`;
+      contextMenu.style.display = "block";
+      document.addEventListener("click", () => contextMenu.style.display = "none");
     },
     selectRow(index) {
       if (this.paketeStore.paketeChildrenWithNoBucket()[index]) {
@@ -196,20 +195,17 @@ export default {
         const indexOfAddedPaket = this.listCurrentPaket.indexOf(evt.added.element);
         this.listCurrentPaket.splice(indexOfAddedPaket, 1);
       }
-    },
-    removePaketFromBucket(evt) {
-
     }
   },
 }
 </script>
 
-<style>
+<style scoped>
 .paket {
-  border: 1px solid black !important;
-  width: 170px !important;
-  height: 50px !important;
-  text-align: center !important;
+  border: 1px solid black;
+  width: 170px;
+  height: 50px;
+  text-align: center;
 }
 
 .list-group {
@@ -219,5 +215,44 @@ export default {
 
 .destination-item {
   display: none;
+}
+
+.wrapper {
+  display: none;
+  position: absolute;
+  width: 300px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+}
+
+.wrapper .menu {
+  padding: 10px 12px;
+}
+
+.content .item {
+  list-style: none;
+  height: 50px;
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+  align-items: center;
+  border-radius: 5px;
+  margin-bottom: 2px;
+  padding: 0 5px 0 10px;
+}
+
+.content .item:hover {
+  background: #f2f2f2;
+}
+
+.content .item span {
+  margin-left: 8px;
+  font-size: 19px;
+}
+
+table, th, td {
+  border: 1px solid;
+  text-align: center;
 }
 </style>
