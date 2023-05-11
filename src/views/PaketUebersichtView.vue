@@ -7,20 +7,25 @@
         :rowData='rowData'
         class='ag-theme-alpine'
         rowSelection='single'
-        style='width: 100%;height: 100%'
-        suppressRowHoverHighlight='true'
+        style='width: 95%;height: 100%'
         @cellValueChanged="onCellValueChanged"
         @contextmenu="rightClickOnCell"
-        @cell-key-down="onCellKeyDown"
+        @cell-key-down="onCellKeyPress"
+        @cell-clicked="onCellClicked"
         @grid-ready='onGridReady'>
     </ag-grid-vue>
   </div>
+  <v-hover>
+    <template v-slot:default="{isHovering, props}">
+      <v-icon v-bind="props" style="position:fixed; top:100px;right:10px;">mdi-help</v-icon>
+    </template>
+  </v-hover>
   <div class="wrapper">
     <div class="content">
       <div class="menu">
         <span class="item" @click="addNewPaket">Neues Arbeitspaket anlegen</span>
         <span class="item" @click="addNewKindPaket">Neues Arbeitspaket als Kind anlegen</span>
-        <span class="item" @click="removeItem">Paket löschen</span>
+        <span class="item" @click="deletePaket">Paket löschen</span>
         <span class="item" @click="comparePaket">Bucket zuweisen</span>
         <span class="item" @click="movePaketUp"><v-icon size="x-small">mdi-arrow-up</v-icon></span>
         <span class="item" @click="movePaketDown"><v-icon size="x-small">mdi-arrow-down</v-icon></span>
@@ -115,7 +120,7 @@ export default {
         editable: true,
         suppressKeyboardEvent: params => {
           let key = params.event.key;
-          return params.event.ctrlKey && (key === 'ArrowDown' || key === 'ArrowUp')
+          return params.event.ctrlKey && (key === 'ArrowDown' || key === 'ArrowUp' || key === 'ArrowRight' || key === 'ArrowLeft' || key === 'Delete');
         }
       },
       columnDefs: [
@@ -206,18 +211,23 @@ export default {
     },
     rightClickOnCell(e) {
       this.showMenu(e)
-      const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
-      const selectedPaket = this.rowData[focusedRowIndex]
-      this.gridApi.getRowNode(selectedPaket.id).setSelected(true)
+      if (this.gridApi.getFocusedCell()) {
+        const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
+        const selectedPaket = this.rowData[focusedRowIndex];
+        this.gridApi.getRowNode(selectedPaket.id).setSelected(true);
+      }
     },
     onGridReady(params) {
       this.gridApi = params.api;
       this.columnApi = params.columnApi;
       //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
     },
+    onCellClicked(params) {
+
+    },
     onCellValueChanged(params) {
       if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue) this.paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
-      this.refreshTable();
+      this.refreshTable(params.column.colId, params.data.id);
     },
     addNewPaket() {
       let newPaketID = 0;
@@ -226,63 +236,66 @@ export default {
       } else {
         newPaketID = this.paketeStore.addNew(-1)
       }
-      this.refreshTable();
-      nextTick(() => {
-        this.gridApi.getRowNode(newPaketID).setSelected(true);
-        this.gridApi.setFocusedCell(newPaketID)
-      });
-      console.log(this.gridApi.getFocusedCell())
+      this.refreshTable("ticket_nr", newPaketID);
     },
     addNewKindPaket() {
       if (this.gridApi.getSelectedRows()[0]) {
         const newPaketID = this.paketeStore.addNewChild(this.gridApi.getSelectedRows()[0].id);
-        this.refreshTable()
-        nextTick(() => {
-          this.gridApi.getRowNode(newPaketID).setSelected(true);
-        });
+        this.refreshTable("ticket_nr", newPaketID)
       }
     },
-    removeItem() {
+    deletePaket() {
       if (this.gridApi.getSelectedRows()[0]) {
+        const focusedRowIndex = this.rowData.indexOf(this.gridApi.getSelectedRows()[0])
         this.paketeStore.deletePaket(this.gridApi.getSelectedRows()[0].id);
-        this.refreshTable()
+        if (this.rowData[focusedRowIndex]) this.refreshTable("ticket_nr", this.rowData[focusedRowIndex].id)
+        else if (this.rowData.length !== 0) {
+          this.refreshTable("ticket_nr", this.rowData[this.rowData.length - 1].id);
+        } else {
+          this.refreshTable("ticket_nr", null)
+        }
       }
     },
     movePaketUp() {
       if (this.gridApi.getSelectedRows()[0]) {
-        let paketID = this.gridApi.getSelectedRows()[0].id
+        let paketID = this.gridApi.getSelectedRows()[0].id;
         this.paketeStore.moveUp(paketID);
-        this.refreshTable()
+        this.refreshTable(this.gridApi.getFocusedCell().column, paketID);
       }
     },
     movePaketDown() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveDown(this.gridApi.getSelectedRows()[0].id);
-        this.refreshTable()
+        let paketID = this.gridApi.getSelectedRows()[0].id;
+        this.paketeStore.moveDown(paketID);
+        this.refreshTable(this.gridApi.getFocusedCell().column, paketID);
       }
     },
     movePaketLeftUp() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveLeftUp(this.gridApi.getSelectedRows()[0].id);
-        this.refreshTable()
+        let paketID = this.gridApi.getSelectedRows()[0].id;
+        this.paketeStore.moveLeftUp(paketID);
+        this.refreshTable(this.gridApi.getFocusedCell().column, paketID);
       }
     },
     movePaketLeftDown() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveLeftDown(this.gridApi.getSelectedRows()[0].id);
-        this.refreshTable()
+        let paketID = this.gridApi.getSelectedRows()[0].id;
+        this.paketeStore.moveLeftDown(paketID);
+        this.refreshTable(this.gridApi.getFocusedCell().column, paketID);
       }
     },
     movePaketDownRight() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveDownRight(this.gridApi.getSelectedRows()[0].id);
-        this.refreshTable()
+        let paketID = this.gridApi.getSelectedRows()[0].id;
+        this.paketeStore.moveDownRight(paketID);
+        this.refreshTable(this.gridApi.getFocusedCell().column, paketID);
       }
     },
     movePaketUpRight() {
       if (this.gridApi.getSelectedRows()[0]) {
-        this.paketeStore.moveUpRight(this.gridApi.getSelectedRows()[0].id);
-        this.refreshTable()
+        let paketID = this.gridApi.getSelectedRows()[0].id;
+        this.paketeStore.moveUpRight(paketID);
+        this.refreshTable(this.gridApi.getFocusedCell().column, paketID);
       }
     },
     /*switchFlatAndTree() {
@@ -292,33 +305,83 @@ export default {
         instance.switchFlatAndTree();
       });
     },*/
-    refreshTable() {
+    // getRowNode => echte Paket ID
+    // setFocusedCell => rowIndex von rowData und colKey
+    refreshTable(colKey, paketId) {
       nextTick(() => {
-        this.gridApi.setFocusedCell(this.gridApi.getSelectedRows()[0].id);
-        this.gridApi.refreshCells({force: true});
         this.gridApi.setRowData(this.paketeStore.paketeAsTreeView)
+        if (paketId !== null) {
+          this.gridApi.getRowNode(paketId).setSelected(true);
+          this.gridApi.setFocusedCell(this.gridApi.getRowNode(paketId).rowIndex, colKey);
+        } else {
+          this.gridApi.setFocusedCell(null)
+        }
+        this.gridApi.refreshCells({force: true});
       });
     },
-    onCellKeyDown(e) {
+    onCellKeyPress(e) {
       if (e.event) {
         let key = e.event.key
-        if (e.event.ctrlKey) {
-          if (key === 'ArrowDown') {
-            this.movePaketDown()
+        let ctrl = e.event.ctrlKey;
+        let shift = e.event.shiftKey;
+        let alt = e.event.altKey;
+        if (this.gridApi.getEditingCells().length === 0)
+          switch (key) {
+            case 'ArrowUp':
+              if (ctrl) {
+                this.movePaketUp();
+              } else {
+                const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
+                const selectedPaket = this.rowData[focusedRowIndex];
+                if (selectedPaket) {
+                  this.gridApi.getRowNode(selectedPaket.id).setSelected(true)
+                }
+              }
+              break;
+            case 'ArrowDown':
+              if (ctrl) {
+                this.movePaketDown();
+              } else {
+                const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
+                const selectedPaket = this.rowData[focusedRowIndex];
+                if (selectedPaket) {
+                  this.gridApi.getRowNode(selectedPaket.id).setSelected(true)
+                }
+              }
+              break;
+            case 'ArrowLeft':
+              if (ctrl) {
+                if (shift) this.movePaketLeftUp();
+                else this.movePaketLeftDown();
+              }
+              break;
+            case 'ArrowRight':
+              if (ctrl) {
+                if (shift) this.movePaketUpRight();
+                else this.movePaketDownRight();
+              }
+              break;
+            case 'Delete':
+              if (ctrl) this.deletePaket();
+              break;
+            case ' ' :
+              if (ctrl) {
+                if (e.data.children.length > 0) {
+                  const params = {columns: ['ticket_nr'], rowNodes: [e.node]}
+                  this.gridApi.getCellRendererInstances(params)[0].changeOpenState();
+                }
+              }
+              break;
+            case 'a' :
+              if (ctrl) {
+                this.addNewPaket();
+              }
+              break;
+            case 'A':
+              if (ctrl) this.addNewKindPaket()
           }
-          if (key === 'ArrowUp') {
-            this.movePaketUp()
-          }
-        }
-        else if(e.event.key==='ArrowUp' || e.event.key==='ArrowDown') {
-          const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
-          const selectedPaket = this.rowData[focusedRowIndex]
-          if(selectedPaket) {
-            this.gridApi.getRowNode(selectedPaket.id).setSelected(true)
-          }
-        }
       }
-    },
+    }
   }
 };
 
