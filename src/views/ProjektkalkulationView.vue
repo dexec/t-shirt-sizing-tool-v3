@@ -1,18 +1,18 @@
 <template>
   <div style="width: 100%;height: 100%">
-    <ag-grid-vue :columnDefs="columnDefs"
-                 :navigateToNextCell="navigateToNextCell"
-                 :rowData="rowData"
-                 class="ag-theme-alpine"
-                 rowSelection="single"
-                 style="width: 100%;height: 100%"
-                 @cellValueChanged="onCellValueChanged"
-                 @contextmenu="rightClickOnCell"
-                 @grid-ready="onGridReady"
+    <ag-grid-vue
+        :columnDefs="columnDefs"
+        :defaultColDef='defaultColDef'
+        :navigateToNextCell="navigateToNextCell"
+        :rowData="rowData"
+        class="ag-theme-alpine"
+        rowSelection="single"
+        style="width: 100%;height: 100%"
+        @cellValueChanged="onCellValueChanged"
+        @contextmenu="rightClickOnCell"
+        @cell-key-down="onCellKeyPress"
+        @grid-ready="onGridReady"
     ></ag-grid-vue>
-    <!--    <v-data-table :headers="headers" :rowData="rowData" item-key="id" @click:row="selectRow"
-                      single-select hide-default-footer fixed-header height="500"></v-data-table>
-        -->
     <div class="wrapper">
       <div class="content">
         <div class="menu">
@@ -57,6 +57,12 @@ export default {
     return {
       gridApi: null,
       columnApi: null,
+      defaultColDef: {
+        suppressKeyboardEvent: params => {
+          let key = params.event.key;
+          return params.event.ctrlKey && (key === 'ArrowDown' || key === 'ArrowUp' || key === 'ArrowRight' || key === 'ArrowLeft' || key === 'Delete');
+        }
+      },
       columnDefs: [
         {
           headerName: "Bezeichnung",
@@ -114,7 +120,7 @@ export default {
     onGridReady(params) {
       this.gridApi = params.api;
       this.columnApi = params.columnApi;
-      this.refreshGrid();
+      this.refreshTable();
     },
     onCellValueChanged(params) {
       switch (params.colDef.field) {
@@ -122,11 +128,11 @@ export default {
           this.eintraegeStore.updateBezeichnung(params.rowIndex, params.newValue);
           break;
         case "aufschlagWert":
-          if(!isNaN(params.newValue)) this.eintraegeStore.updateAufschlag(params.rowIndex, +params.newValue);
+          if (!isNaN(params.newValue)) this.eintraegeStore.updateAufschlag(params.rowIndex, +params.newValue);
           else params.data.aufschlagWert = params.oldValue;
           break;
         case "aufwandWert":
-          if(!isNaN(params.newValue)) this.eintraegeStore.updateAufwand(params.rowIndex, +params.newValue);
+          if (!isNaN(params.newValue)) this.eintraegeStore.updateAufwand(params.rowIndex, +params.newValue);
           else params.data.aufwandWert = params.oldValue;
           break;
       }
@@ -159,20 +165,14 @@ export default {
     },
     refreshTable() {
       nextTick(() => {
-        this.refreshRowData();
-        this.refreshGrid();
+        //this.rowData = this.eintraegeStore.eintraege;
+        this.gridApi.setRowData(this.eintraegeStore.eintraege);
+        this.gridApi.forEachNode(function (node) {
+          if (node.data.bezeichnung === "ZWISCHENSUMME") node.setRowHeight(80);
+        });
+        this.gridApi.onRowHeightChanged();
+        this.gridApi.refreshCells({force: true});
       });
-    },
-    refreshRowData() {
-      this.rowData = this.eintraegeStore.eintraege;
-      this.gridApi.setRowData(this.eintraegeStore.eintraege);
-    },
-    refreshGrid() {
-      this.gridApi.forEachNode(function (node) {
-        if (node.data.bezeichnung === "ZWISCHENSUMME") node.setRowHeight(80);
-      });
-      this.gridApi.onRowHeightChanged();
-      this.gridApi.refreshCells({force: true});
     },
     moveAufschlagDown() {
       if (this.gridApi.getSelectedRows()[0] != null) {
