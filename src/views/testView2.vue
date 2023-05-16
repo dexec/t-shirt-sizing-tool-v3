@@ -1,5 +1,5 @@
 <template>
-  <div style="position: fixed;right:500px" @contextmenu="showMenu">activator</div>
+  <div style="position: fixed;right:500px" @contextmenu="showMenu">{{name}}</div>
   <div class="wrapper">
     <div class="content">
       <div class="menu">
@@ -18,6 +18,7 @@
 
 export default {
   name: "TestView2",
+  props: ['name'],
   data() {
     return {};
   },
