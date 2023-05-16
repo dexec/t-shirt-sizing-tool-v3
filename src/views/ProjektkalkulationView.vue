@@ -3,7 +3,6 @@
     <ag-grid-vue
         :columnDefs="columnDefs"
         :defaultColDef='defaultColDef'
-        :navigateToNextCell="navigateToNextCell"
         :rowData="rowData"
         class="ag-theme-alpine"
         rowSelection="single"
@@ -99,7 +98,7 @@ export default {
     const eintraegeStore = useEintraegeStore();
     eintraegeStore.berechne();
     const rowData = eintraegeStore.eintraege;
-    return {eintraegeStore: eintraegeStore, rowData};
+    return {eintraegeStore, rowData};
   },
   methods: {
     showMenu(e) {
@@ -120,7 +119,7 @@ export default {
     onGridReady(params) {
       this.gridApi = params.api;
       this.columnApi = params.columnApi;
-      this.refreshTable();
+      this.refreshTable("bezeichnung",0)
     },
     onCellValueChanged(params) {
       switch (params.colDef.field) {
@@ -136,34 +135,44 @@ export default {
           else params.data.aufwandWert = params.oldValue;
           break;
       }
-      this.refreshTable();
+      this.refreshTable(params.colDef, params.rowIndex);
     },
     aufschlagErstellen() {
-      if (this.gridApi.getSelectedRows()[0]) {
-        if (this.gridApi.getSelectedRows()[0].bezeichnung === "ENDSUMME") return;
-        this.eintraegeStore.addNewAufschlag(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]));
-        this.refreshTable();
+      if (this.gridApi.getSelectedRows()[0] && this.gridApi.getSelectedRows()[0].bezeichnung !== "ENDSUMME") {
+        const rowIndexNewAufschlag = this.rowData.indexOf(this.gridApi.getSelectedRows()[0])
+        this.eintraegeStore.addNewAufschlag(rowIndexNewAufschlag);
+        this.refreshTable("bezeichnung", rowIndexNewAufschlag);
       }
     },
     zwischensummeErstellen() {
       if (this.gridApi.getSelectedRows()[0]) {
-        if (this.gridApi.getSelectedRows()[0].bezeichnung === "ZWISCHENSUMME") return;
-        if (this.gridApi.getSelectedRows()[0].bezeichnung === "ENDSUMME") return
-        if (this.gridApi.getSelectedRows()[0].bezeichnung === "STARTSUMME") return;
-        if (this.rowData[this.rowData.indexOf(this.gridApi.getSelectedRows()[0]) + 1].bezeichnung === "ZWISCHENSUMME") return;
-        if (this.rowData[this.rowData.indexOf(this.gridApi.getSelectedRows()[0]) + 1].bezeichnung === "STARTSUMME") return;
-        this.eintraegeStore.addNewZwischensumme(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]));
-        this.refreshTable();
+        const focusedCell = this.gridApi.getFocusedCell();
+        const bezeichnungSelectedRow = this.gridApi.getSelectedRows()[0].bezeichnung;
+        const bezeichnungSelectedRowUnder = this.rowData[focusedCell.rowIndex + 1].bezeichnung
+        if (bezeichnungSelectedRow !== "ZWISCHENSUMME" && bezeichnungSelectedRowUnder !== "ZWISCHENSUMME" && bezeichnungSelectedRow !== "ENDSUMME" && bezeichnungSelectedRow !== "STARTSUMME" && bezeichnungSelectedRowUnder !== "STARTSUMME") {
+          this.eintraegeStore.addNewZwischensumme(focusedCell.rowIndex);
+          this.refreshTable(focusedCell.column, focusedCell.rowIndex);
+        }
       }
     },
     zeileEntfernen() {
       if (this.gridApi.getSelectedRows()[0]) {
-        if (this.gridApi.getSelectedRows()[0].bezeichnung === "ENDSUMME" || this.gridApi.getSelectedRows()[0].bezeichnung === "STARTSUMME") return;
-        this.eintraegeStore.deleteEintrag(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]));
-        this.refreshTable();
+        const focusedCell = this.gridApi.getFocusedCell();
+        const focusedRowIndex = focusedCell.rowIndex;
+        const focusedRowColKey = focusedCell.column;
+        const bezeichnungSelectedRow = this.gridApi.getSelectedRows()[0].bezeichnung;
+        if (bezeichnungSelectedRow !== "ENDSUMME" && bezeichnungSelectedRow !== "STARTSUMME") {
+          this.eintraegeStore.deleteEintrag(focusedRowIndex);
+          if (this.rowData[focusedRowIndex]) this.refreshTable(focusedRowColKey, focusedRowIndex)
+          else if (this.rowData.length !== 0) {
+            this.refreshTable(focusedRowColKey, this.rowData.length - 1);
+          } else {
+            this.refreshTable(focusedRowColKey, null)
+          }
+        }
       }
     },
-    refreshTable() {
+    refreshTable(colKey, rowIndex) {
       nextTick(() => {
         //this.rowData = this.eintraegeStore.eintraege;
         this.gridApi.setRowData(this.eintraegeStore.eintraege);
@@ -171,31 +180,80 @@ export default {
           if (node.data.bezeichnung === "ZWISCHENSUMME") node.setRowHeight(80);
         });
         this.gridApi.onRowHeightChanged();
+        if (rowIndex !== null) {
+          this.gridApi.getRowNode(rowIndex).setSelected(true);
+          this.gridApi.setFocusedCell(rowIndex, colKey);
+        } else {
+          this.gridApi.setFocusedCell(null)
+        }
         this.gridApi.refreshCells({force: true});
       });
     },
-    moveAufschlagDown() {
-      if (this.gridApi.getSelectedRows()[0] != null) {
-        this.eintraegeStore.moveDown(this.rowData.indexOf(this.gridApi.getSelectedRows()[0]));
-        this.refreshTable();
+    moveZeileDown() {
+      if (this.gridApi.getSelectedRows()[0]) {
+        const bezeichnungSelectedRow = this.gridApi.getSelectedRows()[0].bezeichnung;
+        const focusedCell = this.gridApi.getFocusedCell();
+        const focusedRowIndex = focusedCell.rowIndex;
+        const bezeichnungSelectedRowUnder = this.rowData[focusedCell.rowIndex + 1].bezeichnung
+        if (bezeichnungSelectedRowUnder !== "ENDSUMME" && bezeichnungSelectedRow !== "ENDSUMME" && bezeichnungSelectedRow !== "STARTSUMME") {
+          const focusedRowColKey = focusedCell.column;
+          this.eintraegeStore.moveDown(focusedRowIndex);
+          this.refreshTable(focusedRowColKey, focusedRowIndex + 1)
+        }
       }
     },
-    navigateToNextCell(params) {
-      const suggestedNextCell = params.nextCellPosition;
-      const KEY_UP = "ArrowUp";
-      const KEY_DOWN = "ArrowDown";
-      const noUpOrDownKeyPressed =
-          params.key !== KEY_DOWN && params.key !== KEY_UP;
-      if (noUpOrDownKeyPressed || !suggestedNextCell) {
-        return suggestedNextCell;
-      }
-      params.api.forEachNode(function (node) {
-        if (node.rowIndex === suggestedNextCell.rowIndex) {
-          node.setSelected(true);
+    moveZeileUp() {
+      if (this.gridApi.getSelectedRows()[0]) {
+        const bezeichnungSelectedRow = this.gridApi.getSelectedRows()[0].bezeichnung;
+        if (bezeichnungSelectedRow !== "ENDSUMME" && bezeichnungSelectedRow !== "STARTSUMME") {
+          const focusedCell = this.gridApi.getFocusedCell();
+          const focusedRowIndex = focusedCell.rowIndex;
+          const focusedRowColKey = focusedCell.column;
+          this.eintraegeStore.moveUp(this.gridApi.getFocusedCell().rowIndex);
+          this.refreshTable(focusedRowColKey, focusedRowIndex - 1)
         }
-      });
-      return suggestedNextCell;
-    }
+      }
+    },
+    onCellKeyPress(e) {
+      if (e.event) {
+        let key = e.event.key
+        let ctrl = e.event.ctrlKey;
+        let shift = e.event.shiftKey;
+        if (this.gridApi.getEditingCells().length === 0)
+          switch (key) {
+            case 'ArrowUp':
+              if (ctrl) {
+                this.moveZeileUp()
+              } else {
+                const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
+                const selectedPaket = this.gridApi.getRowNode(focusedRowIndex)
+                if (selectedPaket) {
+                  selectedPaket.setSelected(true)
+                }
+              }
+              break;
+            case 'ArrowDown':
+              if (ctrl) {
+                this.moveZeileDown()
+              } else {
+                const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
+                const selectedPaket = this.gridApi.getRowNode(focusedRowIndex)
+                if (selectedPaket) {
+                  selectedPaket.setSelected(true)
+                }
+              }
+              break;
+            case 'Delete':
+              if (ctrl) this.zeileEntfernen();
+              break;
+            case 'a' :
+              if (ctrl) {
+                this.aufschlagErstellen();
+              }
+              break;
+          }
+      }
+    },
   }
 };
 </script>
