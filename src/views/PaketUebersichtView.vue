@@ -7,7 +7,7 @@
         :rowData='rowData'
         class='ag-theme-alpine'
         rowSelection='single'
-        style='width: 95%;height: 100%'
+        style='width: 100%;height: 100%'
         @cellValueChanged="onCellValueChanged"
         @contextmenu="rightClickOnCell"
         @cell-key-down="onCellKeyPress"
@@ -15,11 +15,6 @@
         @grid-ready='onGridReady'>
     </ag-grid-vue>
   </div>
-  <v-hover>
-    <template v-slot:default="{isHovering, props}">
-      <v-icon v-bind="props" style="position:fixed; top:100px;right:10px;">mdi-help</v-icon>
-    </template>
-  </v-hover>
   <div class="wrapper">
     <div class="content">
       <div class="menu">
@@ -109,6 +104,8 @@ import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue';
 import {usePaketeStore} from '@/stores/pakete';
 import {nextTick} from 'vue';
 import {useBucketsStore} from "@/stores/buckets";
+import {useRouter} from "vue-router";
+import {useVergleicheStore} from "@/stores/vergleiche";
 
 export default {
   name: 'PaketUebersichtView',
@@ -182,11 +179,14 @@ export default {
     };
   },
   setup() {
+    //TODO EventListener zum Einfügen neuer Elemente auf der Seite einfügen
     let getRowId = (params) => params.data._id;
     const paketeStore = usePaketeStore();
     const bucketStore = useBucketsStore();
+    const vergleicheStore = useVergleicheStore();
+    const router = useRouter();
     const rowData = paketeStore.paketeAsTreeView;
-    return {rowData, paketeStore, bucketStore, getRowId};
+    return {rowData, paketeStore, bucketStore, vergleicheStore, getRowId, router};
   },
   components: {
     AgGridVue,
@@ -246,7 +246,7 @@ export default {
     },
     deletePaket() {
       if (this.gridApi.getSelectedRows()[0]) {
-        const focusedRowIndex = this.rowData.indexOf(this.gridApi.getSelectedRows()[0])
+        const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
         this.paketeStore.deletePaket(this.gridApi.getSelectedRows()[0].id);
         if (this.rowData[focusedRowIndex]) this.refreshTable("ticket_nr", this.rowData[focusedRowIndex].id)
         else if (this.rowData.length !== 0) {
@@ -254,6 +254,12 @@ export default {
         } else {
           this.refreshTable("ticket_nr", null)
         }
+      }
+    },
+    comparePaket() {
+      if (this.gridApi.getSelectedRows()[0]) {
+        this.vergleicheStore.currentSelectedPaket = this.gridApi.getSelectedRows()[0];
+        this.router.push({name: 'vergleich'});
       }
     },
     movePaketUp() {
