@@ -23,7 +23,7 @@ const router = createRouter({
         {
             path: '/vergleich',
             name: 'vergleich',
-            component: VergleichView
+            component: VergleichView,
         },
         {
             path: '/buckets',
@@ -48,7 +48,8 @@ const router = createRouter({
         {
             path: '/test2',
             name: 'test2',
-            component: testView2
+            component: testView2,
+            props: true
         },
     ]
 })
