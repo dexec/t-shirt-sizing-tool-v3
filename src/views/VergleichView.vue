@@ -109,6 +109,7 @@
 import {usePaketeStore} from "@/stores/pakete";
 import {useBucketsStore} from "@/stores/buckets";
 import draggable from "vuedraggable";
+import {useVergleicheStore} from "@/stores/vergleiche";
 
 export default {
   name: "VergleichView",
@@ -122,18 +123,19 @@ export default {
       selected: this.bucketStore.buckets.map(bucket => bucket.id),
       buckets: this.bucketStore.buckets,
       paketeLeafs: this.paketeStore.paketeChildren(),
-      listCurrentPaket: [],
+      listCurrentPaket: [this.vergleicheStore.currentSelectedPaket],
       currentContextMenuPaket: {}
     }
   },
   setup() {
     const paketeStore = usePaketeStore();
     const bucketStore = useBucketsStore();
-    return {bucketStore, paketeStore}
+    const vergleicheStore = useVergleicheStore();
+    return {vergleicheStore, bucketStore, paketeStore}
   },
   mounted() {
-    this.listCurrentPaket = [this.paketeStore.paketeChildrenWithNoBucket()[0]];
-    document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[1].style.background = "cyan";
+    const indexOfCurrentSelectedPaket = this.paketeWithoutBucket.indexOf(this.vergleicheStore.currentSelectedPaket);
+    document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[indexOfCurrentSelectedPaket+1].style.background = "cyan";
   },
   computed: {
     paketeWithoutBucket() {
@@ -153,14 +155,15 @@ export default {
       document.addEventListener("click", () => contextMenu.style.display = "none");
     },
     selectRow(index) {
-      if (this.paketeStore.paketeChildrenWithNoBucket()[index]) {
+      if (this.paketeWithoutBucket[index]) {
         const rows = document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")
         for (let i = 0; i < rows.length; i++) {
           rows[i].style.backgroundColor = "transparent"
         }
         document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[index + 1].style.background = "cyan";
         this.listCurrentPaket.pop();
-        this.listCurrentPaket.push(this.paketeStore.paketeChildrenWithNoBucket()[index]);
+        this.vergleicheStore.currentSelectedPaket = this.paketeWithoutBucket[index];
+        this.listCurrentPaket.push(this.paketeWithoutBucket[index])
       }
     },
     sortSelectedBuckets() {
@@ -188,7 +191,8 @@ export default {
     },
     listCurrentPaketChanged(evt) {
       if (evt.removed) {
-        this.listCurrentPaket.push(this.paketeStore.paketeChildrenWithNoBucket()[0])
+        this.vergleicheStore.currentSelectedPaket = this.paketeStore.paketeChildrenWithNoBucket()[0];
+        this.listCurrentPaket.push(this.vergleicheStore.currentSelectedPaket)
         document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[1].style.background = "cyan";
       }
       if (evt.added) {
