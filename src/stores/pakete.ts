@@ -19,14 +19,14 @@ export const usePaketeStore = defineStore('pakete', () => {
     Paket.idCounter = highestID + 1;
     //Stresstest generierung
     for (let i = 0; i < 10; i++) {
-        const newPaket = new Paket("1111", "Testing", "Ticket zum Testen", "Test", null, 0, false, 0, null, []);
+        const newPaket = new Paket(i+1000 + "", "Testing", "Ticket zum Testen", "Test", null, 0, false, 0, null, []);
         paketeAsMap.value.set(newPaket.id, newPaket);
     }
     paketeAsMap.value.forEach((value: Paket, key: number) => {
         for (const paket of saveFile.paketeTree) {
             if (paket.key == key) {
-                for (const paketChildID of paket.children) {
-                    const paketChild = paketeAsMap.value.get(paketChildID) as Paket
+                for (const paketChildId of paket.children) {
+                    const paketChild = paketeAsMap.value.get(paketChildId) as Paket
                     paketChild.parent = value
                     value.children.push(paketChild)
                 }
