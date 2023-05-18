@@ -1,28 +1,28 @@
 <template>
-  <div style="position: fixed;right:500px" @contextmenu="showMenu">{{name}}</div>
-  <div class="wrapper">
-    <div class="content">
-      <div class="menu">
-        <span class="item">Zuweisung aufheben</span>
-        <span class="item">Zuweisung aufheben</span>
-        <span class="item">Zuweisung aufheben</span>
-        <span class="item">Zuweisung aufheben</span>
-        <span class="item">Zuweisung aufheben</span>
-        <span class="item">Zuweisung aufheben</span>
-      </div>
-    </div>
-  </div>
+  <div style="position: fixed;right:500px" @contextmenu="showMenu">activator</div>
+  <context-menu :providedFunctionsProp="[{functionName:'test',functionLabel:'Hier klicken für Test'}]"></context-menu>
 </template>
 
 <script>
 
+import ContextMenu from "@/components/ContextMenu.vue";
+
 export default {
   name: "TestView2",
+  components: {ContextMenu},
   props: ['name'],
   data() {
     return {};
   },
+  provide() {
+    return{
+      test: this.test
+    }
+  },
   methods: {
+    test() {
+      console.log("success")
+    },
     showMenu(e) {
       e.preventDefault();
       const contextMenu = document.querySelector(".wrapper")
