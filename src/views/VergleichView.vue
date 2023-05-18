@@ -1,4 +1,7 @@
 <template>
+  <v-autocomplete @blur="this.searchedPaket=null" v-model="searchedPaket" :items="this.paketeChildren"
+                  item-title="ticket_nr" item-value="id"
+                  style="position: fixed;left:100px;top:200px; width: 200px"></v-autocomplete>
   <v-container class="fill-height" fluid>
     <v-row class="fill-height">
       <v-col class="d-flex flex-column" cols="9">
@@ -55,7 +58,8 @@
                 <div class="paket ma-2">{{ bucket.name }}</div>
               </template>
               <template #item="{ element }">
-                <div class="list-group-item ma-2 paket" @contextmenu="showMenu($event,element)">{{ element.thema }}
+                <div class="list-group-item ma-2 paket" :style="searchPaket(element)"
+                     @contextmenu="showMenu($event,element)">{{ element.thema }}
                 </div>
               </template>
             </draggable>
@@ -92,8 +96,8 @@
           </thead>
           <tbody v-if="this.paketeWithoutBucket.length>0">
           <tr v-for="(paket, index) of this.paketeWithoutBucket" :key="paket.id" @click="selectRow(index)">
-            <td>{{ paket.ticket_nr }}</td>
-            <td>{{ paket.thema }}</td>
+            <td :style="searchPaket(paket)">{{ paket.ticket_nr }}</td>
+            <td :style="searchPaket(paket)">{{ paket.thema }}</td>
           </tr>
           </tbody>
         </v-table>
@@ -118,11 +122,11 @@ export default {
   },
   data() {
     return {
+      searchedPaket: null,
       dialog: false,
       checked: true,
       selected: this.bucketStore.buckets.map(bucket => bucket.id),
       buckets: this.bucketStore.buckets,
-      paketeLeafs: this.paketeStore.paketeChildren(),
       listCurrentPaket: [this.vergleicheStore.currentSelectedPaket],
       currentContextMenuPaket: {}
     }
@@ -135,14 +139,20 @@ export default {
   },
   mounted() {
     const indexOfCurrentSelectedPaket = this.paketeWithoutBucket.indexOf(this.vergleicheStore.currentSelectedPaket);
-    document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[indexOfCurrentSelectedPaket+1].style.background = "cyan";
+    document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[indexOfCurrentSelectedPaket + 1].style.background = "cyan";
   },
   computed: {
     paketeWithoutBucket() {
       return this.paketeStore.paketeChildrenWithNoBucket();
+    },
+    paketeChildren() {
+      return this.paketeStore.paketeChildren();
     }
   },
   methods: {
+    test() {
+      console.log(this.searchedPaket)
+    },
     showMenu(e, element) {
       this.currentContextMenuPaket = element;
       const contextMenu = document.querySelector(".wrapper")
@@ -166,6 +176,11 @@ export default {
         this.listCurrentPaket.push(this.paketeWithoutBucket[index])
       }
     },
+    searchPaket(paket) {
+      if (paket.id === this.searchedPaket) {
+        return "border-color: red"
+      }
+    },
     sortSelectedBuckets() {
       this.selected.sort(function (a, b) {
         return a - b
@@ -173,7 +188,7 @@ export default {
     },
     getPaketSortedByBucket(bucket) {
       const result = [];
-      this.paketeLeafs.forEach(paket => {
+      this.paketeChildren.forEach(paket => {
         if (paket.bucket && paket.bucket.name === bucket.name) result.push(paket)
       })
       return result
