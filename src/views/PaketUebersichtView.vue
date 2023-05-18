@@ -1,4 +1,7 @@
 <template>
+  <v-autocomplete v-model="searchedPaket" @update:modelValue="searchPaket"
+                  :items="this.paketeChildren" item-title="ticket_nr" item-value="id"
+                  style="position: absolute;right:100px;top:200px; width: 200px; z-index:1"></v-autocomplete>
   <div style='width: 100%;height: 100%'>
     <ag-grid-vue
         :columnDefs='columnDefs'
@@ -15,22 +18,7 @@
         @grid-ready='onGridReady'>
     </ag-grid-vue>
   </div>
-  <div class="wrapper">
-    <div class="content">
-      <div class="menu">
-        <span class="item" @click="addNewPaket">Neues Arbeitspaket anlegen</span>
-        <span class="item" @click="addNewKindPaket">Neues Arbeitspaket als Kind anlegen</span>
-        <span class="item" @click="deletePaket">Paket löschen</span>
-        <span class="item" @click="comparePaket">Bucket zuweisen</span>
-        <span class="item" @click="movePaketUp"><v-icon size="x-small">mdi-arrow-up</v-icon></span>
-        <span class="item" @click="movePaketDown"><v-icon size="x-small">mdi-arrow-down</v-icon></span>
-        <span class="item" @click="movePaketLeftUp"><v-icon size="x-small">mdi-arrow-top-left</v-icon></span>
-        <span class="item" @click="movePaketLeftDown"><v-icon size="x-small">mdi-arrow-bottom-left</v-icon></span>
-        <span class="item" @click="movePaketUpRight"><v-icon size="x-small">mdi-arrow-top-right</v-icon></span>
-        <span class="item" @click="movePaketDownRight"><v-icon size="x-small">mdi-arrow-bottom-right</v-icon></span>
-      </div>
-    </div>
-  </div>
+  <context-menu :providedFunctionsProp="[...this.providedFunctions]"></context-menu>
 </template>
 <!--<script setup>
 import "ag-grid-community/styles/ag-grid.css";
@@ -106,6 +94,7 @@ import {nextTick} from 'vue';
 import {useBucketsStore} from "@/stores/buckets";
 import {useRouter} from "vue-router";
 import {useVergleicheStore} from "@/stores/vergleiche";
+import ContextMenu from "@/components/ContextMenu.vue";
 
 export default {
   name: 'PaketUebersichtView',
@@ -175,6 +164,19 @@ export default {
           headerName: 'ID',
           editable: false
         }
+      ],
+      searchedPaket: null,
+      providedFunctions: [
+        {functionName: 'addNewPaket', functionLabel: "Neues Arbeitspaket anlegen"},
+        {functionName: 'addNewKindPaket', functionLabel: "Neues Arbeitspaket als Kind anlegen"},
+        {functionName: 'deletePaket', functionLabel: "Paket löschen"},
+        {functionName: 'comparePaket', functionLabel: "Paket vergleichen"},
+        {functionName: 'movePaketUp', functionLabel: "Pfeil hoch"},
+        {functionName: 'movePaketDown', functionLabel: "Pfeil runter"},
+        {functionName: 'movePaketRightUp', functionLabel: "Pfeil hoch rechts"},
+        {functionName: 'movePaketRightDown', functionLabel: "Pfeil runter rechts"},
+        {functionName: 'movePaketLeftDown', functionLabel: "Pfeil runter links"},
+        {functionName: 'movePaketLeftUp', functionLabel: "Pfeil hoch links"},
       ]
     };
   },
@@ -189,9 +191,29 @@ export default {
     return {rowData, paketeStore, bucketStore, vergleicheStore, getRowId, router};
   },
   components: {
+    ContextMenu,
     AgGridVue,
     // eslint-disable-next-line vue/no-unused-components
     TreeDataCellRenderer
+  },
+  computed: {
+    paketeChildren() {
+      return this.paketeStore.paketeChildren();
+    }
+  },
+  provide() {
+    return {
+      addNewPaket: this.addNewPaket,
+      addNewKindPaket: this.addNewKindPaket,
+      deletePaket: this.deletePaket,
+      comparePaket: this.comparePaket,
+      movePaketUp: this.movePaketUp,
+      movePaketDown: this.movePaketDown,
+      movePaketRightUp: this.movePaketRightUp,
+      movePaketRightDown: this.movePaketRightDown,
+      movePaketLeftUp: this.movePaketLeftUp,
+      movePaketLeftDown: this.movePaketLeftDown,
+    }
   },
   methods: {
     /*    onFirstDataRendered(params) {
@@ -217,13 +239,26 @@ export default {
         this.gridApi.getRowNode(selectedPaket.id).setSelected(true);
       }
     },
+    searchPaket() {
+      const searchedPaket = this.paketeStore.paketeAsMap.get(this.searchedPaket);
+      let parent = searchedPaket.parent;
+      while (parent) {
+        if (!parent.open) {
+          parent.open = true;
+          this.paketeStore.updateTreeViewAfterChangedOpenState(parent);
+          break;
+        }
+        parent = parent.parent;
+      }
+      this.refreshTable(this.gridApi.getFocusedCell() ? this.gridApi.getFocusedCell().column : "ticket_nr", this.searchedPaket)
+    },
     onGridReady(params) {
       this.gridApi = params.api;
       this.columnApi = params.columnApi;
       //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
     },
-    onCellClicked(params) {
-
+    onCellClicked() {
+      this.searchedPaket = null;
     },
     onCellValueChanged(params) {
       if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue) this.paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
@@ -257,8 +292,10 @@ export default {
       }
     },
     comparePaket() {
-      if (this.gridApi.getSelectedRows()[0]) {
-        this.vergleicheStore.currentSelectedPaket = this.gridApi.getSelectedRows()[0];
+      if (this.gridApi.getSelectedRows()[0] && this.gridApi.getSelectedRows()[0].children.length === 0) {
+        const currentPaket = this.gridApi.getSelectedRows()[0];
+        currentPaket.bucket = null;
+        this.vergleicheStore.currentSelectedPaket = currentPaket;
         this.router.push({name: 'vergleich'});
       }
     },
@@ -290,17 +327,17 @@ export default {
         this.refreshTable(this.gridApi.getFocusedCell().column, paketID);
       }
     },
-    movePaketDownRight() {
+    movePaketRightDown() {
       if (this.gridApi.getSelectedRows()[0]) {
         let paketID = this.gridApi.getSelectedRows()[0].id;
-        this.paketeStore.moveDownRight(paketID);
+        this.paketeStore.moveRightDown(paketID);
         this.refreshTable(this.gridApi.getFocusedCell().column, paketID);
       }
     },
-    movePaketUpRight() {
+    movePaketRightUp() {
       if (this.gridApi.getSelectedRows()[0]) {
         let paketID = this.gridApi.getSelectedRows()[0].id;
-        this.paketeStore.moveUpRight(paketID);
+        this.paketeStore.moveRightUp(paketID);
         this.refreshTable(this.gridApi.getFocusedCell().column, paketID);
       }
     },
@@ -323,6 +360,7 @@ export default {
           this.gridApi.setFocusedCell(null)
         }
         this.gridApi.refreshCells({force: true});
+
       });
     },
     onCellKeyPress(e) {
@@ -363,8 +401,8 @@ export default {
               break;
             case 'ArrowRight':
               if (ctrl) {
-                if (shift) this.movePaketUpRight();
-                else this.movePaketDownRight();
+                if (shift) this.movePaketRightUp();
+                else this.movePaketRightDown();
               }
               break;
             case 'Delete':
@@ -390,42 +428,4 @@ export default {
     }
   }
 };
-
 </script>
-
-<style scoped>
-.wrapper {
-  display: none;
-  position: absolute;
-  width: 280px;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
-}
-
-.wrapper .menu {
-  padding: 10px 12px;
-}
-
-.content .item {
-  list-style: none;
-  height: 20px;
-  display: flex;
-  width: 100%;
-  cursor: pointer;
-  align-items: center;
-  border-radius: 5px;
-  margin-bottom: 2px;
-  padding: 0 5px 0 10px;
-  font-size: 0.8rem;
-}
-
-.content .item:hover {
-  background: #f2f2f2;
-}
-
-.content .item span {
-  margin-left: 8px;
-  font-size: 19px;
-}
-</style>
