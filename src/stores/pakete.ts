@@ -4,9 +4,11 @@ import {ref} from "vue";
 import saveFile from "@/stores/file.json";
 import type {Bucket} from "@/Bucket";
 import {useBucketsStore} from "@/stores/buckets";
+import {useVergleicheStore} from "@/stores/vergleiche";
 
 export const usePaketeStore = defineStore('pakete', () => {
     const buckets = useBucketsStore();
+    const vergleiche = useVergleicheStore();
     const stackForTreeView: Paket[] = [];
     const paketeAsTreeView = ref<Array<Paket>>([]);
     const paketeAsMap = ref(new Map<number, Paket>());
@@ -19,7 +21,7 @@ export const usePaketeStore = defineStore('pakete', () => {
     Paket.idCounter = highestID + 1;
     //Stresstest generierung
     for (let i = 0; i < 10; i++) {
-        const newPaket = new Paket(i+1000 + "", "Testing", "Ticket zum Testen", "Test", null, 0, false, 0, null, []);
+        const newPaket = new Paket(i + 1000 + "", "Testing", "Ticket zum Testen", "Test", null, 0, false, 0, null, []);
         paketeAsMap.value.set(newPaket.id, newPaket);
     }
     paketeAsMap.value.forEach((value: Paket, key: number) => {
@@ -58,6 +60,8 @@ export const usePaketeStore = defineStore('pakete', () => {
         }
     }
 
+    vergleiche.currentSelectedPaket = paketeChildrenWithNoBucket()[0];
+
     function paketeAsFlatView() {
         return Array.from(paketeAsMap.value.values());
     }
@@ -67,7 +71,7 @@ export const usePaketeStore = defineStore('pakete', () => {
     }
 
     function paketeChildrenWithNoBucket() {
-        return Array.from(paketeAsMap.value.values()).filter(paket => paket.children.length == 0 && !paket.bucket);
+        return Array.from(paketeAsMap.value.values()).filter(paket => paket.children.length == 0 && !paket.bucket).sort((a, b) => a.ticket_nr.localeCompare(b.ticket_nr));
     }
 
     function paketeOfBucket(bucket: Bucket) {
@@ -87,31 +91,36 @@ export const usePaketeStore = defineStore('pakete', () => {
     }
 
     function updateTreeViewAfterChangedOpenState(changedPaket: Paket): number {
-        const indexOfChangedPaket = paketeAsTreeView.value.indexOf(changedPaket);
-        let counter = 0;
-        const stack = [...changedPaket.children];
-        if (changedPaket.open) {
-            const paketeToAdd: Paket[] = [];
-            while (stack.length > 0) {
-                const aktuellesPaket = stack.shift() as Paket;
-                if (aktuellesPaket.open) {
-                    stack.unshift(...aktuellesPaket.children.reverse());
-                }
-                paketeToAdd.push(aktuellesPaket)
-            }
-            paketeAsTreeView.value.splice(indexOfChangedPaket + 1, 0, ...paketeToAdd)
-            counter += paketeToAdd.length;
+        const parent = changedPaket.parent
+        if (parent && !parent.open) {
+            return updateTreeViewAfterChangedOpenState(parent);
         } else {
-            while (stack.length > 0) {
-                const aktuellesPaket = stack.shift() as Paket;
-                if (aktuellesPaket.open) {
-                    stack.unshift(...aktuellesPaket.children);
+            const indexOfChangedPaket = paketeAsTreeView.value.indexOf(changedPaket);
+            let counter = 0;
+            const stack = [...changedPaket.children];
+            if (changedPaket.open) {
+                const paketeToAdd: Paket[] = [];
+                while (stack.length > 0) {
+                    const aktuellesPaket = stack.shift() as Paket;
+                    if (aktuellesPaket.open) {
+                        stack.unshift(...aktuellesPaket.children.reverse());
+                    }
+                    paketeToAdd.push(aktuellesPaket)
                 }
-                counter++;
+                paketeAsTreeView.value.splice(indexOfChangedPaket + 1, 0, ...paketeToAdd)
+                counter += paketeToAdd.length;
+            } else {
+                while (stack.length > 0) {
+                    const aktuellesPaket = stack.shift() as Paket;
+                    if (aktuellesPaket.open) {
+                        stack.unshift(...aktuellesPaket.children);
+                    }
+                    counter++;
+                }
+                paketeAsTreeView.value.splice(indexOfChangedPaket + 1, counter);
             }
-            paketeAsTreeView.value.splice(indexOfChangedPaket + 1, counter);
+            return counter;
         }
-        return counter;
     }
 
     function updateLvl(addLvl: number, paket: Paket) {
@@ -152,6 +161,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         if (parentOfPaket) {
             parentOfPaket.children.splice(parentOfPaket.children.indexOf(paketToDelete), 1);
         }
+        if (vergleiche.currentSelectedPaket == paketToDelete) vergleiche.currentSelectedPaket = paketeChildrenWithNoBucket()[0];
         updateSchaetzung(paketToDelete, -1 * paketToDelete.schaetzung)
     }
 
@@ -285,7 +295,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         }
     }
 
-    function moveDownRight(id: number) {
+    function moveRightDown(id: number) {
         const paketToMove = paketeAsMap.value.get(id) as Paket;
         if (paketToMove.parent && paketToMove.parent.children.indexOf(paketToMove) == paketToMove.parent.children.length - 1) return;
         const indexOfPaketToMove = paketeAsTreeView.value.indexOf(paketToMove);
@@ -324,7 +334,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         }
     }
 
-    function moveUpRight(id: number) {
+    function moveRightUp(id: number) {
         const paketToMove = paketeAsMap.value.get(id) as Paket;
         if (paketToMove.parent && paketToMove.parent.children.indexOf(paketToMove) == 0) return;
         const indexOfPaketToMove = paketeAsTreeView.value.indexOf(paketToMove);
@@ -474,8 +484,8 @@ export const usePaketeStore = defineStore('pakete', () => {
         addNewChild,
         moveUp,
         moveDown,
-        moveDownRight,
-        moveUpRight,
+        moveRightDown,
+        moveRightUp,
         moveLeftUp,
         moveLeftDown
     }
