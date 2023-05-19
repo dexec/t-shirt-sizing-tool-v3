@@ -1,7 +1,7 @@
 <template>
-  <v-autocomplete v-model="searchedPaket" @update:modelValue="searchPaket"
-                  :items="this.paketeChildren" item-title="ticket_nr" item-value="id"
-                  style="position: absolute;right:100px;top:200px; width: 200px; z-index:1"></v-autocomplete>
+  <v-autocomplete label="Paket suchen" v-model="searchedPaket" :items="this.paketeChildren"
+                  item-title="ticket_nr" item-value="id" style="position: absolute;right:100px;top:150px; width: 200px; z-index:2"
+                  @update:modelValue="searchPaket"></v-autocomplete>
   <div style='width: 100%;height: 100%'>
     <ag-grid-vue
         :columnDefs='columnDefs'
@@ -104,6 +104,7 @@ export default {
       columnApi: null,
       defaultColDef: {
         editable: true,
+        resizable:true,
         suppressKeyboardEvent: params => {
           let key = params.event.key;
           return params.event.ctrlKey && (key === 'ArrowDown' || key === 'ArrowUp' || key === 'ArrowRight' || key === 'ArrowLeft' || key === 'Delete');
@@ -111,9 +112,9 @@ export default {
       },
       columnDefs: [
         {
-          field: 'ticket_nr',
-          headerName: 'Ticket-NR',
-          minWidth: 5,
+          field: 'thema',
+          headerName: 'Thema',
+          width: 300,
           cellRenderer: TreeDataCellRenderer
         },
         {
@@ -122,8 +123,8 @@ export default {
           editable: false
         },
         {
-          field: 'thema',
-          headerName: 'Thema'
+          field: 'ticket_nr',
+          headerName: 'Ticket-NR',
         },
         {
           field: 'beschreibung',
@@ -137,8 +138,7 @@ export default {
           field: 'bucket',
           headerName: 'Bucket',
           valueSetter: (params) => {
-            if (params.newValue === "Zuweisung aufheben") params.data.bucket = null;
-            else params.data.bucket = useBucketsStore().buckets.find(bucket => bucket.name === params.newValue);
+            params.data.bucket = useBucketsStore().buckets.find(bucket => bucket.name === params.newValue);
           },
           valueGetter: (params) => {
             if (params.data.bucket) return params.data.bucket.name
@@ -146,7 +146,7 @@ export default {
           },
           cellEditor: 'agSelectCellEditor',
           cellEditorParams: {
-            values: ["Zuweisung aufheben", ...useBucketsStore().getBucketNames()]
+            values: [...useBucketsStore().getBucketNames()]
           },
           editable: params => params.data.children.length === 0
         },
@@ -261,6 +261,7 @@ export default {
       this.searchedPaket = null;
     },
     onCellValueChanged(params) {
+      if (params.column.colId === 'bucket' && params.data.id === this.vergleicheStore.currentSelectedPaket.id && !params.oldValue) this.vergleicheStore.currentSelectedPaket = this.paketeStore.paketeChildrenWithNoBucket()[0];
       if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue) this.paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
       this.refreshTable(params.column.colId, params.data.id);
     },
@@ -411,7 +412,7 @@ export default {
             case ' ' :
               if (ctrl) {
                 if (e.data.children.length > 0) {
-                  const params = {columns: ['ticket_nr'], rowNodes: [e.node]}
+                  const params = {columns: ['thema'], rowNodes: [e.node]}
                   this.gridApi.getCellRendererInstances(params)[0].changeOpenState();
                 }
               }
