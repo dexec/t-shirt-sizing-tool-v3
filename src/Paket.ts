@@ -4,9 +4,9 @@ export class Paket {
     private static _idCounter: number = 0
     private readonly _id: number
     private _ticket_nr: string
-    private _thema: string | null
-    private _beschreibung: string | null
-    private _komponente: string | null
+    private _thema: string
+    private _beschreibung: string
+    private _komponente: string
     private _bucket: Bucket | null
     private _schaetzung: number
     private _open: boolean
@@ -14,7 +14,7 @@ export class Paket {
     private _parent: Paket | null
     private _children: Paket[]
 
-    constructor(ticket_nr: string, thema: string | null, beschreibung: string | null, komponente: string | null, bucket: Bucket | null, schaetzung: number, open: boolean, lvl: number, parent: Paket | null, children: Paket[], id?: number) {
+    constructor(ticket_nr: string, thema: string, beschreibung: string, komponente: string, bucket: Bucket | null, schaetzung: number, open: boolean, lvl: number, parent: Paket | null, children: Paket[], id?: number) {
         if (id != null) this._id = id;
         else this._id = Paket._idCounter++;
         this._ticket_nr = ticket_nr;
@@ -42,6 +42,7 @@ export class Paket {
         return this._id;
     }
 
+
     get ticket_nr(): string {
         return this._ticket_nr;
     }
@@ -50,27 +51,27 @@ export class Paket {
         this._ticket_nr = value;
     }
 
-    get thema(): string | null {
+    get thema(): string {
         return this._thema;
     }
 
-    set thema(value: string | null) {
+    set thema(value: string) {
         this._thema = value;
     }
 
-    get beschreibung(): string | null {
+    get beschreibung(): string {
         return this._beschreibung;
     }
 
-    set beschreibung(value: string | null) {
+    set beschreibung(value: string) {
         this._beschreibung = value;
     }
 
-    get komponente(): string | null {
+    get komponente(): string {
         return this._komponente;
     }
 
-    set komponente(value: string | null) {
+    set komponente(value: string) {
         this._komponente = value;
     }
 
