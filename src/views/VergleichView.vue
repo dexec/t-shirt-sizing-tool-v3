@@ -1,7 +1,7 @@
 <template>
-  <v-autocomplete @blur="this.searchedPaket=null" v-model="searchedPaket" :items="this.paketeChildren"
-                  item-title="ticket_nr" item-value="id"
-                  style="position: fixed;left:100px;top:200px; width: 200px"></v-autocomplete>
+  <v-autocomplete label="Paket suchen" v-model="searchedPaket" :items="this.paketeChildren" item-title="ticket_nr"
+                  item-value="id" style="position: absolute;left:100px;top:200px; width: 200px"
+                  @blur="this.searchedPaket=null"></v-autocomplete>
   <v-container class="fill-height" fluid>
     <v-row class="fill-height">
       <v-col class="d-flex flex-column" cols="9">
@@ -58,7 +58,7 @@
                 <div class="paket ma-2">{{ bucket.name }}</div>
               </template>
               <template #item="{ element }">
-                <div class="list-group-item ma-2 paket" :style="searchPaket(element)"
+                <div :style="searchPaket(element)" class="list-group-item ma-2 paket"
                      @contextmenu="showMenu($event,element)">{{ element.thema }}
                 </div>
               </template>
@@ -73,10 +73,10 @@
           </div>
         </v-row>
       </v-col>
-      <v-col cols="3">
+      <v-col cols="3" class="d-flex flex-column">
         <v-dialog v-model="dialog" width="auto">
           <template v-slot:activator="{props}">
-            <v-btn class="mb-4" v-bind="props">Buckets konfigurieren</v-btn>
+            <v-btn class="mb-6" v-bind="props">Buckets konfigurieren</v-btn>
           </template>
           <v-card>
             <v-card-text>
@@ -87,6 +87,7 @@
             </v-card-text>
           </v-card>
         </v-dialog>
+        <h2>Arbeitspakete ohne Bucket</h2>
         <v-table id="paketeWithoutBucketTable">
           <thead>
           <tr>
@@ -125,7 +126,7 @@ export default {
       searchedPaket: null,
       dialog: false,
       checked: true,
-      selected: this.bucketStore.buckets.map(bucket => bucket.id),
+      selected: this.vergleicheStore.currentSelectedBuckets,
       buckets: this.bucketStore.buckets,
       listCurrentPaket: [this.vergleicheStore.currentSelectedPaket],
       currentContextMenuPaket: {}
@@ -135,7 +136,7 @@ export default {
     const paketeStore = usePaketeStore();
     const bucketStore = useBucketsStore();
     const vergleicheStore = useVergleicheStore();
-    return {vergleicheStore, bucketStore, paketeStore}
+    return { vergleicheStore, bucketStore, paketeStore }
   },
   mounted() {
     const indexOfCurrentSelectedPaket = this.paketeWithoutBucket.indexOf(this.vergleicheStore.currentSelectedPaket);
@@ -150,9 +151,6 @@ export default {
     }
   },
   methods: {
-    test() {
-      console.log(this.searchedPaket)
-    },
     showMenu(e, element) {
       this.currentContextMenuPaket = element;
       const contextMenu = document.querySelector(".wrapper")
@@ -185,6 +183,10 @@ export default {
       this.selected.sort(function (a, b) {
         return a - b
       })
+      this.vergleicheStore.currentSelectedBuckets.length=0;
+      for(let bucketID of this.selected) {
+        this.vergleicheStore.currentSelectedBuckets.push(bucketID);
+      }
     },
     getPaketSortedByBucket(bucket) {
       const result = [];
