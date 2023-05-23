@@ -1,6 +1,6 @@
 <template>
-  <v-autocomplete label="Paket suchen" v-model="searchedPaket" :items="this.paketeChildren" item-title="ticket_nr"
-                  item-value="id" style="position: absolute;left:100px;top:200px; width: 200px"
+  <v-autocomplete v-model="searchedPaket" :items="this.paketeChildren" item-title="ticket_nr" item-value="id"
+                  label="Paket suchen" style="position: absolute;left:100px;top:200px; width: 200px"
                   @blur="this.searchedPaket=null"></v-autocomplete>
   <v-container class="fill-height" fluid>
     <v-row class="fill-height">
@@ -66,14 +66,14 @@
             <div class="wrapper">
               <div class="content">
                 <div class="menu">
-                  <span class="item" @click="this.currentContextMenuPaket.bucket=null;">Zuweisung aufheben</span>
+                  <span class="item" @click="removePaketFromBucket(this.currentContextMenuPaket)">Zuweisung aufheben</span>
                 </div>
               </div>
             </div>
           </div>
         </v-row>
       </v-col>
-      <v-col cols="3" class="d-flex flex-column">
+      <v-col class="d-flex flex-column" cols="3">
         <v-dialog v-model="dialog" width="auto">
           <template v-slot:activator="{props}">
             <v-btn class="mb-6" v-bind="props">Buckets konfigurieren</v-btn>
@@ -128,7 +128,6 @@ export default {
       checked: true,
       selected: this.vergleicheStore.currentSelectedBuckets,
       buckets: this.bucketStore.buckets,
-      listCurrentPaket: [this.vergleicheStore.currentSelectedPaket],
       currentContextMenuPaket: {}
     }
   },
@@ -136,11 +135,11 @@ export default {
     const paketeStore = usePaketeStore();
     const bucketStore = useBucketsStore();
     const vergleicheStore = useVergleicheStore();
-    return { vergleicheStore, bucketStore, paketeStore }
+    return {vergleicheStore, bucketStore, paketeStore}
   },
   mounted() {
     const indexOfCurrentSelectedPaket = this.paketeWithoutBucket.indexOf(this.vergleicheStore.currentSelectedPaket);
-    document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[indexOfCurrentSelectedPaket + 1].style.background = "cyan";
+    if(this.vergleicheStore.currentSelectedPaket) document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[indexOfCurrentSelectedPaket + 1].style.background = "cyan";
   },
   computed: {
     paketeWithoutBucket() {
@@ -148,6 +147,9 @@ export default {
     },
     paketeChildren() {
       return this.paketeStore.paketeChildren();
+    },
+    listCurrentPaket() {
+      return [this.vergleicheStore.currentSelectedPaket]
     }
   },
   methods: {
@@ -169,9 +171,7 @@ export default {
           rows[i].style.backgroundColor = "transparent"
         }
         document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[index + 1].style.background = "cyan";
-        this.listCurrentPaket.pop();
         this.vergleicheStore.currentSelectedPaket = this.paketeWithoutBucket[index];
-        this.listCurrentPaket.push(this.paketeWithoutBucket[index])
       }
     },
     searchPaket(paket) {
@@ -183,8 +183,8 @@ export default {
       this.selected.sort(function (a, b) {
         return a - b
       })
-      this.vergleicheStore.currentSelectedBuckets.length=0;
-      for(let bucketID of this.selected) {
+      this.vergleicheStore.currentSelectedBuckets.length = 0;
+      for (let bucketID of this.selected) {
         this.vergleicheStore.currentSelectedBuckets.push(bucketID);
       }
     },
@@ -200,6 +200,10 @@ export default {
         this.selected.find(bucket.id)
       })
     },
+    removePaketFromBucket(paket) {
+      if(paket) paket.bucket = null;
+      if(!this.vergleicheStore.currentSelectedPaket) this.vergleicheStore.currentSelectedPaket=paket;
+    },
     changeBucketOfPaket(evt, bucket) {
       if (evt.added) {
         const updatePaket = evt.added.element
@@ -209,12 +213,7 @@ export default {
     listCurrentPaketChanged(evt) {
       if (evt.removed) {
         this.vergleicheStore.currentSelectedPaket = this.paketeStore.paketeChildrenWithNoBucket()[0];
-        this.listCurrentPaket.push(this.vergleicheStore.currentSelectedPaket)
-        document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[1].style.background = "cyan";
-      }
-      if (evt.added) {
-        const indexOfAddedPaket = this.listCurrentPaket.indexOf(evt.added.element);
-        this.listCurrentPaket.splice(indexOfAddedPaket, 1);
+        //document.getElementById("paketeWithoutBucketTable").getElementsByTagName("tr")[2].style.background = "cyan";
       }
     }
   },
