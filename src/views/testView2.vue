@@ -1,76 +1,61 @@
 <template>
-  <div style="position: fixed;right:500px" @contextmenu="showMenu">activator</div>
-  <context-menu :providedFunctionsProp="[{functionName:'test',functionLabel:'Hier klicken für Test'}]"></context-menu>
+  <div class="row">
+    <div class="col-3">
+      <h3>Draggable 1</h3>
+      <draggable
+          class="list-group"
+          :list="list1"
+          group="people"
+          @change="log"
+          itemKey="name"
+      >
+        <template #item="{ element, index }">
+          <div class="list-group-item">{{ element.name }} {{ index }}</div>
+        </template>
+      </draggable>
+    </div>
+
+    <div class="col-3">
+      <h3>Draggable 2</h3>
+      <draggable
+          class="list-group"
+          :list="list2"
+          group="people"
+          @change="log"
+          itemKey="name"
+      >
+        <template #item="{ element, index }">
+          <div class="list-group-item">{{ element.name }} {{ index }}</div>
+        </template>
+      </draggable>
+    </div>
+  </div>
 </template>
+<script setup lang="ts">
+import draggable from "vuedraggable";
+import {ref} from "vue";
 
-<script>
+const list1 = ref( [
+  { name: "John", id: 1 },
+  { name: "Joao", id: 2 },
+  { name: "Jean", id: 3 },
+  { name: "Gerard", id: 4 }
+])
 
-import ContextMenu from "@/components/ContextMenu.vue";
-
-export default {
-  name: "TestView2",
-  components: {ContextMenu},
-  props: ['name'],
-  data() {
-    return {};
-  },
-  provide() {
-    return{
-      test: this.test
-    }
-  },
-  methods: {
-    test() {
-      console.log("success")
-    },
-    showMenu(e) {
-      e.preventDefault();
-      const contextMenu = document.querySelector(".wrapper")
-      let x = e.clientX
-      let y = e.clientY
-      contextMenu.style.left = `${x}px`;
-      contextMenu.style.top = `${y}px`;
-      contextMenu.style.visibility = "visible";
-      document.addEventListener("click", () => contextMenu.style.visibility = "hidden");
-    }
-  }
+const list2 = ref([
+  { name: "Juan", id: 5 },
+  { name: "Edgard", id: 6 },
+  { name: "Johnson", id: 7 }
+])
+function log(evt:Event) {
+  console.log(evt)
 }
-
 </script>
 
 <style scoped>
-.wrapper {
-  visibility: hidden;
-  position: absolute;
-  width: 280px;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
-}
 
-.wrapper .menu {
-  padding: 10px 12px;
-}
-
-.content .item {
-  list-style: none;
-  height: 20px !important;
-  display: flex;
-  width: 100%;
-  cursor: pointer;
-  align-items: center;
-  border-radius: 5px;
-  margin-bottom: 2px;
-  padding: 0 5px 0 10px;
-  font-size: 0.8rem;
-}
-
-.content .item:hover {
-  background: #f2f2f2;
-}
-
-.content .item span {
-  margin-left: 8px;
-  font-size: 19px;
+.ghost {
+  opacity: 0.5;
+  background: #c8ebfb;
 }
 </style>
