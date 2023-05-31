@@ -4,11 +4,9 @@ import {ref} from "vue";
 import saveFile from "@/stores/file.json";
 import type {Bucket} from "@/Bucket";
 import {useBucketsStore} from "@/stores/buckets";
-import {useVergleicheStore} from "@/stores/vergleiche";
 
 export const usePaketeStore = defineStore('pakete', () => {
     const buckets = useBucketsStore();
-    const vergleiche = useVergleicheStore();
     const stackForTreeView: Paket[] = [];
     const paketeAsTreeView = ref<Array<Paket>>([]);
     const paketeAsMap = ref(new Map<number, Paket>());
@@ -21,7 +19,7 @@ export const usePaketeStore = defineStore('pakete', () => {
     Paket.idCounter = highestID + 1;
     //Stresstest generierung
     for (let i = 0; i < 10; i++) {
-        const newPaket = new Paket(i + 1000 + "", "Testing", "Ticket zum Testen", "Test", null, 0, false, 0, null, []);
+        const newPaket = new Paket(i + 1000 + "", "Testing" + i, "Ticket zum Testen", "Test", null, 0, false, 0, null, []);
         paketeAsMap.value.set(newPaket.id, newPaket);
     }
     paketeAsMap.value.forEach((value: Paket, key: number) => {
@@ -59,8 +57,6 @@ export const usePaketeStore = defineStore('pakete', () => {
             paketeAsTreeView.value.push(aktuellesPaket);
         }
     }
-
-    vergleiche.currentSelectedPaket = paketeChildrenWithNoBucket()[0];
 
     function paketeAsFlatView() {
         return Array.from(paketeAsMap.value.values());
@@ -161,7 +157,6 @@ export const usePaketeStore = defineStore('pakete', () => {
         if (parentOfPaket) {
             parentOfPaket.children.splice(parentOfPaket.children.indexOf(paketToDelete), 1);
         }
-        if (vergleiche.currentSelectedPaket == paketToDelete) vergleiche.currentSelectedPaket = paketeChildrenWithNoBucket()[0];
         updateSchaetzung(paketToDelete, -1 * paketToDelete.schaetzung)
     }
 

@@ -3,15 +3,12 @@ import saveFile from './file.json';
 import {Bucket} from "@/Bucket";
 import {ref} from "vue";
 import {usePaketeStore} from "@/stores/pakete";
-import {useVergleicheStore} from "@/stores/vergleiche";
 
 export const useBucketsStore = defineStore('buckets', () => {
-    const vergleiche = useVergleicheStore();
     const buckets = ref<Array<Bucket>>([]);
     for (const bucketFile of saveFile.buckets) {
         const newBucket = new Bucket(bucketFile.name)
         buckets.value.push(newBucket)
-        vergleiche.currentSelectedBuckets.push(newBucket.id)
     }
 
     function getBucketNames() {

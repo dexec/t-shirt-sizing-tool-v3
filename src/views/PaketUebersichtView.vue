@@ -1,6 +1,7 @@
 <template>
-  <v-autocomplete label="Paket suchen" v-model="searchedPaket" :items="this.paketeChildren"
-                  item-title="ticket_nr" item-value="id" style="position: absolute;right:100px;top:150px; width: 200px; z-index:2"
+  <v-autocomplete label="Paket suchen" v-model="searchedPaket" :items="this.pakete"
+                  item-title="ticket_nr" item-value="id"
+                  style="position: absolute;right:100px;top:150px; width: 200px; z-index:2"
                   @update:modelValue="searchPaket"></v-autocomplete>
   <div style='width: 100%;height: 100%'>
     <ag-grid-vue
@@ -93,7 +94,6 @@ import {usePaketeStore} from '@/stores/pakete';
 import {nextTick} from 'vue';
 import {useBucketsStore} from "@/stores/buckets";
 import {useRouter} from "vue-router";
-import {useVergleicheStore} from "@/stores/vergleiche";
 import ContextMenu from "@/components/ContextMenu.vue";
 
 export default {
@@ -104,7 +104,7 @@ export default {
       columnApi: null,
       defaultColDef: {
         editable: true,
-        resizable:true,
+        resizable: true,
         suppressKeyboardEvent: params => {
           let key = params.event.key;
           return params.event.ctrlKey && (key === 'ArrowDown' || key === 'ArrowUp' || key === 'ArrowRight' || key === 'ArrowLeft' || key === 'Delete');
@@ -185,10 +185,9 @@ export default {
     let getRowId = (params) => params.data._id;
     const paketeStore = usePaketeStore();
     const bucketStore = useBucketsStore();
-    const vergleicheStore = useVergleicheStore();
     const router = useRouter();
     const rowData = paketeStore.paketeAsTreeView;
-    return {rowData, paketeStore, bucketStore, vergleicheStore, getRowId, router};
+    return {rowData, paketeStore, bucketStore, getRowId, router};
   },
   components: {
     ContextMenu,
@@ -197,8 +196,8 @@ export default {
     TreeDataCellRenderer
   },
   computed: {
-    paketeChildren() {
-      return this.paketeStore.paketeChildren();
+    pakete() {
+      return this.paketeStore.paketeAsFlatView();
     }
   },
   provide() {
@@ -261,8 +260,8 @@ export default {
       this.searchedPaket = null;
     },
     onCellValueChanged(params) {
-      if (params.column.colId === 'bucket' && params.data.id === this.vergleicheStore.currentSelectedPaket.id && !params.oldValue) this.vergleicheStore.currentSelectedPaket = this.paketeStore.paketeChildrenWithNoBucket()[0];
-      if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue) this.paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
+      if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue)
+        this.paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
       this.refreshTable(params.column.colId, params.data.id);
     },
     addNewPaket() {
@@ -296,7 +295,6 @@ export default {
       if (this.gridApi.getSelectedRows()[0] && this.gridApi.getSelectedRows()[0].children.length === 0) {
         const currentPaket = this.gridApi.getSelectedRows()[0];
         currentPaket.bucket = null;
-        this.vergleicheStore.currentSelectedPaket = currentPaket;
         this.router.push({name: 'vergleich'});
       }
     },
