@@ -18,7 +18,7 @@ export const usePaketeStore = defineStore('pakete', () => {
     }
     Paket.idCounter = highestID + 1;
     //Stresstest generierung
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 1000; i++) {
         const newPaket = new Paket(i + 1000 + "", "Testing" + i, "Ticket zum Testen", "Test", null, 0, false, 0, null, []);
         paketeAsMap.value.set(newPaket.id, newPaket);
     }
