@@ -1,6 +1,6 @@
 <template>
-  <v-autocomplete label="Paket suchen" v-model="searchedPaket" :items="this.pakete"
-                  item-title="ticket_nr" item-value="id"
+  <v-autocomplete v-model="searchedPaket" :items="this.pakete" item-title=this.columnApi.getColumns()[0].getColId()
+                  item-value="id" label="Paket suchen"
                   style="position: absolute;right:100px;top:150px; width: 200px; z-index:2"
                   @update:modelValue="searchPaket"></v-autocomplete>
   <div style='width: 100%;height: 100%'>
@@ -103,11 +103,11 @@ export default {
       gridApi: null,
       columnApi: null,
       defaultColDef: {
-        editable: true,
+        editable: false,
         resizable: true,
         suppressKeyboardEvent: params => {
           let key = params.event.key;
-          return params.event.ctrlKey && (key === 'ArrowDown' || key === 'ArrowUp' || key === 'ArrowRight' || key === 'ArrowLeft' || key === 'Delete');
+          return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete'].includes(key) /*|| this.suppressedKeysArray.includes(key)*/;
         }
       },
       columnDefs: [
@@ -119,12 +119,11 @@ export default {
         },
         {
           field: 'lvl',
-          headerName: 'LVL',
-          editable: false
+          headerName: 'LVL'
         },
         {
           field: 'ticket_nr',
-          headerName: 'Ticket-NR',
+          headerName: 'Ticket-NR'
         },
         {
           field: 'beschreibung',
@@ -146,7 +145,7 @@ export default {
           },
           cellEditor: 'agSelectCellEditor',
           cellEditorParams: {
-            values: [...useBucketsStore().getBucketNames()]
+            values: ["", ...useBucketsStore().getBucketNames()]
           },
           editable: params => params.data.children.length === 0
         },
@@ -161,8 +160,7 @@ export default {
         },
         {
           field: 'id',
-          headerName: 'ID',
-          editable: false
+          headerName: 'ID'
         }
       ],
       searchedPaket: null,
@@ -177,7 +175,7 @@ export default {
         {functionName: 'movePaketRightDown', functionLabel: "Pfeil runter rechts"},
         {functionName: 'movePaketLeftDown', functionLabel: "Pfeil runter links"},
         {functionName: 'movePaketLeftUp', functionLabel: "Pfeil hoch links"},
-      ]
+      ],
     };
   },
   setup() {
@@ -187,7 +185,11 @@ export default {
     const bucketStore = useBucketsStore();
     const router = useRouter();
     const rowData = paketeStore.paketeAsTreeView;
-    return {rowData, paketeStore, bucketStore, getRowId, router};
+    const printableChar = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!"£$%^&amp;*()_+-=[];\\\'#,. /\\|<>?:@~{}'
+    const suppressedKeysArray = [];
+    for (let char of printableChar)
+      suppressedKeysArray.push(char)
+    return {rowData, paketeStore, bucketStore, getRowId, router, suppressedKeysArray};
   },
   components: {
     ContextMenu,
@@ -249,7 +251,7 @@ export default {
         }
         parent = parent.parent;
       }
-      this.refreshTable(this.gridApi.getFocusedCell() ? this.gridApi.getFocusedCell().column : "ticket_nr", this.searchedPaket)
+      this.refreshTable(this.gridApi.getFocusedCell() ? this.gridApi.getFocusedCell().column : this.columnApi.getColumns()[0].getColId(), this.searchedPaket)
     },
     onGridReady(params) {
       this.gridApi = params.api;
@@ -271,23 +273,23 @@ export default {
       } else {
         newPaketID = this.paketeStore.addNew(-1)
       }
-      this.refreshTable("ticket_nr", newPaketID);
+      this.refreshTable(this.columnApi.getColumns()[0].getColId(), newPaketID);
     },
     addNewKindPaket() {
       if (this.gridApi.getSelectedRows()[0]) {
         const newPaketID = this.paketeStore.addNewChild(this.gridApi.getSelectedRows()[0].id);
-        this.refreshTable("ticket_nr", newPaketID)
+        this.refreshTable(this.columnApi.getColumns()[0].getColId(), newPaketID)
       }
     },
     deletePaket() {
       if (this.gridApi.getSelectedRows()[0]) {
         const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
         this.paketeStore.deletePaket(this.gridApi.getSelectedRows()[0].id);
-        if (this.rowData[focusedRowIndex]) this.refreshTable("ticket_nr", this.rowData[focusedRowIndex].id)
+        if (this.rowData[focusedRowIndex]) this.refreshTable(this.columnApi.getColumns()[0].getColId(), this.rowData[focusedRowIndex].id)
         else if (this.rowData.length !== 0) {
-          this.refreshTable("ticket_nr", this.rowData[this.rowData.length - 1].id);
+          this.refreshTable(this.columnApi.getColumns()[0].getColId(), this.rowData[this.rowData.length - 1].id);
         } else {
-          this.refreshTable("ticket_nr", null)
+          this.refreshTable(this.columnApi.getColumns()[0].getColId(), null)
         }
       }
     },
@@ -362,7 +364,7 @@ export default {
 
       });
     },
-    onCellKeyPress(e) {
+    onCellKeyPress: function (e) {
       if (e.event) {
         let key = e.event.key
         let ctrl = e.event.ctrlKey;
@@ -371,7 +373,7 @@ export default {
         if (this.gridApi.getEditingCells().length === 0)
           switch (key) {
             case 'ArrowUp':
-              if (ctrl) {
+              if (ctrl || shift) {
                 this.movePaketUp();
               } else {
                 const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
@@ -382,7 +384,7 @@ export default {
               }
               break;
             case 'ArrowDown':
-              if (ctrl) {
+              if (ctrl || shift) {
                 this.movePaketDown();
               } else {
                 const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
@@ -393,21 +395,29 @@ export default {
               }
               break;
             case 'ArrowLeft':
-              if (ctrl) {
-                if (shift) this.movePaketLeftUp();
-                else this.movePaketLeftDown();
-              }
+              if (ctrl) this.movePaketLeftDown();
+              else if (shift) this.movePaketLeftUp();
               break;
             case 'ArrowRight':
-              if (ctrl) {
-                if (shift) this.movePaketRightUp();
-                else this.movePaketRightDown();
+              if (ctrl) this.movePaketRightDown();
+              else if (shift) this.movePaketRightUp();
+              break;
+            case '-':
+            case '_':
+            case 'Delete':
+              if (shift) {
+                this.deletePaket();
               }
               break;
-            case 'Delete':
-              if (ctrl) this.deletePaket();
+            case '+':
+              if (!ctrl)
+                this.addNewPaket()
               break;
-            case ' ' :
+            case '*': {
+              this.addNewKindPaket();
+              break
+            }
+            case ' ':
               if (ctrl) {
                 if (e.data.children.length > 0) {
                   const params = {columns: ['thema'], rowNodes: [e.node]}
@@ -415,13 +425,28 @@ export default {
                 }
               }
               break;
-            case 'a' :
-              if (ctrl) {
-                this.addNewPaket();
+            case 'F2':
+              if (this.gridApi.getEditingCells().length === 0) {
+                this.columnDefs.find(column => column.field === e.column.colId).editable = true
+                nextTick(() => this.gridApi.startEditingCell({
+                  rowIndex: e.rowIndex,
+                  colKey: e.column,
+                  rowPinned: e.rowPinned,
+                  key: key
+                }))
               }
               break;
-            case 'A':
-              if (ctrl) this.addNewKindPaket()
+            case 'Enter': {
+              if (this.gridApi.getEditingCells().length === 0) {
+                this.columnDefs.find(column => column.field === e.column.colId).editable = true
+                nextTick(() => this.gridApi.startEditingCell({
+                  rowIndex: e.rowIndex,
+                  colKey: e.column,
+                  rowPinned: e.rowPinned,
+                  key: key
+                }))
+              }
+            }
           }
       }
     }
