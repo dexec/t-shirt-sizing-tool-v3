@@ -3,69 +3,89 @@
                     label="Paket suchen" style="position: absolute;left:100px;top:200px; width: 200px"
                     @blur="this.searchedPaket=null"></v-autocomplete>-->
   <!--  <context-menu :provided-functions-prop="[...this.providedFunctions]"></context-menu>-->
-  <v-container class="fill-height" fluid>
-    <v-row class="fill-height">
-      <v-col class="d-flex flex-column" cols="3">
-        <v-dialog v-model="dialog" width="auto">
-          <template v-slot:activator="{props}">
-            <v-btn class="mb-6" v-bind="props">Buckets konfigurieren</v-btn>
-          </template>
-          <v-card>
-            <v-card-text>
-              <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
-                          :value="bucket.id" @change="sortSelectedBuckets">
-              </v-checkbox>
-              <div v-if="buckets.length===0">Es gibt keine Buckets</div>
-            </v-card-text>
-          </v-card>
-        </v-dialog>
-        <h2>Arbeitspakete ohne Bucket</h2>
-        <v-table>
-          <thead>
-          <tr>
-            <th style="width: 30%">Ticket-NR</th>
-            <th>Thema</th>
-          </tr>
-          </thead>
-<!--          TODO Idee: onStart des Drags nutzen, keine Tabelle sondern Pakete der Klasse "paket" und daneben Ticketnr. Dann onSart abfangen und Paket aus der Tabelle entfernen.-->
-        <draggable
-        :list="paketeWithoutBucket"
-        tag="tbody"
-        class="dragArea list-group"
-        group="pakete"
-        itemKey="name"
-        ghostClass="destination-item"
-        @change="removePaketFromBucket"
-        >
-          <template #item="{ element }">
-            <tr>
-              <td >{{ element.ticket_nr }}</td>
-              <td>{{ element.thema }}</td>
-            </tr>
-          </template>
-        </draggable>
-        </v-table>
-        <span v-if="paketeWithoutBucket.length===0">
-          Es gibt keine Pakete ohne Bucket
-        </span>
+  <v-container>
+    <v-row>
+      <v-col cols="3">
+        <v-row id="rowBucketsButtonAndTrash">
+          <v-col cols="6">
+            <v-dialog v-model="dialog" width="auto">
+              <template v-slot:activator="{props}">
+                <v-btn class="mb-6 bucketsButton" v-bind="props"><span
+                    class="bucketsButtonText">Buckets konfigurieren</span></v-btn>
+              </template>
+              <v-card>
+                <v-card-text>
+                  <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
+                              :value="bucket.id" @change="sortSelectedBuckets">
+                  </v-checkbox>
+                  <div v-if="buckets.length===0">Es gibt keine Buckets</div>
+                </v-card-text>
+              </v-card>
+            </v-dialog>
+          </v-col>
+          <v-col cols="6">
+            <draggable
+                :list="[]"
+                class="paket"
+                ghostClass="destination-item"
+                group="pakete"
+                itemKey="name"
+                @change="removePaketFromBucket"
+            >
+              <template #header>
+                <v-icon icon="mdi-trash-can"></v-icon>
+              </template>
+              <template #item="{  }">
+              </template>
+            </draggable>
+          </v-col>
+        </v-row>
+        <v-col>
+          <h2>Arbeitspakete ohne Bucket</h2>
+          <draggable
+              v-if="paketeWithoutBucket.length>0"
+              id="draggablePaketWithoutBucket"
+              :list="paketeWithoutBucket"
+              class="dragArea list-group"
+              ghostClass="destination-item"
+              group="pakete"
+              itemKey="name"
+              style="overflow-y:scroll;height: 70vh"
+              @change="removePaketFromBucket"
+          >
+            <template #item="{ element }">
+              <div class="paket ma-2">
+                <span class="paketContent">#{{ (element as Paket).ticket_nr }}</span>
+                <span class="paketContent">{{ (element as Paket).thema }}</span>
+              </div>
+            </template>
+          </draggable>
+          <span v-if="paketeWithoutBucket.length===0">Es gibt keine Pakete ohne Bucket</span>
+        </v-col>
       </v-col>
       <v-col class="d-flex flex-column" cols="9">
-        <v-row class="d-flex flex-nowrap justify-center" style="height: 70%">
+        <v-row class="d-flex flex-nowrap justify-center">
           <div v-for="bucket in buckets" :key="bucket.id">
             <draggable
                 v-if="selected.includes(bucket.id)"
-                :list="getPaketSortedByBucket(bucket)"
+                :list="getPaketSortedByBucket(bucket as Bucket)"
                 class="dragArea list-group ma-2"
                 ghost-class="destination-item"
                 group="pakete"
                 itemKey="name"
-                @change="changeBucketOfPaket($event,bucket)"
+                @change="changeBucketOfPaket($event,bucket as Bucket)"
             >
               <template #header>
                 <div class="paket ma-2">{{ bucket.name }}</div>
               </template>
               <template #item="{ element }">
-                <div :style="searchPaket(element)" class="list-group-item ma-2 paket">{{ element.thema }}
+                <div class="paket ma-2">
+                  <span :style="searchPaket(element)" class="list-group-item paketContent">#{{
+                      (element as Paket).ticket_nr
+                    }}</span>
+                  <span :style="searchPaket(element)" class="list-group-item  paketContent">{{
+                      (element as Paket).thema
+                    }}</span>
                 </div>
               </template>
             </draggable>
@@ -76,13 +96,13 @@
   </v-container>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {usePaketeStore} from "@/stores/pakete";
 import {useBucketsStore} from "@/stores/buckets";
-import draggable from "vuedraggable";
-import {computed, ref} from "vue";
+import {computed, onActivated, ref} from "vue";
 import {Bucket} from "@/Bucket";
 import {Paket} from "@/Paket";
+import draggable from "vuedraggable";
 
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
@@ -91,9 +111,29 @@ const checked = ref(false);
 const buckets = bucketStore.buckets;
 const paketeWithoutBucket = computed(() => paketeStore.paketeChildrenWithNoBucket())
 const paketeChildren = computed(() => paketeStore.paketeChildren())
-const selected = ref([0, 1, 2, 3, 4, 5])
 const searchedPaket = ref(0)
-if (!localStorage.getItem('selectedBuckets')) localStorage.setItem('selectedBuckets', JSON.stringify(buckets.map(bucket => bucket.id)))
+const selected = ref<number[]>(buckets.map(bucket => bucket.id))
+onActivated(() => {
+  for(let bucketID of selected.value) {
+    if(!buckets.map(bucket => bucket.id).includes(bucketID)) {
+      selected.value.splice(selected.value.indexOf(bucketID),1);
+    }
+  }
+})
+
+
+/*onMounted(() => {
+  let rowBucketsButtonAndTrash = document.getElementById("rowBucketsButtonAndTrash");
+  let draggablePaketWithoutBucket = document.getElementById("draggablePaketWithoutBucket")
+  if(rowBucketsButtonAndTrash && draggablePaketWithoutBucket) {
+    let rowBucketsButtonAndTrashHeight = rowBucketsButtonAndTrash.offsetHeight;
+    console.log(rowBucketsButtonAndTrashHeight)
+    let draggablePaketWithoutBucketHeight = window.outerHeight-rowBucketsButtonAndTrashHeight-64
+    draggablePaketWithoutBucket.style.height=draggablePaketWithoutBucketHeight+"px";
+    draggablePaketWithoutBucket.style.overflowY="scroll";
+    console.log(draggablePaketWithoutBucket.style.height)
+  }
+})*/
 
 function sortSelectedBuckets() {
   selected.value.sort(function (a, b) {
@@ -109,19 +149,13 @@ function getPaketSortedByBucket(bucket: Bucket) {
   return result
 }
 
-function getSelectedBuckets() {
-  return buckets.filter(bucket => {
-    selected.value.find(bucket.id)
-  })
-}
-
-function removePaketFromBucket(evt) {
-  if(evt.added) {
-   evt.added.element.bucket=null
+function removePaketFromBucket(evt: any) {
+  if (evt.added) {
+    evt.added.element.bucket = null
   }
 }
 
-function changeBucketOfPaket(evt, bucket: Bucket) {
+function changeBucketOfPaket(evt: any, bucket: Bucket) {
   if (evt.added) {
     const updatePaket = evt.added.element
     updatePaket.bucket = bucketStore.buckets.find(currentBucket => currentBucket == bucket)
@@ -136,11 +170,32 @@ function searchPaket(paket: Paket) {
 </script>
 
 <style scoped>
+.bucketsButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 150px; /* Adjust the width as needed */
+  height: 100px; /* Adjust the height as needed */
+}
+
+.bucketsButtonText {
+  text-align: center;
+  white-space: pre-wrap;
+}
 
 .paket {
-  border: 1px solid black;
-  width: 170px;
-  height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 150px; /* Adjust the width as needed */
+  height: 100px; /* Adjust the height as needed */
+  min-height: 100px;
+  border: 1px solid #000; /* Optional: Add a border for the box */
+}
+
+.paketContent {
   text-align: center;
 }
 
@@ -153,8 +208,5 @@ function searchPaket(paket: Paket) {
   display: none;
 }
 
-table, th, td {
-  border: 1px solid;
-  text-align: center;
-}
+
 </style>
