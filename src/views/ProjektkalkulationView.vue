@@ -59,7 +59,7 @@ export default {
       defaultColDef: {
         suppressKeyboardEvent: params => {
           let key = params.event.key;
-          return params.event.ctrlKey && (key === 'ArrowDown' || key === 'ArrowUp' || key === 'ArrowRight' || key === 'ArrowLeft' || key === 'Delete');
+          return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete'].includes(key) || this.suppressedKeysArray.includes(key);
         }
       },
       columnDefs: [
@@ -98,7 +98,11 @@ export default {
     const eintraegeStore = useEintraegeStore();
     eintraegeStore.berechne();
     const rowData = eintraegeStore.eintraege;
-    return {eintraegeStore, rowData};
+    const printableChar = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!"£$%^&amp;*()_+-=[];\\\'#,. /\\|<>?:@~{}'
+    const suppressedKeysArray = [];
+    for (let char of printableChar)
+      suppressedKeysArray.push(char)
+    return {eintraegeStore, rowData, suppressedKeysArray};
   },
   methods: {
     showMenu(e) {
@@ -119,7 +123,7 @@ export default {
     onGridReady(params) {
       this.gridApi = params.api;
       this.columnApi = params.columnApi;
-      this.refreshTable("bezeichnung",0)
+      this.refreshTable("bezeichnung", 0)
     },
     onCellValueChanged(params) {
       switch (params.colDef.field) {
@@ -246,11 +250,13 @@ export default {
             case 'Delete':
               if (ctrl) this.zeileEntfernen();
               break;
-            case 'a' :
-              if (ctrl) {
-                this.aufschlagErstellen();
-              }
+            case '+' :
+              this.aufschlagErstellen();
               break;
+            case '*': {
+              this.zwischensummeErstellen()
+              break;
+            }
           }
       }
     },
