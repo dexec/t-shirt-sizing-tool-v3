@@ -1,22 +1,16 @@
-
 <template>
-{{count}}
-  <v-btn @click="counter"></v-btn>
+  <v-text-field id="textfield" v-model="newBucketName" autofocus @keydown="editBucket"></v-text-field>
 </template>
 
 <script lang="ts" setup>
 import {ref} from "vue";
 
-const count = ref(0);
-function counter() {
-  count.value++;
+const newBucketName = ref('')
+
+function editBucket(e) {
+  if(e.key=='Enter')
+  document.getElementById("textfield")!.blur()
 }
+
 </script>
 
-<style scoped>
-.container {
-  height: calc(100vh - 64px); /* Set the container height to match the viewport */
-  overflow: scroll; /* Enable scrolling when content overflows */
-}
-
-</style>
