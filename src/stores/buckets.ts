@@ -14,6 +14,7 @@ export const useBucketsStore = defineStore('buckets', () => {
     function getBucketNames() {
         return buckets.value.map(bucket => bucket.name)
     }
+
     function updateBucketName(id: number, newName: string) {
         const bucketToUpdate = buckets.value.find(bucket => bucket.id == id) as Bucket
         bucketToUpdate.name = newName;
@@ -29,10 +30,19 @@ export const useBucketsStore = defineStore('buckets', () => {
 
     function deleteBucket(id: number) {
         const pakete = usePaketeStore();
-        const indexOfBucketToDelete = buckets.value.findIndex(bucket => bucket.id==id)
+        const indexOfBucketToDelete = buckets.value.findIndex(bucket => bucket.id == id)
         const bucketToDelete = buckets.value[indexOfBucketToDelete] as Bucket
         buckets.value.splice(indexOfBucketToDelete, 1);
-        pakete.paketeOfBucket(bucketToDelete).forEach(paket => paket.bucket=null)
+        pakete.paketeOfBucket(bucketToDelete).forEach(paket => paket.bucket = null)
+    }
+
+    function swapWithBucket(id: number, before: boolean) {
+        const indexOfbucketToSwap = buckets.value.findIndex(bucket => bucket.id == id)
+        if (before && indexOfbucketToSwap > 0) {
+            [buckets.value[indexOfbucketToSwap - 1], buckets.value[indexOfbucketToSwap]] = [buckets.value[indexOfbucketToSwap], buckets.value[indexOfbucketToSwap - 1]]
+        } else if (!before && indexOfbucketToSwap < buckets.value.length - 1) {
+            [buckets.value[indexOfbucketToSwap + 1], buckets.value[indexOfbucketToSwap]] = [buckets.value[indexOfbucketToSwap], buckets.value[indexOfbucketToSwap + 1]]
+        }
     }
 
     return {
@@ -40,6 +50,7 @@ export const useBucketsStore = defineStore('buckets', () => {
         getBucketNames,
         updateBucketName,
         deleteBucket,
-        addNewBucket
+        addNewBucket,
+        swapWithBucket
     }
 });
