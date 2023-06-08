@@ -107,7 +107,7 @@ export default {
         resizable: true,
         suppressKeyboardEvent: params => {
           let key = params.event.key;
-          return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete'].includes(key) /*|| this.suppressedKeysArray.includes(key)*/;
+          return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter', 'F2'].includes(key) /*|| this.suppressedKeysArray.includes(key)*/;
         }
       },
       columnDefs: [
@@ -147,7 +147,11 @@ export default {
           cellEditorParams: {
             values: ["", ...useBucketsStore().getBucketNames()]
           },
-          editable: params => params.data.children.length === 0
+          editable: params => params.data.children.length === 0,
+          cellStyle: params => {
+            if(params.data.children.length>0) return {backgroundColor:'lightgrey'}
+            else return {backgroundColor: 'transparent'}
+          }
         },
         {
           field: 'schaetzung',
@@ -156,6 +160,10 @@ export default {
           valueSetter: params => {
             if (isNaN(params.newValue)) params.data.schaetzung = Number(0)
             else params.data.schaetzung = Number(params.newValue)
+          },
+          cellStyle: params => {
+            if(params.data.children.length>0) return {backgroundColor:'lightgrey'}
+            else return {backgroundColor: 'transparent'}
           }
         },
         {
@@ -258,7 +266,7 @@ export default {
       this.columnApi = params.columnApi;
       //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
     },
-    onCellClicked() {
+    onCellClicked(e) {
       this.searchedPaket = null;
     },
     onCellValueChanged(params) {
@@ -364,13 +372,13 @@ export default {
 
       });
     },
-    onCellKeyPress: function (e) {
+    onCellKeyPress(e) {
       if (e.event) {
         let key = e.event.key
         let ctrl = e.event.ctrlKey;
         let shift = e.event.shiftKey;
         let alt = e.event.altKey;
-        if (this.gridApi.getEditingCells().length === 0)
+        if (this.gridApi.getEditingCells().length === 0) {
           switch (key) {
             case 'ArrowUp':
               if (ctrl || shift) {
@@ -414,7 +422,8 @@ export default {
                 this.addNewPaket()
               break;
             case '*': {
-              this.addNewKindPaket();
+              if (!ctrl)
+                this.addNewKindPaket();
               break
             }
             case ' ':
@@ -426,7 +435,7 @@ export default {
               }
               break;
             case 'F2':
-              if (this.gridApi.getEditingCells().length === 0) {
+              if (!((e.column.colId === "bucket" || e.column.colId === "schaetzung") && e.data.children.length !== 0)) {
                 this.columnDefs.find(column => column.field === e.column.colId).editable = true
                 nextTick(() => this.gridApi.startEditingCell({
                   rowIndex: e.rowIndex,
@@ -436,18 +445,12 @@ export default {
                 }))
               }
               break;
-            case 'Enter': {
-              if (this.gridApi.getEditingCells().length === 0) {
-                this.columnDefs.find(column => column.field === e.column.colId).editable = true
-                nextTick(() => this.gridApi.startEditingCell({
-                  rowIndex: e.rowIndex,
-                  colKey: e.column,
-                  rowPinned: e.rowPinned,
-                  key: key
-                }))
-              }
-            }
+            case 'Enter':
+              nextTick(() => this.columnDefs.find(column => column.field === e.column.colId).editable = false)
+              this.gridApi.stopEditing();
+              break;
           }
+        }
       }
     }
   }
