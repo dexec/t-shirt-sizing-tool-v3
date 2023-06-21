@@ -1,16 +1,9 @@
 <template>
-  <v-text-field id="textfield" v-model="newBucketName" autofocus @keydown="editBucket"></v-text-field>
+  <test-view firstName="Daniel" lastName="Ackermann"></test-view>
 </template>
 
 <script lang="ts" setup>
-import {ref} from "vue";
 
-const newBucketName = ref('')
-
-function editBucket(e) {
-  if(e.key=='Enter')
-  document.getElementById("textfield")!.blur()
-}
-
+import TestView from "@/views/testView.vue";
 </script>
 
