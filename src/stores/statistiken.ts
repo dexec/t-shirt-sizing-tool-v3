@@ -5,24 +5,26 @@ import type {Bucket} from "@/Bucket";
 import {Statistik} from "@/Statistik";
 import type {Paket} from "@/Paket";
 import {ref} from "vue";
-
+//TODO values() durch forEach ersetzen!
 export const useStatistikenStore = defineStore('statistiken', () => {
     const buckets = useBucketsStore();
     const pakete = usePaketeStore();
 
     const statistiken = ref<Array<Statistik>>([]);
     berechne();
+
     function berechne() {
         statistiken.value.length = 0;
-        for(const bucket of buckets.buckets.values()) {
+        for (const bucket of buckets.buckets.values()) {
             const castedBucket = bucket as Bucket
             statistiken.value.push(new Statistik(castedBucket, anzahlGeschaetzt(castedBucket), anzahlUngeschaetzt(castedBucket), anzahlGesamt(castedBucket), min(castedBucket), max(castedBucket), median(castedBucket), durchschnitt(castedBucket), anteilAnzahl(castedBucket), summeSchaetzungen(castedBucket), summeDurchschnitt(castedBucket), summeMedian(castedBucket)))
         }
     }
+
     function anzahlGeschaetzt(bucket: Bucket): number {
         let result = 0;
         for (const paket of pakete.paketeAsMap.values()) {
-            if (paket.bucket == bucket && paket.schaetzung) result++;
+            if (paket.bucket == bucket && paket.zurRechnungFreigegeben()) result++;
         }
         return result;
     }
@@ -30,7 +32,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function anzahlUngeschaetzt(bucket: Bucket): number {
         let result = 0;
         for (const paket of pakete.paketeAsMap.values()) {
-            if (paket.bucket == bucket && !paket.schaetzung) result++;
+            if (paket.bucket == bucket && !paket.zurRechnungFreigegeben()) result++;
         }
         return result;
     }
@@ -46,8 +48,8 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function min(bucket: Bucket): number {
         let result = 0;
         for (const paket of pakete.paketeAsMap.values()) {
-            if (paket.bucket == bucket && paket.schaetzung) {
-                if (result == 0 || paket.schaetzung < result) result = paket.schaetzung
+            if (paket.bucket == bucket && paket.zurRechnungFreigegeben()) {
+                if (result == 0 || paket.schaetzung! < result) result = paket.schaetzung!
             }
         }
         return result;
@@ -56,7 +58,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function max(bucket: Bucket): number {
         let result = 0;
         for (const paket of pakete.paketeAsMap.values()) {
-            if (paket.bucket == bucket && paket.schaetzung > result) result = paket.schaetzung
+            if (paket.bucket == bucket && paket.zurRechnungFreigegeben() && paket.schaetzung! > result) result = paket.schaetzung!
         }
         return result;
     }
@@ -70,26 +72,27 @@ export const useStatistikenStore = defineStore('statistiken', () => {
         for (const paket of pakete.paketeAsMap.values()) {
             if (paket.bucket == bucket) paketeBucket.push(paket);
         }
-        const sum = paketeBucket.map(paket => paket.schaetzung).reduce((a, b) => a + b, 0);
+        const sum = paketeBucket.filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0) as number;
         return (sum / anzahlGeschaetzt(bucket)) || 0;
     }
 
     function median(bucket: Bucket): number {
         const paketeBucket: Paket[] = []
         for (const paket of pakete.paketeAsMap.values()) {
-            if (paket.bucket == bucket && paket.schaetzung) paketeBucket.push(paket);
+            if (paket.bucket == bucket && paket.zurRechnungFreigegeben()) paketeBucket.push(paket);
         }
         if (paketeBucket.length > 0) {
             const mid = Math.floor(paketeBucket.length / 2),
-                nums = [...paketeBucket.map(paket => paket.schaetzung)].sort((a, b) => a - b);
-            return paketeBucket.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
+                nums = [...paketeBucket.map(paket => paket.schaetzung)].sort((a, b) => a! - b!);
+            return paketeBucket.length % 2 != 0 ? nums[mid]! : (nums[mid - 1]! + nums[mid]!) / 2;
         } else return 0;
     }
+
     function summeSchaetzungen(bucket: Bucket): number {
         let result = 0;
         for (const paket of pakete.paketeAsMap.values()) {
-            if (paket.bucket == bucket && paket.schaetzung) {
-                result += paket.schaetzung
+            if (paket.bucket == bucket && paket.zurRechnungFreigegeben()) {
+                result += paket.schaetzung!
             }
         }
         return result;
@@ -102,22 +105,25 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function summeMedian(bucket: Bucket): number {
         return median(bucket) * pakete.paketeOfBucket(bucket).length;
     }
+
     function summeAlleBucketsMin(): number {
         let result = 0;
         for (const paket of pakete.paketeAsMap.values()) {
-            if (paket.bucket && paket.schaetzung) {
-                if (result == 0 || paket.schaetzung < result) result = paket.schaetzung
+            if (paket.bucket && paket.zurRechnungFreigegeben()) {
+                if (result == 0 || paket.schaetzung! < result) result = paket.schaetzung!
             }
         }
         return result;
     }
-    function summeAlleBucketsMax():number {
+
+    function summeAlleBucketsMax(): number {
         let result = 0;
         for (const paket of pakete.paketeAsMap.values()) {
-            if (paket.bucket && paket.schaetzung > result) result = paket.schaetzung
+            if (paket.bucket && paket.zurRechnungFreigegeben() && paket.schaetzung! > result) result = paket.schaetzung!
         }
         return result;
     }
+
     function summeAlleBucketsGeschaetzt(): number {
         let result = 0;
         for (const bucket of buckets.buckets) {
