@@ -42,16 +42,16 @@
     <div class="d-flex flex-wrap" style="height: 100%; width: 100%">
       <div v-for="(bucket,index) in bucketStore.buckets" :key="bucket.id">
         <v-container style="width: 300px;height: 150px">
-          <v-row align="center" justify="space-between">
-            <v-col cols="4">
-              <v-btn :style="showButtons(bucket as Bucket)" class="mb-4" @click="addNewBucketBefore()">
+          <v-row>
+            <v-col>
+              <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketBefore()">
                 <v-icon icon="mdi-plus"></v-icon>
               </v-btn>
-              <v-btn :style="showArrowLeft(bucket as Bucket, index)" @click="swapWithBucketBefore()">
+              <v-btn class="button" :style="showArrowLeft(bucket as Bucket, index)" @click="swapWithBucketBefore()">
                 <v-icon icon="mdi-arrow-left"></v-icon>
               </v-btn>
             </v-col>
-            <v-col cols="4">
+            <v-col>
               <v-hover v-if="currentEditBucket!==bucket.id" v-slot="{hover}">
                 <v-card :class="{'on-hover':hover}" :elevation="hover ? 12:2" :style="bucket.id===currentSelectedBucket? 'backgroundColor: green': ''
                         || bucket.name===''? 'border: 1px solid red !important':''"
@@ -67,21 +67,19 @@
                 </v-card>
               </v-hover>
             </v-col>
-            <v-col cols="4">
-              <v-btn :style="showButtons(bucket as Bucket)" class="mb-4" @click="addNewBucketAfter()">
+            <v-col>
+              <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketAfter()">
                 <v-icon icon="mdi-plus"></v-icon>
               </v-btn>
-              <v-btn :style="showArrowRight(bucket as Bucket, index)" @click="swapWithBucketAfter()">
+              <v-btn class="button" :disabled="!(index < bucketStore.buckets.length - 1)" :style="showArrowRight(bucket as Bucket, index)" @click="swapWithBucketAfter()">
                 <v-icon icon="mdi-arrow-right"></v-icon>
               </v-btn>
             </v-col>
           </v-row>
-          <v-row>
-            <v-col cols="8" offset="4">
-              <v-btn :style="showButtons(bucket as Bucket)" @click="loeschenBucket">
+          <v-row justify="center">
+              <v-btn class="button" :style="showButtons(bucket as Bucket)" @click="loeschenBucket">
                 <v-icon icon="mdi-minus"></v-icon>
               </v-btn>
-            </v-col>
           </v-row>
         </v-container>
       </div>
@@ -115,8 +113,10 @@ function showArrowLeft(bucket: Bucket, index: number): string {
 }
 
 function showArrowRight(bucket: Bucket, index: number): string {
-  if (bucket.id == currentSelectedBucket.value && currentEditBucket.value === -1 && index < bucketStore.buckets.length - 1) return ""
-  else return "display: none"
+  if (bucket.id == currentSelectedBucket.value && currentEditBucket.value === -1) return ""
+  else {
+    return "display: none"
+  }
 }
 
 function swapWithBucketBefore() {
@@ -166,6 +166,9 @@ function clearData() {
 </script>
 
 <style scoped>
+.button {
+  width: 50px;
+}
 .bucket {
   border: 1px solid black;
   width: 80px;
