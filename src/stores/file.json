@@ -125,7 +125,7 @@
       "beschreibung": "Es soll ein Log-In System für Nutzer und Manager entwickelt werden",
       "komponente": "Komp-A",
       "bucket": null,
-      "schaetzung": 0,
+      "schaetzung": null,
       "open": false
     },
     {
@@ -135,7 +135,7 @@
       "beschreibung": "Implementieren, auf Basis der UI und des Prototypen",
       "komponente": "Komp-B",
       "bucket": "XS",
-      "schaetzung": 0,
+      "schaetzung": null,
       "open": false
     },
     {
@@ -145,7 +145,7 @@
       "beschreibung": "Implementierung vollständig dokumentieren, um später den Code nachvollziehen zu können",
       "komponente": "Komp-C",
       "bucket": "M",
-      "schaetzung": 0,
+      "schaetzung": null,
       "open": false
     },
     {
@@ -185,7 +185,7 @@
       "beschreibung": "Es soll eine Testarchitektur entwickelt werden",
       "komponente": "Komp-F",
       "bucket": "S",
-      "schaetzung": 0,
+      "schaetzung": null,
       "open": false
     },
     {
@@ -195,7 +195,7 @@
       "beschreibung": "Lizenzen zur Entwicklung für das ganze Team einkaufen",
       "komponente": "Komp-F",
       "bucket": "XS",
-      "schaetzung": 0,
+      "schaetzung": null,
       "open": false
     }
   ],
