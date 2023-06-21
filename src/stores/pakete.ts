@@ -19,7 +19,7 @@ export const usePaketeStore = defineStore('pakete', () => {
     Paket.idCounter = highestID + 1;
     //Stresstest generierung
     for (let i = 0; i < 1000; i++) {
-        const newPaket = new Paket(i + 1000 + "", "Testing" + i, "Ticket zum Testen", "Test", null, 0, false, 0, null, []);
+        const newPaket = new Paket(i + 1000 + "", "Testing" + i, "Ticket zum Testen", "Test", null, null, false, 0, null, []);
         paketeAsMap.value.set(newPaket.id, newPaket);
     }
     paketeAsMap.value.forEach((value: Paket, key: number) => {
@@ -42,7 +42,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         }
         value.lvl = lvl;
         if (lvl == 0) stackForTreeView.push(value);
-        if (value.children.length > 0) value.schaetzung = value.children.map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc + schaetzung, 0) as number;
+        if (value.children.length > 0) value.schaetzung = value.children.filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0);
     })
 
     while (stackForTreeView.length > 0) {
@@ -81,7 +81,8 @@ export const usePaketeStore = defineStore('pakete', () => {
     function updateSchaetzung(paket: Paket, diff: number) {
         let parent = paket.parent;
         while (parent) {
-            parent.schaetzung += diff;
+            if (parent.children.length === 0) parent.schaetzung = null;
+            else parent.schaetzung = (parent.schaetzung ?? 0) + diff;
             parent = parent.parent;
         }
     }
@@ -157,11 +158,12 @@ export const usePaketeStore = defineStore('pakete', () => {
         if (parentOfPaket) {
             parentOfPaket.children.splice(parentOfPaket.children.indexOf(paketToDelete), 1);
         }
-        updateSchaetzung(paketToDelete, -1 * paketToDelete.schaetzung)
+        if (paketToDelete.schaetzung != null)
+            updateSchaetzung(paketToDelete, -1 * paketToDelete.schaetzung)
     }
 
     function addNew(id: number): number {
-        const newPaket = new Paket('beispiel', 'beispiel', 'beispiel', 'beispiel', null, 0, false, 0, null, []);
+        const newPaket = new Paket('beispiel', 'beispiel', 'beispiel', 'beispiel', null, null, false, 0, null, []);
         if (id == -1) {
             paketeAsTreeView.value.unshift(newPaket);
         } else {
@@ -191,12 +193,11 @@ export const usePaketeStore = defineStore('pakete', () => {
 
     function addNewChild(id: number): number {
         const parentOfNewPaket = paketeAsMap.value.get(id) as Paket;
-        const newPaket = new Paket('beispiel', 'beispiel', 'beispiel', 'beispiel', null, 0, false, 0, null, []);
+        const newPaket = new Paket('beispiel', 'beispiel', 'beispiel', 'beispiel', null, null, false, 0, null, []);
         newPaket.lvl = parentOfNewPaket.lvl + 1;
         newPaket.parent = parentOfNewPaket;
         if (parentOfNewPaket.children.length == 0) {
-            updateSchaetzung(parentOfNewPaket, -1 * parentOfNewPaket.schaetzung);
-            parentOfNewPaket.schaetzung = 0;
+            newPaket.schaetzung = parentOfNewPaket.schaetzung
         }
         if (!parentOfNewPaket.open) {
             parentOfNewPaket.open = true;
@@ -307,11 +308,9 @@ export const usePaketeStore = defineStore('pakete', () => {
             paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
         }
         if (newParent.children.length == 0) {
-            updateSchaetzung(newParent, -1 * newParent.schaetzung);
-            newParent.schaetzung = paketToMove.schaetzung;
-        } else {
-            newParent.schaetzung += paketToMove.schaetzung;
-        }
+            if (newParent.schaetzung != null && paketToMove.schaetzung == null) paketToMove.schaetzung = newParent.schaetzung
+            else newParent.schaetzung = paketToMove.schaetzung
+        } else newParent.schaetzung = (newParent.schaetzung ?? 0) + (paketToMove.schaetzung ?? 0)
         newParent.children.unshift(paketToMove);
         newParent.bucket = null;
         paketToMove.parent = newParent;
@@ -356,11 +355,9 @@ export const usePaketeStore = defineStore('pakete', () => {
         const newParent = paketeAsTreeView.value[indexOfNewParent] as Paket;
         //Schätzung vom neuen Parent anpassen
         if (newParent.children.length == 0) {
-            updateSchaetzung(newParent, -1 * newParent.schaetzung);
-            newParent.schaetzung = paketToMove.schaetzung;
-        } else {
-            newParent.schaetzung += paketToMove.schaetzung;
-        }
+            if (newParent.schaetzung != null && paketToMove.schaetzung == null) paketToMove.schaetzung = newParent.schaetzung
+            else newParent.schaetzung = paketToMove.schaetzung
+        } else newParent.schaetzung = (newParent.schaetzung ?? 0) + (paketToMove.schaetzung ?? 0)
         //Bucket von newParent zurücksetzen
         newParent.bucket = null;
         //Pakets Elternteil wird neu zugewiesen
@@ -386,7 +383,8 @@ export const usePaketeStore = defineStore('pakete', () => {
 
     function moveLeftUp(id: number) {
         const paketToMove = paketeAsMap.value.get(id) as Paket;
-        if (paketToMove.lvl == 0 || !paketToMove.parent) return;
+        const parentOfPaketToMove = paketToMove.parent;
+        if (paketToMove.lvl == 0 || !parentOfPaketToMove) return;
         const indexOfPaketToMove = paketeAsTreeView.value.indexOf(paketToMove);
         let indexOfParent = -1;
         for (let i = indexOfPaketToMove - 1; indexOfParent == -1; i--) {
@@ -395,15 +393,18 @@ export const usePaketeStore = defineStore('pakete', () => {
             }
         }
         if (paketToMove.lvl >= 1) {
-            const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove);
-            paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
-            paketToMove.parent.schaetzung -= paketToMove.schaetzung;
-            if (paketToMove.lvl >= 2 && paketToMove.parent.parent) {
-                const indexOfParentAsChild = paketToMove.parent.parent.children.indexOf(paketToMove.parent);
-                paketToMove.parent.parent.children.splice(indexOfParentAsChild, 0, paketToMove);
+            const indexOfPaketToMoveAsChild = parentOfPaketToMove.children.indexOf(paketToMove);
+            parentOfPaketToMove.children.splice(indexOfPaketToMoveAsChild, 1);
+            if (parentOfPaketToMove.children.length == 0) {
+                parentOfPaketToMove.schaetzung = null
+            }
+            else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
+            if (paketToMove.lvl >= 2 && parentOfPaketToMove.parent) {
+                const indexOfParentAsChild = parentOfPaketToMove.parent.children.indexOf(parentOfPaketToMove);
+                parentOfPaketToMove.parent.children.splice(indexOfParentAsChild, 0, paketToMove);
             }
         }
-        if (paketToMove.parent.children.length == 0) paketToMove.parent.open = false;
+        if (parentOfPaketToMove.children.length == 0) parentOfPaketToMove.open = false;
         updateLvl(-1, paketToMove);
         const paketToMoveOpenAfter = paketToMove.open;
         if (paketToMove.open) {
@@ -417,12 +418,13 @@ export const usePaketeStore = defineStore('pakete', () => {
             updateTreeViewAfterChangedOpenState(paketToMove);
         }
         if (paketToMove.lvl == 0) paketToMove.parent = null;
-        else paketToMove.parent = paketToMove.parent.parent;
+        else paketToMove.parent = parentOfPaketToMove.parent;
     }
 
     function moveLeftDown(id: number) {
         const paketToMove = paketeAsMap.value.get(id) as Paket;
-        if (paketToMove.lvl == 0 || !paketToMove.parent) return;
+        const parentOfPaketToMove = paketToMove.parent;
+        if (paketToMove.lvl == 0 || !parentOfPaketToMove) return;
         const indexOfPaketToMove = paketeAsTreeView.value.indexOf(paketToMove);
         let indexOfParent = -1;
         for (let i = indexOfPaketToMove - 1; indexOfParent == -1; i--) {
@@ -431,15 +433,18 @@ export const usePaketeStore = defineStore('pakete', () => {
             }
         }
         if (paketToMove.lvl >= 1) {
-            const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove);
-            paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
-            paketToMove.parent.schaetzung -= paketToMove.schaetzung;
-            if (paketToMove.lvl >= 2 && paketToMove.parent.parent) {
-                const indexOfParentAsChild = paketToMove.parent.parent.children.indexOf(paketToMove.parent);
-                paketToMove.parent.parent.children.splice(indexOfParentAsChild + 1, 0, paketToMove);
+            const indexOfPaketToMoveAsChild = parentOfPaketToMove.children.indexOf(paketToMove);
+            parentOfPaketToMove.children.splice(indexOfPaketToMoveAsChild, 1);
+            if (parentOfPaketToMove.children.length == 0) {
+                parentOfPaketToMove.schaetzung = null
+            }
+            else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
+            if (paketToMove.lvl >= 2 && parentOfPaketToMove.parent) {
+                const indexOfParentAsChild = parentOfPaketToMove.parent.children.indexOf(parentOfPaketToMove);
+                parentOfPaketToMove.parent.children.splice(indexOfParentAsChild + 1, 0, paketToMove);
             }
         }
-        if (paketToMove.parent.children.length == 0) paketToMove.parent.open = false;
+        if (parentOfPaketToMove.children.length == 0) parentOfPaketToMove.open = false;
         updateLvl(-1, paketToMove);
         const paketToMoveOpenAfter = paketToMove.open;
         if (paketToMove.open) {
@@ -447,10 +452,10 @@ export const usePaketeStore = defineStore('pakete', () => {
             updateTreeViewAfterChangedOpenState(paketToMove);
         }
         paketeAsTreeView.value.splice(indexOfPaketToMove, 1);
-        const parentOpenAfter = paketToMove.parent.open;
-        if (paketToMove.parent.open) {
-            paketToMove.parent.open = false;
-            updateTreeViewAfterChangedOpenState(paketToMove.parent);
+        const parentOpenAfter = parentOfPaketToMove.open;
+        if (parentOfPaketToMove.open) {
+            parentOfPaketToMove.open = false;
+            updateTreeViewAfterChangedOpenState(parentOfPaketToMove);
         }
         paketeAsTreeView.value.splice(indexOfParent + 1, 0, paketToMove);
         if (paketToMoveOpenAfter) {
@@ -458,11 +463,11 @@ export const usePaketeStore = defineStore('pakete', () => {
             updateTreeViewAfterChangedOpenState(paketToMove);
         }
         if (parentOpenAfter) {
-            paketToMove.parent.open = true;
-            updateTreeViewAfterChangedOpenState(paketToMove.parent);
+            parentOfPaketToMove.open = true;
+            updateTreeViewAfterChangedOpenState(parentOfPaketToMove);
         }
         if (paketToMove.lvl == 0) paketToMove.parent = null;
-        else paketToMove.parent = paketToMove.parent.parent;
+        else paketToMove.parent = parentOfPaketToMove.parent;
     }
 
     return {
