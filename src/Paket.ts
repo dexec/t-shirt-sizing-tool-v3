@@ -8,13 +8,13 @@ export class Paket {
     private _beschreibung: string
     private _komponente: string
     private _bucket: Bucket | null
-    private _schaetzung: number
+    private _schaetzung: number | null
     private _open: boolean
     private _lvl: number
     private _parent: Paket | null
     private _children: Paket[]
 
-    constructor(ticket_nr: string, thema: string, beschreibung: string, komponente: string, bucket: Bucket | null, schaetzung: number, open: boolean, lvl: number, parent: Paket | null, children: Paket[], id?: number) {
+    constructor(ticket_nr: string, thema: string, beschreibung: string, komponente: string, bucket: Bucket | null, schaetzung: number | null, open: boolean, lvl: number, parent: Paket | null, children: Paket[], id?: number) {
         if (id != null) this._id = id;
         else this._id = Paket._idCounter++;
         this._ticket_nr = ticket_nr;
@@ -83,11 +83,12 @@ export class Paket {
         this._bucket = value;
     }
 
-    get schaetzung(): number {
+
+    get schaetzung(): number | null {
         return this._schaetzung;
     }
 
-    set schaetzung(value: number) {
+    set schaetzung(value: number | null) {
         this._schaetzung = value;
     }
 
@@ -121,5 +122,9 @@ export class Paket {
 
     set children(value: Paket[]) {
         this._children = value;
+    }
+
+    public zurRechnungFreigegeben(): boolean {
+        return this.schaetzung != null;
     }
 }
