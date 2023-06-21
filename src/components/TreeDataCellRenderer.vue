@@ -8,8 +8,31 @@
     {{ params.value }}
   </div>
 </template>
+<script setup lang="ts">
 
-<script>
+import {nextTick} from "vue";
+import {usePaketeStore} from '@/stores/pakete'
+
+const props = defineProps(['params']);
+
+function changeOpenState() {
+  const paketeStore = usePaketeStore();
+  const aktuellesPaket = props.params.node.data;
+  aktuellesPaket.open = !aktuellesPaket.open;
+  props.params.node.setSelected(true);
+  props.params.node.setData(aktuellesPaket);
+  paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket);
+  nextTick(() => {
+    props.params.api.setRowData(paketeStore.paketeAsTreeView);
+    props.params.api.setFocusedCell(props.params.api.getRowNode(aktuellesPaket.id).rowIndex, props.params.column);
+  })
+}
+
+function switchFlatAndTree() {
+
+}
+</script>
+<!--<script>
 
 import {nextTick} from "vue";
 import {usePaketeStore} from '@/stores/pakete'
@@ -23,6 +46,7 @@ export default {
   },
   methods: {
     changeOpenState() {
+      console.log(this.params)
       const paketeStore = usePaketeStore();
       let aktuellesPaket = this.params.node.data;
       aktuellesPaket.open = !aktuellesPaket.open;
@@ -36,4 +60,4 @@ export default {
     }
   }
 }
-</script>
+</script>-->
