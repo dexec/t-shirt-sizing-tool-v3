@@ -8,7 +8,6 @@
         rowSelection="single"
         style="width: 100%;height: 100%"
         @cellValueChanged="onCellValueChanged"
-
         @cell-key-down="onCellKeyPress"
         @grid-ready="onGridReady"
     ></ag-grid-vue>
@@ -37,11 +36,18 @@ import {useEintraegeStore} from "@/stores/eintraege";
 
 const gridApi = ref<GridApi>();
 const columnApi = ref<ColumnApi>();
+
+function onGridReady(params) {
+  gridApi.value = params.api;
+  columnApi.value = params.columnApi;
+  refreshTable(columnApi.value!.getColumns()![0].getColId(), 0)
+}
+
 const defaultColDef = reactive(
     {
       suppressKeyboardEvent: params => {
         let key = params.event.key;
-        return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter', 'F2'].includes(key);
+        return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter', 'F2'].includes(key) || ['Delete', 'Enter', 'F2','Escape'].includes(key);
       }
     }
 )
@@ -80,13 +86,8 @@ const eintraegeStore = useEintraegeStore();
 eintraegeStore.berechne();
 const rowData = eintraegeStore.eintraege;
 
-function onGridReady(params) {
-  gridApi.value = params.api;
-  columnApi.value = params.columnApi;
-  refreshTable(columnApi.value!.getColumns()![0].getColId(), 0)
-}
-
 function onCellValueChanged(params) {
+  console.log(params)
   switch (params.colDef.field) {
     case "bezeichnung":
       eintraegeStore.updateBezeichnung(params.rowIndex, params.newValue);
@@ -105,10 +106,12 @@ function onCellValueChanged(params) {
 
 function onCellKeyPress(e) {
   if (e.event) {
-    let key = e.event.key
-    let ctrl = e.event.ctrlKey;
-    let shift = e.event.shiftKey;
-    if (gridApi.value!.getEditingCells().length === 0)
+    const key = e.event.key
+    const ctrl = e.event.ctrlKey;
+    const shift = e.event.shiftKey;
+    const alt = e.event.altKey;
+    const colKey = e.column.colId;
+    if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
         case 'ArrowDown':
           if (e.data.bezeichnung === "STARTSUMME" && (shift || ctrl)) {
@@ -136,11 +139,24 @@ function onCellKeyPress(e) {
             }
           }
           break;
-        case '-':
         case '_':
+        case '-':
+         if(!ctrl) zeileEntfernen()
+          break;
         case 'Delete':
-          if (shift) {
+          if (shift || ctrl) {
             zeileEntfernen();
+          } else {
+            if (!['anteilZwischensumme', 'anteilGesamtprojekt'].includes(colKey)) {
+              if (colKey == 'aufwandWert') {
+                eintraegeStore.updateAufwand(e.rowIndex, 0);
+              } else if (colKey == 'aufschlagWert') {
+                eintraegeStore.updateAufschlag(e.rowIndex, 0);
+              } else if (colKey == 'bezeichnung') {
+                eintraegeStore.updateBezeichnung(e.rowIndex, "");
+              }
+              refreshTable(colKey, e.rowIndex)
+            }
           }
           break;
         case '+' :
@@ -152,21 +168,28 @@ function onCellKeyPress(e) {
             zwischensummeErstellen()
           break;
         case 'F2':
-          if (["bezeichnung", "aufschlagWert", "aufwandWert"].includes(e.column.colId) && !["STARTSUMME", "ZWISCHENSUMME", "ENDSUMME"].includes(e.data.bezeichnung)) {
-            columnDefs.value!.find(column => column.field == e.column.colId)!.editable = true
+          if (["bezeichnung", "aufschlagWert", "aufwandWert"].includes(colKey) && !["STARTSUMME", "ZWISCHENSUMME", "ENDSUMME"].includes(e.data.bezeichnung)) {
+            columnDefs.value!.find(column => column.field == colKey)!.editable = true
             nextTick(() => gridApi.value!.startEditingCell({
               rowIndex: e.rowIndex,
-              colKey: e.column,
-              rowPinned: e.rowPinned,
-              key: key
+              colKey: e.column
             }))
           }
           break;
+      }
+    } else {
+      switch (key) {
         case 'Enter':
-          nextTick(() => columnDefs.value!.find(column => column.field === e.column.colId)!.editable = false)
-          gridApi.value!.stopEditing()
+          gridApi.value!.stopEditing(false)
+          columnDefs.value!.forEach(column => column.editable = false)
+          gridApi.value!.setFocusedCell(e.rowIndex, colKey);
+          break;
+        case 'Escape':
+          gridApi.value!.stopEditing(true)
+          columnDefs.value!.forEach(column => column.editable = false)
           break;
       }
+    }
   }
 }
 
@@ -211,7 +234,7 @@ function zeileEntfernen() {
 function moveZeileUp() {
   if (gridApi.value!.getSelectedRows()[0]) {
     const bezeichnungSelectedRow = gridApi.value!.getSelectedRows()[0].bezeichnung;
-    if ( !["ENDSUMME","STARTSUMME"].includes(bezeichnungSelectedRow)) {
+    if (!["ENDSUMME", "STARTSUMME"].includes(bezeichnungSelectedRow)) {
       const focusedCell = gridApi.value!.getFocusedCell();
       const focusedRowIndex = focusedCell!.rowIndex;
       const focusedRowColKey = focusedCell!.column;
@@ -227,7 +250,7 @@ function moveZeileDown() {
     const focusedCell = gridApi.value!.getFocusedCell();
     const focusedRowIndex = focusedCell!.rowIndex;
     const bezeichnungSelectedRowUnder = rowData[focusedCell!.rowIndex + 1].bezeichnung
-    if (bezeichnungSelectedRowUnder !== "ENDSUMME" &&  !["ENDSUMME","STARTSUMME"].includes(bezeichnungSelectedRow)) {
+    if (bezeichnungSelectedRowUnder !== "ENDSUMME" && !["ENDSUMME", "STARTSUMME"].includes(bezeichnungSelectedRow)) {
       const focusedRowColKey = focusedCell!.column;
       eintraegeStore.moveDown(focusedRowIndex);
       refreshTable(focusedRowColKey, focusedRowIndex + 1)
