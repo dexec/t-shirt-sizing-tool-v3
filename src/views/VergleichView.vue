@@ -4,66 +4,64 @@
                     @blur="this.searchedPaket=null"></v-autocomplete>-->
   <!--  <context-menu :provided-functions-prop="[...this.providedFunctions]"></context-menu>-->
   <v-container>
-    <v-row>
-      <v-col cols="3">
-        <v-row id="rowBucketsButtonAndTrash">
-          <v-col cols="6">
-            <v-dialog v-model="dialog" width="auto">
-              <template v-slot:activator="{props}">
-                <v-btn class="mb-6 bucketsButton" v-bind="props"><span
-                    class="bucketsButtonText">Buckets konfigurieren</span></v-btn>
-              </template>
-              <v-card>
-                <v-card-text>
-                  <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
-                              :value="bucket.id" @change="sortSelectedBuckets">
-                  </v-checkbox>
-                  <div v-if="buckets.length===0">Es gibt keine Buckets</div>
-                </v-card-text>
-              </v-card>
-            </v-dialog>
-          </v-col>
-          <v-col cols="6">
-            <draggable
-                :list="[]"
-                class="paket"
-                ghostClass="destination-item"
-                group="pakete"
-                itemKey="name"
-                @change="removePaketFromBucket"
-            >
-              <template #header>
-                <v-icon icon="mdi-trash-can"></v-icon>
-              </template>
-              <template #item="{  }">
-              </template>
-            </draggable>
-          </v-col>
-        </v-row>
-        <v-col>
-          <h2>Arbeitspakete ohne Bucket</h2>
-          <draggable
-              v-if="paketeWithoutBucket.length>0"
-              id="draggablePaketWithoutBucket"
-              :list="paketeWithoutBucket"
-              class="dragArea list-group"
-              ghostClass="destination-item"
-              group="pakete"
-              itemKey="name"
-              style="overflow-y:scroll;height: 70vh"
-              @change="removePaketFromBucket"
-          >
-            <template #item="{ element }">
-              <div class="paket ma-2">
-                <span class="paketContent">#{{ (element as Paket).ticket_nr }}</span>
-                <span class="paketContent">{{ (element as Paket).thema }}</span>
-              </div>
-            </template>
-          </draggable>
-          <span v-if="paketeWithoutBucket.length===0">Es gibt keine Pakete ohne Bucket</span>
-        </v-col>
+    <v-row id="rowBucketsButtonAndTrash" justify="center" class="mb-6">
+      <v-btn class="bucketsButton" @click="showPaketeWithoutBucket=!showPaketeWithoutBucket"><span
+          class="bucketsButtonText">Toggle
+          Arbeitspakete</span></v-btn>
+      <v-dialog v-model="dialog" width="auto">
+        <template v-slot:activator="{props}">
+          <v-btn class="mx-6 bucketsButton" v-bind="props">
+            <span class="bucketsButtonText">Buckets konfigurieren</span>
+          </v-btn>
+        </template>
+        <v-card>
+          <v-card-text>
+            <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
+                        :value="bucket.id" @change="sortSelectedBuckets">
+            </v-checkbox>
+            <div v-if="buckets.length===0">Es gibt keine Buckets</div>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+      <draggable v-if="!showPaketeWithoutBucket"
+                 :list="[]"
+                 class="paket"
+                 ghostClass="destination-item"
+                 group="pakete"
+                 itemKey="name"
+                 @change="removePaketFromBucket"
+      >
+        <template #header>
+          <v-icon icon="mdi-trash-can"></v-icon>
+        </template>
+        <template #item="{  }">
+        </template>
+      </draggable>
+    </v-row>
+    <v-row justify="space-around">
+      <v-col v-if="showPaketeWithoutBucket">
+        <h2>Unzugewiesene Pakete</h2>
+        <draggable
+            v-if="paketeWithoutBucket.length>0"
+            id="draggablePaketWithoutBucket"
+            :list="paketeWithoutBucket"
+            class="dragArea list-group"
+            ghostClass="destination-item"
+            group="pakete"
+            itemKey="name"
+            style="overflow-y:scroll;height: 70vh"
+            @change="removePaketFromBucket"
+        >
+          <template #item="{ element }">
+            <div class="paket ma-2">
+              <span class="paketContent">#{{ (element as Paket).ticket_nr }}</span>
+              <span class="paketContent">{{ (element as Paket).thema }}</span>
+            </div>
+          </template>
+        </draggable>
+        <span v-if="paketeWithoutBucket.length===0">Es gibt keine Pakete ohne Bucket</span>
       </v-col>
-      <v-col class="d-flex flex-column" cols="9">
+      <v-col>
         <v-row class="d-flex flex-nowrap justify-center">
           <div v-for="bucket in buckets" :key="bucket.id">
             <draggable
@@ -108,15 +106,16 @@ const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
 const dialog = ref(false);
 const checked = ref(false);
+const showPaketeWithoutBucket = ref(true);
 const buckets = bucketStore.buckets;
 const paketeWithoutBucket = computed(() => paketeStore.paketeChildrenWithNoBucket())
 const paketeChildren = computed(() => paketeStore.paketeChildren())
 const searchedPaket = ref(0)
 const selected = ref<number[]>(buckets.map(bucket => bucket.id))
 onActivated(() => {
-  for(let bucketID of selected.value) {
-    if(!buckets.map(bucket => bucket.id).includes(bucketID)) {
-      selected.value.splice(selected.value.indexOf(bucketID),1);
+  for (let bucketID of selected.value) {
+    if (!buckets.map(bucket => bucket.id).includes(bucketID)) {
+      selected.value.splice(selected.value.indexOf(bucketID), 1);
     }
   }
 })
