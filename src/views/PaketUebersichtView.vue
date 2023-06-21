@@ -228,6 +228,7 @@ export default {
           params.api.sizeColumnsToFit();
           params.columnApi.autoSizeColumns()
         },*/
+    //TODO Das sollte in die contextMenü Komponente wandern
     showMenu(e) {
       e.preventDefault();
       const contextMenu = document.querySelector(".wrapper")
@@ -469,6 +470,7 @@ export default {
             }
             case ' ':
               if (ctrl) {
+                //TODO TreeDataCellRenderer macht beim +-Button die gleiche Logik => eine gemeinsame Funktion nutzen
                 if (e.data.children.length > 0) {
                   const aktuellesPaket = e.data;
                   aktuellesPaket.open = !aktuellesPaket.open;
