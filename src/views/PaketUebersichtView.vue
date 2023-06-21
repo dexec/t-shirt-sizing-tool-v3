@@ -16,6 +16,7 @@
         @contextmenu="rightClickOnCell"
         @cell-key-down="onCellKeyPress"
         @cell-clicked="onCellClicked"
+        @cell-double-clicked="onCellDoubleClicked"
         @grid-ready='onGridReady'>
     </ag-grid-vue>
   </div>
@@ -107,7 +108,7 @@ export default {
         resizable: true,
         suppressKeyboardEvent: params => {
           let key = params.event.key;
-          return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter', 'F2'].includes(key) /*|| this.suppressedKeysArray.includes(key)*/;
+          return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter', 'F2'].includes(key) || ['Delete', 'Enter', 'F2', 'Escape'].includes(key) /*|| this.suppressedKeysArray.includes(key)*/;
         }
       },
       columnDefs: [
@@ -147,22 +148,20 @@ export default {
           cellEditorParams: {
             values: ["", ...useBucketsStore().getBucketNames()]
           },
-          editable: params => params.data.children.length === 0,
           cellStyle: params => {
-            if(params.data.children.length>0) return {backgroundColor:'lightgrey'}
+            if (params.data.children.length > 0) return {backgroundColor: 'lightgrey'}
             else return {backgroundColor: 'transparent'}
           }
         },
         {
           field: 'schaetzung',
           headerName: 'Schätzung',
-          editable: params => params.data.children.length === 0,
           valueSetter: params => {
-            if (isNaN(params.newValue)) params.data.schaetzung = Number(0)
+            if (isNaN(params.newValue)) params.data.schaetzung = null
             else params.data.schaetzung = Number(params.newValue)
           },
           cellStyle: params => {
-            if(params.data.children.length>0) return {backgroundColor:'lightgrey'}
+            if (params.data.children.length > 0) return {backgroundColor: 'lightgrey'}
             else return {backgroundColor: 'transparent'}
           }
         },
@@ -268,25 +267,53 @@ export default {
     },
     onCellClicked(e) {
       this.searchedPaket = null;
+      this.columnDefs.forEach(column => column.editable = false)
+    },
+    onCellDoubleClicked(e) {
+      if (this.gridApi.getEditingCells().length === 0) {
+        this.startEditingCell(e, e.column.colId)
+      }
     },
     onCellValueChanged(params) {
       if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue)
         this.paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
+      if (params.column.colId === 'thema') {
+        const currentPaketId = params.data.id
+        let sameThemaPaketId = -1;
+        let valid = true;
+        for (const paket of this.rowData) {
+          if(paket.id!==currentPaketId&& paket.thema)
+          if (paket.id !== currentPaketId && paket.thema === params.newValue) {
+            valid = false;
+            sameThemaPaketId = paket.id
+            break;
+          }
+        }
+        if (!valid) {
+          this.columnDefs.find(column => column.field === 'thema').cellStyle = params => {
+            if (params.data.id === currentPaketId || params.data.id === sameThemaPaketId)
+              return {backgroundColor: 'red'};
+          }
+        }
+
+      }
       this.refreshTable(params.column.colId, params.data.id);
     },
     addNewPaket() {
       let newPaketID = 0;
       if (this.gridApi.getSelectedRows()[0]) {
         newPaketID = this.paketeStore.addNew(this.gridApi.getSelectedRows()[0].id)
+        this.refreshTable(this.gridApi.getFocusedCell().column, newPaketID);
       } else {
         newPaketID = this.paketeStore.addNew(-1)
+        this.refreshTable(this.columnApi.getColumns()[0].getColId(), newPaketID);
       }
-      this.refreshTable(this.columnApi.getColumns()[0].getColId(), newPaketID);
+
     },
     addNewKindPaket() {
       if (this.gridApi.getSelectedRows()[0]) {
         const newPaketID = this.paketeStore.addNewChild(this.gridApi.getSelectedRows()[0].id);
-        this.refreshTable(this.columnApi.getColumns()[0].getColId(), newPaketID)
+        this.refreshTable(this.gridApi.getFocusedCell().column, newPaketID);
       }
     },
     deletePaket() {
@@ -362,6 +389,7 @@ export default {
     refreshTable(colKey, paketId) {
       nextTick(() => {
         this.gridApi.setRowData(this.paketeStore.paketeAsTreeView)
+        this.columnDefs.forEach(column => column.editable = false)
         if (paketId !== null) {
           this.gridApi.getRowNode(paketId).setSelected(true);
           this.gridApi.setFocusedCell(this.gridApi.getRowNode(paketId).rowIndex, colKey);
@@ -369,15 +397,15 @@ export default {
           this.gridApi.setFocusedCell(null)
         }
         this.gridApi.refreshCells({force: true});
-
       });
     },
     onCellKeyPress(e) {
       if (e.event) {
-        let key = e.event.key
-        let ctrl = e.event.ctrlKey;
-        let shift = e.event.shiftKey;
-        let alt = e.event.altKey;
+        const key = e.event.key
+        const ctrl = e.event.ctrlKey;
+        const shift = e.event.shiftKey;
+        const alt = e.event.altKey;
+        const colKey = e.column.colId;
         if (this.gridApi.getEditingCells().length === 0) {
           switch (key) {
             case 'ArrowUp':
@@ -410,16 +438,29 @@ export default {
               if (ctrl) this.movePaketRightDown();
               else if (shift) this.movePaketRightUp();
               break;
-            case '-':
             case '_':
+            case '-':
+              if (!ctrl) this.deletePaket();
+              break;
             case 'Delete':
-              if (shift) {
+              if (shift || ctrl) {
                 this.deletePaket();
+              } else {
+                if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
+                  if (colKey === 'schaetzung') {
+                    this.paketeStore.updateSchaetzung(e.data, -e.value)
+                    e.data[colKey] = null
+                  } else e.data[colKey] = null
+                  this.refreshTable(colKey, e.data.id)
+                }
               }
               break;
             case '+':
-              if (!ctrl)
+              if (!ctrl && !shift)
                 this.addNewPaket()
+              else if (shift) {
+                this.addNewKindPaket()
+              }
               break;
             case '*': {
               if (!ctrl)
@@ -429,28 +470,44 @@ export default {
             case ' ':
               if (ctrl) {
                 if (e.data.children.length > 0) {
-                  const params = {columns: ['thema'], rowNodes: [e.node]}
-                  this.gridApi.getCellRendererInstances(params)[0].changeOpenState();
+                  const aktuellesPaket = e.data;
+                  aktuellesPaket.open = !aktuellesPaket.open;
+                  e.node.setData(aktuellesPaket);
+                  this.paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket);
+                  this.refreshTable(colKey, e.data.id)
                 }
               }
               break;
             case 'F2':
-              if (!((e.column.colId === "bucket" || e.column.colId === "schaetzung") && e.data.children.length !== 0)) {
-                this.columnDefs.find(column => column.field === e.column.colId).editable = true
-                nextTick(() => this.gridApi.startEditingCell({
-                  rowIndex: e.rowIndex,
-                  colKey: e.column,
-                  rowPinned: e.rowPinned,
-                  key: key
-                }))
-              }
+              this.startEditingCell(e, colKey)
               break;
+
+          }
+        } else {
+          switch (key) {
             case 'Enter':
-              nextTick(() => this.columnDefs.find(column => column.field === e.column.colId).editable = false)
-              this.gridApi.stopEditing();
+              this.stopEiditingAndSetFocus(false, e.rowIndex, colKey)
+              break;
+            case 'Escape':
+              this.stopEiditingAndSetFocus(true, e.rowIndex, colKey)
+
               break;
           }
         }
+      }
+    },
+    stopEiditingAndSetFocus(cancel, rowIndex, colKey) {
+      this.gridApi.stopEditing(cancel)
+      this.columnDefs.forEach(column => column.editable = false)
+      this.gridApi.setFocusedCell(rowIndex, colKey);
+    },
+    startEditingCell(e, colKey) {
+      if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
+        this.columnDefs.find(column => column.field === colKey).editable = true
+        nextTick(() => this.gridApi.startEditingCell({
+          rowIndex: e.rowIndex,
+          colKey: e.column
+        }))
       }
     }
   }
