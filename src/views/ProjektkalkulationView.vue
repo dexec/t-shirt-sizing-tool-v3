@@ -9,6 +9,7 @@
         style="width: 100%;height: 100%"
         @cellValueChanged="onCellValueChanged"
         @cell-key-down="onCellKeyPress"
+        @cell-double-clicked="onCellDoubleClicked"
         @grid-ready="onGridReady"
     ></ag-grid-vue>
     <!--    TODO CONTEXTMENU EINBINDEN-->
@@ -85,9 +86,13 @@ const columnDefs = ref([
 const eintraegeStore = useEintraegeStore();
 eintraegeStore.berechne();
 const rowData = eintraegeStore.eintraege;
-
+function onCellDoubleClicked(e) {
+  console.log(e)
+  if (gridApi.value!.getEditingCells().length === 0 && (["bezeichnung", "aufschlagWert", "aufwandWert"].includes(e.colDef.field) && !["STARTSUMME", "ZWISCHENSUMME", "ENDSUMME"].includes(e.data.bezeichnung))) {
+    startEditingCell(e, e.column.colId)
+  }
+}
 function onCellValueChanged(params) {
-  console.log(params)
   switch (params.colDef.field) {
     case "bezeichnung":
       eintraegeStore.updateBezeichnung(params.rowIndex, params.newValue);
@@ -180,16 +185,28 @@ function onCellKeyPress(e) {
     } else {
       switch (key) {
         case 'Enter':
-          gridApi.value!.stopEditing(false)
-          columnDefs.value!.forEach(column => column.editable = false)
-          gridApi.value!.setFocusedCell(e.rowIndex, colKey);
+          stopEiditingAndSetFocus(false,e.rowIndex,colKey)
           break;
         case 'Escape':
-          gridApi.value!.stopEditing(true)
-          columnDefs.value!.forEach(column => column.editable = false)
+          stopEiditingAndSetFocus(true,e.rowIndex,colKey)
           break;
       }
     }
+  }
+}
+
+function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
+  gridApi.value!.stopEditing(cancel)
+  columnDefs.value!.forEach(column => column.editable = false)
+  gridApi.value!.setFocusedCell(rowIndex, colKey);
+}
+function startEditingCell(e, colKey: string) {
+  if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
+    columnDefs.value!.find(column => column.field === colKey)!.editable = true
+    nextTick(() => gridApi.value!.startEditingCell({
+      rowIndex: e.rowIndex,
+      colKey: e.column
+    }))
   }
 }
 
