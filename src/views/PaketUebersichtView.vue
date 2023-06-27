@@ -9,6 +9,7 @@
         :defaultColDef='defaultColDef'
         :getRowId='getRowId'
         :rowData='rowData'
+        :stopEditingWhenCellsLoseFocus="false"
         class='ag-theme-alpine'
         rowSelection='single'
         style='width: 100%;height: 100%'
@@ -96,6 +97,7 @@ import {nextTick} from 'vue';
 import {useBucketsStore} from "@/stores/buckets";
 import {useRouter} from "vue-router";
 import ContextMenu from "@/components/ContextMenu.vue";
+import {useProjektStore} from "@/stores/projekt";
 
 export default {
   name: 'PaketUebersichtView',
@@ -151,7 +153,8 @@ export default {
           cellStyle: params => {
             if (params.data.children.length > 0) return {backgroundColor: 'lightgrey'}
             else return {backgroundColor: 'transparent'}
-          }
+          },
+          hide: !this.projektStore.bucketmodus
         },
         {
           field: 'schaetzung',
@@ -190,13 +193,14 @@ export default {
     let getRowId = (params) => params.data._id;
     const paketeStore = usePaketeStore();
     const bucketStore = useBucketsStore();
+    const projektStore = useProjektStore()
     const router = useRouter();
     const rowData = paketeStore.paketeAsTreeView;
     const printableChar = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!"£$%^&amp;*()_+-=[];\\\'#,. /\\|<>?:@~{}'
     const suppressedKeysArray = [];
     for (let char of printableChar)
       suppressedKeysArray.push(char)
-    return {rowData, paketeStore, bucketStore, getRowId, router, suppressedKeysArray};
+    return {rowData, paketeStore, bucketStore, projektStore, getRowId, router, suppressedKeysArray};
   },
   components: {
     ContextMenu,
@@ -267,6 +271,13 @@ export default {
       //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
     },
     onCellClicked(e) {
+      //TODO Wenn editiert wird, klick aus dem edit dialog soll richtig behandelt werden
+      /*if(this.gridApi.getEditingCells()[0]) console.log("editing" + this.gridApi.getEditingCells()[0].rowIndex)
+      console.log("event" + e.rowIndex)
+      if(this.gridApi.getEditingCells().length!==0 && this.gridApi.getEditingCells()[0].rowIndex!==e.rowIndex) {
+        console.log("onCellClicked")
+        this.stopEiditingAndSetFocus(true,e.rowIndex,e.column.colId)
+      }*/
       this.searchedPaket = null;
       this.columnDefs.forEach(column => column.editable = false)
     },
@@ -278,17 +289,17 @@ export default {
     onCellValueChanged(params) {
       if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue)
         this.paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
-      if (params.column.colId === 'thema') {
+      /*if (params.column.colId === 'thema') {
         const currentPaketId = params.data.id
         let sameThemaPaketId = -1;
         let valid = true;
         for (const paket of this.rowData) {
-          if(paket.id!==currentPaketId&& paket.thema)
-          if (paket.id !== currentPaketId && paket.thema === params.newValue) {
-            valid = false;
-            sameThemaPaketId = paket.id
-            break;
-          }
+          if (paket.id !== currentPaketId && paket.thema)
+            if (paket.id !== currentPaketId && paket.thema === params.newValue) {
+              valid = false;
+              sameThemaPaketId = paket.id
+              break;
+            }
         }
         if (!valid) {
           this.columnDefs.find(column => column.field === 'thema').cellStyle = params => {
@@ -297,7 +308,7 @@ export default {
           }
         }
 
-      }
+      }*/
       this.refreshTable(params.column.colId, params.data.id);
     },
     addNewPaket() {
