@@ -37,22 +37,22 @@
           <td>{{ statistik.anteilAnzahl !== 0 ? Math.round(statistik.anteilAnzahl * 100) + "%" : '' }}</td>
           <td>{{ statistik.durchschnitt !== 0 ? Math.round(statistik.durchschnitt) : '' }}</td>
           <td>{{ statistik.median !== 0 ? Math.round(statistik.median) : '' }}</td>
-          <td>{{ statistik.median !== 0 ? statistik.summeSchaetzungen : '' }}</td>
+          <td>{{ statistik.summeSchaetzungen!==0 ? statistik.summeSchaetzungen : ''}}</td>
           <td>
             {{
-              statistik.summeSchaetzungen !== 0 ? Math.round((statistik.summeSchaetzungen / statistiken.summeAlleBucketsSchaetzungen() || 0) * 100) + '%' : ''
+              statistik.summeSchaetzungen !== 0 ? Math.round((statistik.summeSchaetzungen / statistiken.summeAlleBucketsSchaetzungenSumme() || 0) * 100) + '%' : ''
             }}
           </td>
           <td>{{ statistik.summeDurchschnitt !== 0 ? Math.round(statistik.summeDurchschnitt) : '' }}</td>
           <td>
             {{
-              statistik.summeDurchschnitt !== 0 ? Math.round((statistik.summeDurchschnitt / statistiken.summeAlleBucketsDurchschnitt() || 0) * 100) + '%' : ''
+              statistik.summeDurchschnitt !== 0 ? Math.round((statistik.summeDurchschnitt / statistiken.summeAlleBucketsDurchschnittSumme() || 0) * 100) + '%' : ''
             }}
           </td>
           <td>{{ statistik.summeMedian !== 0 ? Math.round(statistik.summeMedian) : '' }}</td>
           <td>
             {{
-              statistik.summeMedian !== 0 ? Math.round((statistik.summeMedian / statistiken.summeAlleBucketsMedian() || 0) * 100) + '%' : ''
+              statistik.summeMedian !== 0 ? Math.round((statistik.summeMedian / statistiken.summeAlleBucketsMedianSumme() || 0) * 100) + '%' : ''
             }}
           </td>
         </tr>
@@ -63,12 +63,12 @@
           <td>{{ statistiken.summeAlleBucketsGesamt() }}</td>
           <td>{{ statistiken.summeAlleBucketsMin() }}</td>
           <td>{{ statistiken.summeAlleBucketsMax() }}</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsSchaetzungen()) }}</td>
-          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsDurchschnitt()) }}</td>
-          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsMedian()) }}</td>
+          <td>100%</td>
+          <td>{{ statistiken.summeAlleBucketsDurchschnitt() }}</td>
+          <td>{{ statistiken.summeAlleBucketsMedian() }}</td>
+          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsSchaetzungenSumme()) }}</td>
+          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsDurchschnittSumme()) }}</td>
+          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsMedianSumme()) }}</td>
         </tr>
         </tbody>
       </template>
@@ -78,8 +78,10 @@
 
 <script lang="ts" setup>
 import {useStatistikenStore} from "@/stores/statistiken";
+import {useProjektStore} from "@/stores/projekt";
 
 const statistiken = useStatistikenStore();
+const projekt = useProjektStore();
 statistiken.berechne();
 </script>
 
