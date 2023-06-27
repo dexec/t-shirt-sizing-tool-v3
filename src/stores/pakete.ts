@@ -78,6 +78,15 @@ export const usePaketeStore = defineStore('pakete', () => {
         return result;
     }
 
+    function rootParentOfPaket(paket: Paket): Paket | null {
+        if (paket.lvl == 0) return null;
+        let result = paket.parent;
+        while (result?.parent) {
+            result = result.parent;
+        }
+        return result;
+    }
+
     function updateSchaetzung(paket: Paket, diff: number) {
         let parent = paket.parent;
         while (parent) {
@@ -397,8 +406,7 @@ export const usePaketeStore = defineStore('pakete', () => {
             parentOfPaketToMove.children.splice(indexOfPaketToMoveAsChild, 1);
             if (parentOfPaketToMove.children.length == 0) {
                 parentOfPaketToMove.schaetzung = null
-            }
-            else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
+            } else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
             if (paketToMove.lvl >= 2 && parentOfPaketToMove.parent) {
                 const indexOfParentAsChild = parentOfPaketToMove.parent.children.indexOf(parentOfPaketToMove);
                 parentOfPaketToMove.parent.children.splice(indexOfParentAsChild, 0, paketToMove);
@@ -437,8 +445,7 @@ export const usePaketeStore = defineStore('pakete', () => {
             parentOfPaketToMove.children.splice(indexOfPaketToMoveAsChild, 1);
             if (parentOfPaketToMove.children.length == 0) {
                 parentOfPaketToMove.schaetzung = null
-            }
-            else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
+            } else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
             if (paketToMove.lvl >= 2 && parentOfPaketToMove.parent) {
                 const indexOfParentAsChild = parentOfPaketToMove.parent.children.indexOf(parentOfPaketToMove);
                 parentOfPaketToMove.parent.children.splice(indexOfParentAsChild + 1, 0, paketToMove);
@@ -477,6 +484,7 @@ export const usePaketeStore = defineStore('pakete', () => {
         paketeChildren,
         paketeChildrenWithNoBucket,
         paketeOfBucket,
+        rootParentOfPaket,
         updateSchaetzung,
         updateTreeViewAfterChangedOpenState,
         deletePaket,
