@@ -4,7 +4,7 @@
                     @blur="this.searchedPaket=null"></v-autocomplete>-->
   <!--  <context-menu :provided-functions-prop="[...this.providedFunctions]"></context-menu>-->
   <v-container>
-    <v-row id="rowBucketsButtonAndTrash" justify="center" class="mb-6">
+    <v-row id="rowBucketsButtonAndTrash" class="mb-6" justify="center">
       <v-btn class="bucketsButton" @click="showPaketeWithoutBucket=!showPaketeWithoutBucket"><span
           class="bucketsButtonText">Toggle
           Arbeitspakete</span></v-btn>
@@ -43,21 +43,25 @@
         <h2>Unzugewiesene Pakete</h2>
         <draggable
             v-if="paketeWithoutBucket.length>0"
-            id="draggablePaketWithoutBucket"
             :list="paketeWithoutBucket"
             class="dragArea list-group"
-            ghostClass="destination-item"
             group="pakete"
             itemKey="name"
+            :sort="false"
             style="overflow-y:scroll;height: 70vh"
             @change="removePaketFromBucket"
+            @start="onStartDrag"
+            @end="onEndDrag"
         >
           <template #item="{ element }">
-            <div class="paket ma-2">
-              <span class="paketContent">#{{ (element as Paket).ticket_nr }}</span>
-              <span class="paketContent">{{ (element as Paket).thema }}</span>
+            <div class="tooltip">
+                <div class="paket ma-2">
+                  <span class="paketContent">#{{ (element as Paket).ticket_nr }}</span>
+                  <span class="paketContent">{{ (element as Paket).thema }}</span>
+                </div>
+              <span class="tooltiptext">{{rootParentThemaOfPaket(element)}}</span>
             </div>
-          </template>
+              </template>
         </draggable>
         <span v-if="paketeWithoutBucket.length===0">Es gibt keine Pakete ohne Bucket</span>
       </v-col>
@@ -65,18 +69,21 @@
         <v-row class="d-flex flex-nowrap justify-center">
           <div v-for="bucket in buckets" :key="bucket.id">
             <draggable
+                style="border: 1px black solid; overflow-y:scroll;height: 75vh"
                 v-if="selected.includes(bucket.id)"
                 :list="getPaketSortedByBucket(bucket as Bucket)"
                 class="dragArea list-group ma-2"
                 ghost-class="destination-item"
                 group="pakete"
                 itemKey="name"
+                :sort="false"
                 @change="changeBucketOfPaket($event,bucket as Bucket)"
             >
               <template #header>
-                <div class="paket ma-2">{{ bucket.name }}</div>
+                <div class="paket ma-2" style="position: fixed">{{ bucket.name }}</div>
               </template>
               <template #item="{ element }">
+                <div class="tooltip">
                 <div class="paket ma-2">
                   <span :style="searchPaket(element)" class="list-group-item paketContent">#{{
                       (element as Paket).ticket_nr
@@ -84,6 +91,8 @@
                   <span :style="searchPaket(element)" class="list-group-item  paketContent">{{
                       (element as Paket).thema
                     }}</span>
+                </div>
+                  <span class="tooltiptext">{{rootParentThemaOfPaket(element)}}</span>
                 </div>
               </template>
             </draggable>
@@ -166,6 +175,33 @@ function searchPaket(paket: Paket) {
     return "border-color: red"
   }
 }
+
+function rootParentThemaOfPaket(paket: Paket):string {
+  const result = paketeStore.rootParentOfPaket(paket);
+  if(result) return result.thema
+  else return paket.thema;
+}
+
+function onStartDrag(e) {
+  const tooltips = document.getElementsByClassName("tooltip")
+  console.log(e)
+  /*for(const tooltip of tooltips) {
+    const tooltiptexts = tooltip.getElementsByClassName("tooltiptext")
+    for(const tooltiptext of tooltiptexts) {
+      const htmlElement = tooltiptext as HTMLElement
+      htmlElement.style.visibility="hidden"
+    }
+  }*/
+}
+
+function onEndDrag(e) {
+  const tooltips = document.getElementsByClassName("tooltiptext")
+  console.log(e)
+  /*for(const element of tooltips) {
+    const htmlElement = element as HTMLElement
+    htmlElement.style.visibility="visible"
+  }*/
+}
 </script>
 
 <style scoped>
@@ -207,5 +243,30 @@ function searchPaket(paket: Paket) {
   display: none;
 }
 
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
 
 </style>
