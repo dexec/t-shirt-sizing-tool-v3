@@ -4,6 +4,7 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "skipLibCheck": true,
     "composite": true,
     "types": ["node","vite/client"],
     "baseUrl": ".",
