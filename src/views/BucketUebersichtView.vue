@@ -37,7 +37,7 @@
           <td>{{ statistik.anteilAnzahl !== 0 ? Math.round(statistik.anteilAnzahl * 100) + "%" : '' }}</td>
           <td>{{ statistik.durchschnitt !== 0 ? Math.round(statistik.durchschnitt) : '' }}</td>
           <td>{{ statistik.median !== 0 ? Math.round(statistik.median) : '' }}</td>
-          <td>{{ statistik.summeSchaetzungen!==0 ? statistik.summeSchaetzungen : ''}}</td>
+          <td>{{ statistik.summeSchaetzungen !== 0 ? statistik.summeSchaetzungen : '' }}</td>
           <td>
             {{
               statistik.summeSchaetzungen !== 0 ? Math.round((statistik.summeSchaetzungen / statistiken.summeAlleBucketsSchaetzungenSumme() || 0) * 100) + '%' : ''
@@ -64,8 +64,8 @@
           <td>{{ statistiken.summeAlleBucketsMin() }}</td>
           <td>{{ statistiken.summeAlleBucketsMax() }}</td>
           <td>100%</td>
-          <td>{{ statistiken.summeAlleBucketsDurchschnitt() }}</td>
-          <td>{{ statistiken.summeAlleBucketsMedian() }}</td>
+          <td>{{ projektStore.bucketmodus ? '' : statistiken.summeAlleBucketsDurchschnitt() }}</td>
+          <td>{{ projektStore.bucketmodus ? '' : statistiken.summeAlleBucketsMedian() }}</td>
           <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsSchaetzungenSumme()) }}</td>
           <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsDurchschnittSumme()) }}</td>
           <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsMedianSumme()) }}</td>
@@ -81,7 +81,7 @@ import {useStatistikenStore} from "@/stores/statistiken";
 import {useProjektStore} from "@/stores/projekt";
 
 const statistiken = useStatistikenStore();
-const projekt = useProjektStore();
+const projektStore = useProjektStore();
 statistiken.berechne();
 </script>
 
