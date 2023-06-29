@@ -7,6 +7,7 @@ import ProjektkalkulationView from "@/views/ProjektkalkulationView.vue";
 import ProjektUebersichtView from "@/views/ProjektUebersichtView.vue";
 import testView from "@/views/testView.vue";
 import testView2 from "@/views/testView2.vue";
+import {useProjektStore} from "@/stores/projekt";
 
 const router = createRouter({
     history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -52,6 +53,15 @@ const router = createRouter({
             props: true
         },
     ]
+})
+
+router.beforeEach((to, from, next) => {
+    const projektStore = useProjektStore();
+    if (to.path === '/vergleich' && !projektStore.bucketmodus) {
+        next(false);
+    } else {
+        next();
+    }
 })
 
 export default router;
