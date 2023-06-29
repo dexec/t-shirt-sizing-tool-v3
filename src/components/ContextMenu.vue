@@ -2,26 +2,18 @@
   <div class="wrapper">
     <div class="content">
       <div class="menu">
-        <div v-for="providedFunction of this.providedFunctions" :key="providedFunctions.indexOf(providedFunction)"
+        <div v-for="providedFunction of providedFunctions" :key="providedFunctions.indexOf(providedFunction)"
              @click="providedFunction.function">
-          <span class="item" v-if="providedFunction.functionName==='movePaketUp'"><v-icon
-              size="x-small">mdi-arrow-up</v-icon></span>
-          <span class="item" v-else-if="providedFunction.functionName==='movePaketDown'"><v-icon
-              size="x-small">mdi-arrow-down</v-icon></span>
-          <span class="item" v-else-if="providedFunction.functionName==='movePaketLeftUp'"><v-icon
-              size="x-small">mdi-arrow-top-left</v-icon></span>
-          <span class="item" v-else-if="providedFunction.functionName==='movePaketLeftDown'"><v-icon
-              size="x-small">mdi-arrow-bottom-left</v-icon></span>
-          <span class="item" v-else-if="providedFunction.functionName==='movePaketRightUp'"><v-icon size="x-small">mdi-arrow-top-right</v-icon></span>
-          <span class="item" v-else-if="providedFunction.functionName==='movePaketRightDown'"><v-icon
-              size="x-small">mdi-arrow-bottom-right</v-icon></span>
-          <span v-else class="item">{{ providedFunction.functionLabel }}</span>
+          <span class="item" v-if="providedFunction.icon">
+            <v-icon size="x-small">{{ providedFunction.icon }}</v-icon>
+          </span>
+          <span class="item" v-else>{{ providedFunction.functionLabel }}</span>
         </div>
       </div>
     </div>
   </div>
 </template>
-<script>
+<!--<script>
 import {inject} from "vue";
 
 export default {
@@ -40,7 +32,50 @@ export default {
     }
     return {providedFunctions}
   },
+  methods: {
+    showMenu(e) {
+      e.preventDefault();
+      const contextMenu = document.querySelector(".wrapper")
+      let x = e.clientX
+      let y = e.clientY
+      contextMenu.style.left = `${x}px`;
+      contextMenu.style.top = `${y}px`;
+      contextMenu.style.display = "block";
+      //TODO Beim Klick soll der Fokus zurück auf Tabelle gehen
+      document.addEventListener("click", () => contextMenu.style.display = "none");
+    }
+  }
 }
+</script>-->
+<script setup lang="ts">
+import type { Ref } from "vue";
+import { inject, ref } from "vue";
+
+const props = defineProps(['providedFunctionsProp'])
+const providedFunctions: Ref<Array<{functionLabel:string, functionName:string,function:Function,icon:string}>> = ref([])
+for (let providedFunctionProp of props.providedFunctionsProp) {
+  const providedFunction = inject(providedFunctionProp.functionName);
+
+  if (typeof providedFunction === 'function') providedFunctions.value.push({
+    functionLabel: providedFunctionProp.functionLabel,
+    functionName: providedFunctionProp.functionName,
+    function: providedFunction,
+    icon: providedFunctionProp.icon
+  })
+}
+function showMenu(e) {
+  e.preventDefault();
+  const contextMenu = document.querySelector(".wrapper") as HTMLElement
+  let x = e.clientX
+  let y = e.clientY
+  contextMenu.style.left = `${x}px`;
+  contextMenu.style.top = `${y}px`;
+  contextMenu.style.display = "block";
+  //TODO Beim Klick soll der Fokus zurück auf Tabelle gehen
+  document.addEventListener("click", () => contextMenu.style.display = "none");
+}
+  defineExpose({showMenu})
+
 </script>
 
 <style scoped>
