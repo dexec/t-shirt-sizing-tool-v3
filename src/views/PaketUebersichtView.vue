@@ -21,70 +21,32 @@
         @grid-ready='onGridReady'>
     </ag-grid-vue>
   </div>
-  <context-menu :providedFunctionsProp="[...this.providedFunctions]"></context-menu>
+  <context-menu :providedFunctionsProp="[...this.providedFunctions]" ref="contextMenu"></context-menu>
 </template>
-<!--<script setup>
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import {AgGridVue} from "ag-grid-vue3";
-import { ref } from 'vue'
-import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue'
+<!--
+<script setup lang="ts">
+import { provide, ref } from "vue";
+import ContextMenu from "@/components/ContextMenu.vue";
 
-const selectedRow = ref(null)
-const gridApi = ref(null)
-const columnApi = ref(null)
-const defaultColDef = ref({
-  editable: true
-})
-const columnDefs = ref([
-  {
-    field: 'ticket_nr',
-    headerName: 'Ticket-NR',
-    minWidth: 5,
-    cellRenderer: TreeDataCellRenderer
-  },
-  {
-    field: 'thema',
-    headerName: 'Thema'
-  },
-  {
-    field: 'beschreibung',
-    headerName: 'Beschreibung'
-  },
-  {
-    field: 'komponente',
-    headerName: 'Komponente'
-  },
-  {
-    field: 'bucket',
-    headerName: 'Bucket',
-    editable: false
-  },
-  {
-    field: 'schaetzung',
-    headerName: 'Schätzung'
-  }
-])
+const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 
-function onGridReady(params) {
-  this.gridApi = params.api
-  this.columnApi = params.columnApi
-  //this.gridApi.getDisplayedRowAtIndex(0).setSelected(true)
-}
-
-function onCellClicked(params) {
-  this.selectedRow = params.data
-}
-
-function addNewPaket() {
-  //store.addNew(this.selectedRow)
-}
-
-function removeItem() {
-  if (typeof this.selectedRow !== 'undefined') {
-    //store.deletePaket(this.selectedRow.id)
+function rightClickOnCell(e) {
+  contextMenuRef.value!.showMenu(e);
+  if (gridApi.value!.getFocusedCell()) {
+    const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
+    gridApi.value!.getRowNode(focusedRowIndex + "")!.setSelected(true);
   }
 }
+provide("addNewPaket": addNewPaket),
+  addNewKindPaket: this.addNewKindPaket,
+  deletePaket: this.deletePaket,
+  comparePaket: this.comparePaket,
+  movePaketUp: this.movePaketUp,
+  movePaketDown: this.movePaketDown,
+  movePaketRightUp: this.movePaketRightUp,
+  movePaketRightDown: this.movePaketRightDown,
+  movePaketLeftUp: this.movePaketLeftUp,
+  movePaketLeftDown: this.movePaketLeftDown,
 </script>-->
 <script>
 import 'ag-grid-community/styles/ag-grid.css';
@@ -179,8 +141,8 @@ export default {
         {functionName: 'addNewKindPaket', functionLabel: "Neues Arbeitspaket als Kind anlegen"},
         {functionName: 'deletePaket', functionLabel: "Paket löschen"},
         {functionName: 'comparePaket', functionLabel: "Paket vergleichen"},
-        {functionName: 'movePaketUp', functionLabel: "Pfeil hoch"},
-        {functionName: 'movePaketDown', functionLabel: "Pfeil runter"},
+        {functionName: 'movePaketUp', functionLabel: "Pfeil hoch", icon: "mdi-arrow-up"},
+        {functionName: 'movePaketDown', functionLabel: "Pfeil runter", icon: "mdi-arrow-down"},
         {functionName: 'movePaketRightUp', functionLabel: "Pfeil hoch rechts"},
         {functionName: 'movePaketRightDown', functionLabel: "Pfeil runter rechts"},
         {functionName: 'movePaketLeftDown', functionLabel: "Pfeil runter links"},
@@ -233,19 +195,8 @@ export default {
           params.columnApi.autoSizeColumns()
         },*/
     //TODO Das sollte in die contextMenü Komponente wandern
-    showMenu(e) {
-      e.preventDefault();
-      const contextMenu = document.querySelector(".wrapper")
-      let x = e.clientX
-      let y = e.clientY
-      contextMenu.style.left = `${x}px`;
-      contextMenu.style.top = `${y}px`;
-      contextMenu.style.display = "block";
-      //TODO Beim Klick soll der Fokus zurück auf Tabelle gehen
-      document.addEventListener("click", () => contextMenu.style.display = "none");
-    },
     rightClickOnCell(e) {
-      this.showMenu(e)
+      this.$refs.contextMenu.showMenu(e);
       if (this.gridApi.getFocusedCell()) {
         const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
         const selectedPaket = this.rowData[focusedRowIndex];
@@ -289,6 +240,7 @@ export default {
     onCellValueChanged(params) {
       if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue)
         this.paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
+
       /*if (params.column.colId === 'thema') {
         const currentPaketId = params.data.id
         let sameThemaPaketId = -1;
@@ -309,7 +261,6 @@ export default {
         }
 
       }*/
-      this.refreshTable(params.column.colId, params.data.id);
     },
     addNewPaket() {
       let newPaketID = 0;
