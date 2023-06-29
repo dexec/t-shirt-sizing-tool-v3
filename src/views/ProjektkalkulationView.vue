@@ -1,27 +1,31 @@
 <template>
   <div style="width: 100%;height: 100%">
     <ag-grid-vue
-        :columnDefs="columnDefs"
-        :defaultColDef='defaultColDef'
-        :rowData="rowData"
-        class="ag-theme-alpine"
-        rowSelection="single"
-        style="width: 100%;height: 100%"
-        @cellValueChanged="onCellValueChanged"
-        @cell-key-down="onCellKeyPress"
-        @cell-double-clicked="onCellDoubleClicked"
-        @grid-ready="onGridReady"
+      :columnDefs="columnDefs"
+      :defaultColDef="defaultColDef"
+      :rowData="rowData"
+      class="ag-theme-alpine"
+      rowSelection="single"
+      style="width: 100%;height: 100%"
+      @cellValueChanged="onCellValueChanged"
+      @cell-key-down="onCellKeyPress"
+      @cell-clicked="onCellClicked"
+      @contextmenu="rightClickOnCell"
+      @cell-double-clicked="onCellDoubleClicked"
+      @cell-editing-stopped="onCellEditingStopped"
+      @grid-ready="onGridReady"
     ></ag-grid-vue>
     <!--    TODO CONTEXTMENU EINBINDEN-->
-    <div class="wrapper">
-      <div class="content">
-        <div class="menu">
-          <span class="item" @click="aufschlagErstellen">Aufschlag erstellen</span>
-          <span class="item" @click="zwischensummeErstellen">Zwischensumme erstellen</span>
-          <span class="item" @click="zeileEntfernen">Zeile löschen</span>
-        </div>
-      </div>
-    </div>
+    <context-menu :providedFunctionsProp="[...providedFunctions]" ref="contextMenuRef"></context-menu>
+    <!--    <div class="wrapper">
+          <div class="content">
+            <div class="menu">
+              <span class="item" @click="aufschlagErstellen">Aufschlag erstellen</span>
+              <span class="item" @click="zwischensummeErstellen">Zwischensumme erstellen</span>
+              <span class="item" @click="zeileEntfernen">Zeile löschen</span>
+            </div>
+          </div>
+        </div>-->
   </div>
 </template>
 <script setup lang="ts">
@@ -30,28 +34,45 @@ import AufschlagCellRenderer from "@/components/projektkalkulation/AufschlagCell
 import AufwandCellRenderer from "@/components/projektkalkulation/AufwandCellRenderer.vue";
 import AnteilAnZwischensummeCellRenderer from "@/components/projektkalkulation/AnteilAnZwischensummeCellRenderer.vue";
 import AnteilAmGesamtprojektCellRenderer from "@/components/projektkalkulation/AnteilAmGesamtprojektCellRenderer.vue";
-import {AgGridVue} from "ag-grid-vue3";
-import {nextTick, reactive, ref} from "vue";
-import {Column, ColumnApi, GridApi} from "ag-grid-community";
-import {useEintraegeStore} from "@/stores/eintraege";
+import { AgGridVue } from "ag-grid-vue3";
+import { nextTick, provide, reactive, ref } from "vue";
+import { Column, ColumnApi, GridApi } from "ag-grid-community";
+import { useEintraegeStore } from "@/stores/eintraege";
+import ContextMenu from "@/components/ContextMenu.vue";
 
-const gridApi = ref<GridApi>();
-const columnApi = ref<ColumnApi>();
 
-function onGridReady(params) {
-  gridApi.value = params.api;
-  columnApi.value = params.columnApi;
-  refreshTable(columnApi.value!.getColumns()![0].getColId(), 0)
+const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
+
+function rightClickOnCell(e) {
+  contextMenuRef.value!.showMenu(e);
+  if (gridApi.value!.getFocusedCell()) {
+    const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
+    gridApi.value!.getRowNode(focusedRowIndex + "")!.setSelected(true);
+  }
 }
 
-const defaultColDef = reactive(
-    {
-      suppressKeyboardEvent: params => {
-        let key = params.event.key;
-        return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter', 'F2'].includes(key) || ['Delete', 'Enter', 'F2','Escape'].includes(key);
-      }
-    }
-)
+provide("eintragErstellen", eintragErstellen);
+provide("eintragEntfernen", eintragEntfernen);
+provide("zwischensummeErstellen", zwischensummeErstellen);
+provide("moveZeileUp", moveZeileUp);
+provide("moveZeileDown", moveZeileDown);
+const providedFunctions = ref([
+  { functionName: "eintragErstellen", functionLabel: "Neuen Eintrag erstellen" },
+  { functionName: "eintragEntfernen", functionLabel: "Eintrag entfernen" },
+  { functionName: "zwischensummeErstellen", functionLabel: "Neue Zwischensumme erstellen" },
+  { functionName: "moveZeileUp", functionLabel: "Eintrag eine Zeile nach oben verschieben" },
+  { functionName: "moveZeileDown", functionLabel: "Eintrag eine Zeile nach unten verschieben" }
+
+]);
+const gridApi = ref<GridApi>();
+const columnApi = ref<ColumnApi>();
+function onGridReady(params) {
+  columnApi.value = params.columnApi;
+  gridApi.value = params.api;
+  refreshTable(columnApi.value!.getColumns()![0].getColId(), 0);
+}
+
+
 const columnDefs = ref([
   {
     field: "bezeichnung",
@@ -82,113 +103,131 @@ const columnDefs = ref([
     headerName: "Anteil am Gesamtprojekt",
     cellRenderer: AnteilAmGesamtprojektCellRenderer,
     editable: false
-  }])
+  }]);
+const defaultColDef = reactive(
+  {
+    suppressKeyboardEvent: params => {
+      let key = params.event.key;
+      return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key);
+    }
+  }
+);
 const eintraegeStore = useEintraegeStore();
 eintraegeStore.berechne();
 const rowData = eintraegeStore.eintraege;
+
+
 function onCellDoubleClicked(e) {
-  console.log(e)
   if (gridApi.value!.getEditingCells().length === 0 && (["bezeichnung", "aufschlagWert", "aufwandWert"].includes(e.colDef.field) && !["STARTSUMME", "ZWISCHENSUMME", "ENDSUMME"].includes(e.data.bezeichnung))) {
-    startEditingCell(e, e.column.colId)
+    startEditingCell(e, e.column.colId);
   }
 }
-function onCellValueChanged(params) {
-  switch (params.colDef.field) {
+
+function onCellEditingStopped(e) {
+
+}
+
+function onCellClicked(e) {
+  columnDefs.value!.forEach(column => column.editable = false);
+}
+
+function onCellValueChanged(e) {
+  switch (e.colDef.field) {
     case "bezeichnung":
-      eintraegeStore.updateBezeichnung(params.rowIndex, params.newValue);
+      eintraegeStore.updateBezeichnung(e.rowIndex, e.newValue);
       break;
     case "aufschlagWert":
-      if (!isNaN(params.newValue)) eintraegeStore.updateAufschlag(params.rowIndex, +params.newValue);
-      else params.data.aufschlagWert = params.oldValue;
+      if (!isNaN(e.newValue)) eintraegeStore.updateAufschlag(e.rowIndex, +e.newValue);
+      else e.data.aufschlagWert = e.oldValue;
       break;
     case "aufwandWert":
-      if (!isNaN(params.newValue)) eintraegeStore.updateAufwand(params.rowIndex, +params.newValue);
-      else params.data.aufwandWert = params.oldValue;
+      if (!isNaN(e.newValue)) eintraegeStore.updateAufwand(e.rowIndex, +e.newValue);
+      else e.data.aufwandWert = e.oldValue;
       break;
   }
-  refreshTable(params.colDef, params.rowIndex);
+  refreshTable();
 }
 
 function onCellKeyPress(e) {
   if (e.event) {
-    const key = e.event.key
+    const key = e.event.key;
     const ctrl = e.event.ctrlKey;
     const shift = e.event.shiftKey;
     const alt = e.event.altKey;
     const colKey = e.column.colId;
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
-        case 'ArrowDown':
+        case "ArrowDown":
           if (e.data.bezeichnung === "STARTSUMME" && (shift || ctrl)) {
-            refreshTable(e.column, 1)
+            refreshTable(e.column, 1);
           } else if (shift || ctrl) {
-            moveZeileDown()
+            moveZeileDown();
           } else {
             const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
-            const selectedPaket = gridApi.value!.getRowNode(focusedRowIndex + "")
+            const selectedPaket = gridApi.value!.getRowNode(focusedRowIndex + "");
             if (selectedPaket) {
-              selectedPaket.setSelected(true)
+              selectedPaket.setSelected(true);
             }
           }
           break;
-        case 'ArrowUp':
+        case "ArrowUp":
           if (e.data.bezeichnung === "ENDSUMME" && (shift || ctrl)) {
-            refreshTable(e.column, rowData.length - 2)
+            refreshTable(e.column, rowData.length - 2);
           } else if (shift || ctrl) {
-            moveZeileUp()
+            moveZeileUp();
           } else {
             const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
-            const selectedPaket = gridApi.value!.getRowNode(focusedRowIndex + "")
+            const selectedPaket = gridApi.value!.getRowNode(focusedRowIndex + "");
             if (selectedPaket) {
-              selectedPaket.setSelected(true)
+              selectedPaket.setSelected(true);
             }
           }
           break;
-        case '_':
-        case '-':
-         if(!ctrl) zeileEntfernen()
+        case "_":
+        case "-":
+          if (!ctrl) eintragEntfernen();
           break;
-        case 'Delete':
+        case "Delete":
           if (shift || ctrl) {
-            zeileEntfernen();
+            eintragEntfernen();
           } else {
-            if (!['anteilZwischensumme', 'anteilGesamtprojekt'].includes(colKey)) {
-              if (colKey == 'aufwandWert') {
+            if (!["anteilZwischensumme", "anteilGesamtprojekt"].includes(colKey)) {
+              if (colKey == "aufwandWert") {
                 eintraegeStore.updateAufwand(e.rowIndex, 0);
-              } else if (colKey == 'aufschlagWert') {
+              } else if (colKey == "aufschlagWert") {
                 eintraegeStore.updateAufschlag(e.rowIndex, 0);
-              } else if (colKey == 'bezeichnung') {
+              } else if (colKey == "bezeichnung") {
                 eintraegeStore.updateBezeichnung(e.rowIndex, "");
               }
-              refreshTable(colKey, e.rowIndex)
+              refreshTable(colKey, e.rowIndex);
             }
           }
           break;
-        case '+' :
+        case "+" :
           if (!ctrl)
-            aufschlagErstellen();
+            eintragErstellen();
           break;
-        case '*':
+        case "*":
           if (!ctrl)
-            zwischensummeErstellen()
+            zwischensummeErstellen();
           break;
-        case 'F2':
+        case "F2":
           if (["bezeichnung", "aufschlagWert", "aufwandWert"].includes(colKey) && !["STARTSUMME", "ZWISCHENSUMME", "ENDSUMME"].includes(e.data.bezeichnung)) {
-            columnDefs.value!.find(column => column.field == colKey)!.editable = true
+            columnDefs.value!.find(column => column.field == colKey)!.editable = true;
             nextTick(() => gridApi.value!.startEditingCell({
               rowIndex: e.rowIndex,
               colKey: e.column
-            }))
+            }));
           }
           break;
       }
     } else {
       switch (key) {
-        case 'Enter':
-          stopEiditingAndSetFocus(false,e.rowIndex,colKey)
+        case "Enter":
+          stopEiditingAndSetFocus(false, e.rowIndex, colKey);
           break;
-        case 'Escape':
-          stopEiditingAndSetFocus(true,e.rowIndex,colKey)
+        case "Escape":
+          stopEiditingAndSetFocus(true, e.rowIndex, colKey);
           break;
       }
     }
@@ -196,23 +235,24 @@ function onCellKeyPress(e) {
 }
 
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
-  gridApi.value!.stopEditing(cancel)
-  columnDefs.value!.forEach(column => column.editable = false)
+  gridApi.value!.stopEditing(cancel);
+  columnDefs.value!.forEach(column => column.editable = false);
   gridApi.value!.setFocusedCell(rowIndex, colKey);
 }
+
 function startEditingCell(e, colKey: string) {
   if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
-    columnDefs.value!.find(column => column.field === colKey)!.editable = true
+    columnDefs.value!.find(column => column.field === colKey)!.editable = true;
     nextTick(() => gridApi.value!.startEditingCell({
       rowIndex: e.rowIndex,
       colKey: e.column
-    }))
+    }));
   }
 }
 
-function aufschlagErstellen() {
+function eintragErstellen() {
   if (gridApi.value!.getSelectedRows()[0] && gridApi.value!.getSelectedRows()[0].bezeichnung !== "ENDSUMME") {
-    const rowIndexSelectedRow = rowData.indexOf(gridApi.value!.getSelectedRows()[0])
+    const rowIndexSelectedRow = rowData.indexOf(gridApi.value!.getSelectedRows()[0]);
     eintraegeStore.addNewAufschlag(rowIndexSelectedRow);
     refreshTable(columnApi.value!.getColumns()![0].getColId(), rowIndexSelectedRow + 1);
   }
@@ -222,7 +262,7 @@ function zwischensummeErstellen() {
   if (gridApi.value!.getSelectedRows()[0]) {
     const focusedCell = gridApi.value!.getFocusedCell();
     const bezeichnungSelectedRow = gridApi.value!.getSelectedRows()[0].bezeichnung;
-    const bezeichnungSelectedRowUnder = rowData[focusedCell!.rowIndex + 1].bezeichnung
+    const bezeichnungSelectedRowUnder = rowData[focusedCell!.rowIndex + 1].bezeichnung;
     if (!["ZWISCHENSUMME", "ENDSUMME", "STARTSUMME"].includes(bezeichnungSelectedRow) && !["ZWISCHENSUMME", "STARTSUMME"].includes(bezeichnungSelectedRowUnder)) {
       eintraegeStore.addNewZwischensumme(focusedCell!.rowIndex);
       refreshTable(focusedCell!.column, focusedCell!.rowIndex + 1);
@@ -230,7 +270,7 @@ function zwischensummeErstellen() {
   }
 }
 
-function zeileEntfernen() {
+function eintragEntfernen() {
   if (gridApi.value!.getSelectedRows()[0]) {
     const focusedCell = gridApi.value!.getFocusedCell();
     const focusedRowIndex = focusedCell!.rowIndex;
@@ -238,11 +278,11 @@ function zeileEntfernen() {
     const bezeichnungSelectedRow = gridApi.value!.getSelectedRows()[0].bezeichnung;
     if (!["ENDSUMME", "STARTSUMME"].includes(bezeichnungSelectedRow)) {
       eintraegeStore.deleteEintrag(focusedRowIndex);
-      if (rowData[focusedRowIndex]) refreshTable(focusedRowColKey, focusedRowIndex)
+      if (rowData[focusedRowIndex]) refreshTable(focusedRowColKey, focusedRowIndex);
       else if (rowData.length !== 0) {
         refreshTable(focusedRowColKey, rowData.length - 1);
       } else {
-        refreshTable(focusedRowColKey, null)
+        refreshTable(focusedRowColKey);
       }
     }
   }
@@ -256,7 +296,7 @@ function moveZeileUp() {
       const focusedRowIndex = focusedCell!.rowIndex;
       const focusedRowColKey = focusedCell!.column;
       eintraegeStore.moveUp(gridApi.value!.getFocusedCell()!.rowIndex);
-      refreshTable(focusedRowColKey, focusedRowIndex - 1)
+      refreshTable(focusedRowColKey, focusedRowIndex - 1);
     }
   }
 }
@@ -266,28 +306,29 @@ function moveZeileDown() {
     const bezeichnungSelectedRow = gridApi.value!.getSelectedRows()[0].bezeichnung;
     const focusedCell = gridApi.value!.getFocusedCell();
     const focusedRowIndex = focusedCell!.rowIndex;
-    const bezeichnungSelectedRowUnder = rowData[focusedCell!.rowIndex + 1].bezeichnung
+    const bezeichnungSelectedRowUnder = rowData[focusedCell!.rowIndex + 1].bezeichnung;
     if (bezeichnungSelectedRowUnder !== "ENDSUMME" && !["ENDSUMME", "STARTSUMME"].includes(bezeichnungSelectedRow)) {
       const focusedRowColKey = focusedCell!.column;
       eintraegeStore.moveDown(focusedRowIndex);
-      refreshTable(focusedRowColKey, focusedRowIndex + 1)
+      refreshTable(focusedRowColKey, focusedRowIndex + 1);
     }
   }
 }
 
-function refreshTable(colKey: Column | string, rowIndex: number | null) {
+function refreshTable(colKey?: Column | string, rowIndex?: number) {
   nextTick(() => {
     //this.rowData = this.eintraegeStore.eintraege;
     gridApi.value!.setRowData(eintraegeStore.eintraege);
-    gridApi.value!.forEachNode(function (node) {
+    gridApi.value!.forEachNode(function(node) {
       if (node.data.bezeichnung === "ZWISCHENSUMME") node.setRowHeight(80);
     });
     gridApi.value!.onRowHeightChanged();
-    if (rowIndex != null) {
+    columnDefs.value!.forEach(column => column.editable = false);
+    if (rowIndex && colKey) {
       gridApi.value!.getRowNode(rowIndex + "")!.setSelected(true);
       gridApi.value!.setFocusedCell(rowIndex, colKey);
-    } else
-      gridApi.value!.refreshCells({force: true});
+    }
+    gridApi.value!.refreshCells({ force: true });
   });
 }
 
