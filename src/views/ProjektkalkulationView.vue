@@ -1,43 +1,31 @@
 <template>
   <div style="width: 100%;height: 100%">
     <ag-grid-vue
-      :columnDefs="columnDefs"
-      :defaultColDef="defaultColDef"
-      :rowData="rowData"
-      class="ag-theme-alpine"
-      rowSelection="single"
-      style="width: 100%;height: 100%"
-      @cellValueChanged="onCellValueChanged"
-      @cell-key-down="onCellKeyPress"
-      @cell-clicked="onCellClicked"
-      @contextmenu="rightClickOnCell"
-      @cell-double-clicked="onCellDoubleClicked"
-      @cell-editing-stopped="onCellEditingStopped"
-      @grid-ready="onGridReady"
+        :columnDefs="columnDefs"
+        :defaultColDef="defaultColDef"
+        :rowData="rowData"
+        class="ag-theme-alpine"
+        rowSelection="single"
+        style="width: 100%;height: 100%"
+        @cellValueChanged="onCellValueChanged"
+        @contextmenu="rightClickOnCell"
+        @cell-key-down="onCellKeyPress"
+        @cell-double-clicked="onCellDoubleClicked"
+        @grid-ready="onGridReady"
     ></ag-grid-vue>
-    <!--    TODO CONTEXTMENU EINBINDEN-->
-    <context-menu :providedFunctionsProp="[...providedFunctions]" ref="contextMenuRef"></context-menu>
-    <!--    <div class="wrapper">
-          <div class="content">
-            <div class="menu">
-              <span class="item" @click="aufschlagErstellen">Aufschlag erstellen</span>
-              <span class="item" @click="zwischensummeErstellen">Zwischensumme erstellen</span>
-              <span class="item" @click="zeileEntfernen">Zeile löschen</span>
-            </div>
-          </div>
-        </div>-->
+    <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctions]"></context-menu>
   </div>
 </template>
-<script setup lang="ts">
+<script lang="ts" setup>
 import BezeichnungCellRenderer from "@/components/projektkalkulation/BezeichnungCellRenderer.vue";
 import AufschlagCellRenderer from "@/components/projektkalkulation/AufschlagCellRenderer.vue";
 import AufwandCellRenderer from "@/components/projektkalkulation/AufwandCellRenderer.vue";
 import AnteilAnZwischensummeCellRenderer from "@/components/projektkalkulation/AnteilAnZwischensummeCellRenderer.vue";
 import AnteilAmGesamtprojektCellRenderer from "@/components/projektkalkulation/AnteilAmGesamtprojektCellRenderer.vue";
-import { AgGridVue } from "ag-grid-vue3";
-import { nextTick, provide, reactive, ref } from "vue";
-import { Column, ColumnApi, GridApi } from "ag-grid-community";
-import { useEintraegeStore } from "@/stores/eintraege";
+import {AgGridVue} from "ag-grid-vue3";
+import {nextTick, provide, reactive, ref} from "vue";
+import {Column, ColumnApi, GridApi} from "ag-grid-community";
+import {useEintraegeStore} from "@/stores/eintraege";
 import ContextMenu from "@/components/ContextMenu.vue";
 
 
@@ -57,15 +45,16 @@ provide("zwischensummeErstellen", zwischensummeErstellen);
 provide("moveZeileUp", moveZeileUp);
 provide("moveZeileDown", moveZeileDown);
 const providedFunctions = ref([
-  { functionName: "eintragErstellen", functionLabel: "Neuen Eintrag erstellen" },
-  { functionName: "eintragEntfernen", functionLabel: "Eintrag entfernen" },
-  { functionName: "zwischensummeErstellen", functionLabel: "Neue Zwischensumme erstellen" },
-  { functionName: "moveZeileUp", functionLabel: "Eintrag eine Zeile nach oben verschieben" },
-  { functionName: "moveZeileDown", functionLabel: "Eintrag eine Zeile nach unten verschieben" }
+  {functionName: "eintragErstellen", functionLabel: "Neuen Eintrag erstellen"},
+  {functionName: "eintragEntfernen", functionLabel: "Eintrag entfernen"},
+  {functionName: "zwischensummeErstellen", functionLabel: "Neue Zwischensumme erstellen"},
+  {functionName: "moveZeileUp", functionLabel: "Eintrag eine Zeile nach oben verschieben", icon:"mdi-arrow-up"},
+  {functionName: "moveZeileDown", functionLabel: "Eintrag eine Zeile nach unten verschieben",icon:"mdi-arrow-down"}
 
 ]);
 const gridApi = ref<GridApi>();
 const columnApi = ref<ColumnApi>();
+
 function onGridReady(params) {
   columnApi.value = params.columnApi;
   gridApi.value = params.api;
@@ -105,12 +94,12 @@ const columnDefs = ref([
     editable: false
   }]);
 const defaultColDef = reactive(
-  {
-    suppressKeyboardEvent: params => {
-      let key = params.event.key;
-      return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key);
+    {
+      suppressKeyboardEvent: params => {
+        let key = params.event.key;
+        return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key);
+      }
     }
-  }
 );
 const eintraegeStore = useEintraegeStore();
 eintraegeStore.berechne();
@@ -129,6 +118,7 @@ function onCellEditingStopped(e) {
 
 function onCellClicked(e) {
   columnDefs.value!.forEach(column => column.editable = false);
+  refreshTable(e.e.column.colId,e.rowIndex)
 }
 
 function onCellValueChanged(e) {
@@ -145,7 +135,7 @@ function onCellValueChanged(e) {
       else e.data.aufwandWert = e.oldValue;
       break;
   }
-  refreshTable();
+  refreshTable(e.column.colId,e.rowIndex)
 }
 
 function onCellKeyPress(e) {
@@ -158,7 +148,7 @@ function onCellKeyPress(e) {
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
         case "ArrowDown":
-          if (e.data.bezeichnung === "STARTSUMME" && (shift || ctrl)) {
+          if (e.data.bezeichnung == "STARTSUMME" && (shift || ctrl)) {
             refreshTable(e.column, 1);
           } else if (shift || ctrl) {
             moveZeileDown();
@@ -171,7 +161,7 @@ function onCellKeyPress(e) {
           }
           break;
         case "ArrowUp":
-          if (e.data.bezeichnung === "ENDSUMME" && (shift || ctrl)) {
+          if (e.data.bezeichnung == "ENDSUMME" && (shift || ctrl)) {
             refreshTable(e.column, rowData.length - 2);
           } else if (shift || ctrl) {
             moveZeileUp();
@@ -238,6 +228,7 @@ function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: stri
   gridApi.value!.stopEditing(cancel);
   columnDefs.value!.forEach(column => column.editable = false);
   gridApi.value!.setFocusedCell(rowIndex, colKey);
+  refreshTable(colKey,rowIndex)
 }
 
 function startEditingCell(e, colKey: string) {
@@ -319,16 +310,16 @@ function refreshTable(colKey?: Column | string, rowIndex?: number) {
   nextTick(() => {
     //this.rowData = this.eintraegeStore.eintraege;
     gridApi.value!.setRowData(eintraegeStore.eintraege);
-    gridApi.value!.forEachNode(function(node) {
+    gridApi.value!.forEachNode(function (node) {
       if (node.data.bezeichnung === "ZWISCHENSUMME") node.setRowHeight(80);
     });
     gridApi.value!.onRowHeightChanged();
     columnDefs.value!.forEach(column => column.editable = false);
-    if (rowIndex && colKey) {
+    if (rowIndex!=undefined && colKey!=undefined) {
       gridApi.value!.getRowNode(rowIndex + "")!.setSelected(true);
       gridApi.value!.setFocusedCell(rowIndex, colKey);
     }
-    gridApi.value!.refreshCells({ force: true });
+    gridApi.value!.refreshCells({force: true});
   });
 }
 
