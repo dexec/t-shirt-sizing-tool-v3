@@ -21,7 +21,6 @@ export const useStatistikenStore = defineStore('statistiken', () => {
                 const castedBucket = bucket as Bucket
                 statistiken.value.push(new Statistik(castedBucket, anzahlGeschaetzt(castedBucket), anzahlUngeschaetzt(castedBucket), anzahlGesamt(castedBucket), min(castedBucket), max(castedBucket), median(castedBucket), durchschnitt(castedBucket), anteilAnzahl(castedBucket), summeSchaetzungen(castedBucket), summeDurchschnitt(castedBucket), summeMedian(castedBucket)))
             })
-
         }
     }
 
@@ -151,6 +150,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
         } else return pakete.paketeChildren().length
         return result;
     }
+
     function summeAlleBucketsMin(): number {
         let result = 0;
         pakete.paketeChildren().filter(paket => paket.zurRechnungFreigegeben()).forEach(paket => {
@@ -169,17 +169,18 @@ export const useStatistikenStore = defineStore('statistiken', () => {
         return result;
     }
 
-    function summeAlleBucketsDurchschnitt():number {
+    function summeAlleBucketsDurchschnitt(): number {
         const sum = pakete.paketeChildren().filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0) as number;
         return (sum / summeAlleBucketsGeschaetzt()) || 0;
     }
 
-    function summeAlleBucketsMedian():number {
+    function summeAlleBucketsMedian(): number {
         const filteredPaketeChildren = pakete.paketeChildren().filter(paket => paket.zurRechnungFreigegeben());
         const mid = Math.floor(filteredPaketeChildren.length / 2),
             nums = [...filteredPaketeChildren.map(paket => paket.schaetzung)].sort((a, b) => a! - b!);
         return filteredPaketeChildren.length % 2 != 0 ? nums[mid]! : (nums[mid - 1]! + nums[mid]!) / 2;
     }
+
     function summeAlleBucketsSchaetzungenSumme(): number {
         let result = 0;
         if (projekt.bucketmodus) {
@@ -196,26 +197,24 @@ export const useStatistikenStore = defineStore('statistiken', () => {
 
     function summeAlleBucketsDurchschnittSumme(): number {
         let result = 0;
-        if(projekt.bucketmodus) {
+        if (projekt.bucketmodus) {
             for (const bucket of buckets.buckets) {
                 result += summeDurchschnitt(bucket as Bucket);
             }
-        }
-        else {
-            return summeAlleBucketsDurchschnitt()*pakete.paketeChildren().length;
+        } else {
+            return summeAlleBucketsDurchschnitt() * summeAlleBucketsGeschaetzt();
         }
         return result;
     }
 
     function summeAlleBucketsMedianSumme(): number {
         let result = 0;
-        if(projekt.bucketmodus) {
+        if (projekt.bucketmodus) {
             for (const bucket of buckets.buckets) {
                 result += summeMedian(bucket as Bucket);
             }
-        }
-        else {
-            return summeAlleBucketsMedian()*pakete.paketeChildren().length;
+        } else {
+            return summeAlleBucketsMedian() * summeAlleBucketsGeschaetzt();
         }
         return result;
     }
