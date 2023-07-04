@@ -21,7 +21,7 @@
         @grid-ready='onGridReady'>
     </ag-grid-vue>
   </div>
-  <context-menu :providedFunctionsProp="[...this.providedFunctions]" ref="contextMenu"></context-menu>
+  <context-menu ref="contextMenu" :providedFunctionsProp="[...this.providedFunctions]"></context-menu>
 </template>
 <!--
 <script setup lang="ts">
@@ -102,7 +102,10 @@ export default {
           field: 'bucket',
           headerName: 'Bucket',
           valueSetter: (params) => {
-            params.data.bucket = useBucketsStore().buckets.find(bucket => bucket.name === params.newValue);
+            let bucket;
+            if (params.newValue === "") bucket = null;
+            else bucket = useBucketsStore().buckets.find(bucket => bucket.name === params.newValue);
+            usePaketeStore().updateBucket(params.data, bucket);
           },
           valueGetter: (params) => {
             if (params.data.bucket) return params.data.bucket.name
@@ -143,10 +146,10 @@ export default {
         {functionName: 'comparePaket', functionLabel: "Paket vergleichen"},
         {functionName: 'movePaketUp', functionLabel: "Pfeil hoch", icon: "mdi-arrow-up"},
         {functionName: 'movePaketDown', functionLabel: "Pfeil runter", icon: "mdi-arrow-down"},
-        {functionName: 'movePaketRightUp', functionLabel: "Pfeil hoch rechts"},
-        {functionName: 'movePaketRightDown', functionLabel: "Pfeil runter rechts"},
-        {functionName: 'movePaketLeftDown', functionLabel: "Pfeil runter links"},
-        {functionName: 'movePaketLeftUp', functionLabel: "Pfeil hoch links"},
+        {functionName: 'movePaketRightUp', functionLabel: "Pfeil hoch rechts", icon: "mdi-arrow-top-right"},
+        {functionName: 'movePaketRightDown', functionLabel: "Pfeil runter rechts", icon: "mdi-arrow-bottom-right"},
+        {functionName: 'movePaketLeftDown', functionLabel: "Pfeil runter links", icon: "mdi-arrow-bottom-left"},
+        {functionName: 'movePaketLeftUp', functionLabel: "Pfeil hoch links", icon: "mdi-arrow-left-up"},
       ],
     };
   },
@@ -413,7 +416,11 @@ export default {
                   if (colKey === 'schaetzung') {
                     this.paketeStore.updateSchaetzung(e.data, -e.value)
                     e.data[colKey] = null
-                  } else e.data[colKey] = null
+                  }
+                  else if(colKey === 'bucket') {
+                    usePaketeStore().updateBucket(e.data, null)
+                  }
+                  else e.data[colKey] = null
                   this.refreshTable(colKey, e.data.id)
                 }
               }
