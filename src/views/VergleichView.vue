@@ -6,7 +6,7 @@
   <v-container>
     <v-row id="rowBucketsButtonAndTrash" class="mb-6" justify="center">
       <v-btn class="bucketsButton" @click="showPaketeWithoutBucket=!showPaketeWithoutBucket"><span
-        class="bucketsButtonText">Toggle
+          class="bucketsButtonText">Toggle
           Arbeitspakete</span></v-btn>
       <v-dialog v-model="dialog" width="auto">
         <template v-slot:activator="{props}">
@@ -23,12 +23,12 @@
           </v-card-text>
         </v-card>
       </v-dialog>
-      <draggable v-if="!showPaketeWithoutBucket"
+      <draggable :style="{visibility: (!showPaketeWithoutBucket || paketeWithoutBucket.length==0 ? 'visible':'hidden')}"
                  :list="[]"
                  class="paket"
-                 ghostClass="destination-item"
                  group="pakete"
                  itemKey="name"
+                 ghostClass="ghostClass"
                  @change="removePaketFromBucket"
       >
         <template #header>
@@ -38,59 +38,54 @@
         </template>
       </draggable>
     </v-row>
-    <v-row justify="space-around">
-      <v-col v-if="showPaketeWithoutBucket">
+    <v-row>
+      <v-col cols="3" :style="{visibility: (showPaketeWithoutBucket ? 'visible':'hidden')}">
         <h2>Unzugewiesene Pakete</h2>
         <draggable
-          v-if="paketeWithoutBucket.length>0"
-          :list="paketeWithoutBucket"
-          class="dragArea list-group"
-          group="pakete"
-          itemKey="name"
-          :sort="false"
-          style="overflow-y:scroll;height: 70vh"
-          @change="removePaketFromBucket"
-          @start="onStartDrag"
-          @end="onEndDrag"
+            v-if="paketeWithoutBucket.length>0"
+            :list="paketeWithoutBucket"
+            :sort="false"
+            class="dragArea list-group"
+            group="pakete"
+            itemKey="name"
+            style="overflow-y:auto;height: 70vh"
+            @change="removePaketFromBucket"
+            ghostClass="ghostClass"
         >
           <template #item="{ element }">
-            <div class="tooltip">
-              <div class="paket ma-2" title="Test">
-                <span class="paketContent">#{{ (element as Paket).ticket_nr }}</span>
-                <span class="paketContent">{{ (element as Paket).thema }}</span>
-              </div>
-              <!--              <span class="tooltiptext">{{ rootParentThemaOfPaket(element) }}</span>-->
+            <div :title="getTitleForPaket(element)" class="paket ma-2" style="position: relative;">
+              <span class="paketContent">#{{ (element as Paket).ticket_nr }}</span>
+              <span class="paketContent">{{ (element as Paket).thema }}</span>
             </div>
           </template>
         </draggable>
-        <span v-if="paketeWithoutBucket.length===0">Es gibt keine Pakete ohne Bucket</span>
+        <span v-if="paketeWithoutBucket.length==0">Es gibt keine Pakete ohne Bucket</span>
       </v-col>
       <v-col>
-        <v-row class="d-flex flex-nowrap justify-center" style="overflow-y:auto;overflow-x:hidden;">
+        <v-row class="d-flex flex-nowrap justify-start">
+          <div v-for="bucket of unsortedPaketeListsSortedByBucketsMap.keys()" :key="bucket.id" class="list-group">
+            <div v-if="selected.includes(bucket.id)" class="paket ma-2">{{ bucket.name }}</div>
+          </div>
+        </v-row>
+        <v-row class="d-flex flex-nowrap justify-start" style="overflow-y:scroll;overflow-x:hidden;">
           <div v-for="bucket of unsortedPaketeListsSortedByBucketsMap.keys()" :key="bucket.id">
-            <div class="paket ma-2">{{ bucket.name }}</div>
             <draggable
-              style="height: 65vh"
-              v-if="selected.includes(bucket.id)"
-              :list="getPaketSortedByBucket(bucket)"
-              class="dragArea list-group"
-              ghost-class="destination-item"
-              group="pakete"
-              itemKey="name"
-              :sort="false"
-              @change="changeBucketOfPaket($event,bucket as Bucket)"
+                v-if="selected.includes(bucket.id)"
+                :list="getPaketeSortedByBucket(bucket)"
+                class="dragArea list-group"
+                group="pakete"
+                itemKey="name"
+                style="height: 65vh"
+                @change="changeBucketOfPaket($event,bucket as Bucket)"
             >
               <template #item="{ element }">
-                <div class="tooltip">
-                  <div class="paket ma-2" title="Test">
+                <div :title="getTitleForPaket(element)" class="paket ma-2">
                   <span :style="searchPaket(element)" class="list-group-item paketContent">#{{
                       (element as Paket).ticket_nr
                     }}</span>
-                    <span :style="searchPaket(element)" class="list-group-item  paketContent">{{
-                        (element as Paket).thema
-                      }}</span>
-                  </div>
-                  <!--                  <span class="tooltiptext">{{ rootParentThemaOfPaket(element) }}</span>-->
+                  <span :style="searchPaket(element)" class="list-group-item  paketContent">{{
+                      (element as Paket).thema
+                    }}</span>
                 </div>
               </template>
             </draggable>
@@ -102,22 +97,22 @@
 </template>
 
 <script lang="ts" setup>
-import { usePaketeStore } from "@/stores/pakete";
-import { useBucketsStore } from "@/stores/buckets";
-import type { Ref } from "vue";
-import { computed, onActivated, ref } from "vue";
-import { Bucket } from "@/Bucket";
-import { Paket } from "@/Paket";
+import {usePaketeStore} from "@/stores/pakete";
+import {useBucketsStore} from "@/stores/buckets";
+import {computed, onActivated, ref} from "vue";
+import {Bucket} from "@/Bucket";
+import {Paket} from "@/Paket";
 import draggable from "vuedraggable";
 
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
 const dialog = ref(false);
 const checked = ref(false);
-const showPaketeWithoutBucket = ref(true);
+const showTrash = ref(true);
 const paketeWithoutBucket = computed(() => paketeStore.paketeChildrenWithNoBucket());
 const paketeChildren = computed(() => paketeStore.paketeChildren());
 const unsortedPaketeListsSortedByBucketsMap = paketeStore.unsortedPaketeListsSortedByBucketsMap;
+const showPaketeWithoutBucket = ref(true)
 const searchedPaket = ref(0);
 
 const buckets = bucketStore.buckets as Bucket[];
@@ -142,9 +137,21 @@ onActivated(() => {
     console.log(draggablePaketWithoutBucket.style.height)
   }
 })*/
+function getTitleForPaket(paket: Paket): string {
+  let result: string = "";
+  const parents = paketeStore.parentsOfPaket(paket).reverse();
+  for (const paket of parents) {
+    result += paket.thema + "\n";
+    for (let i = 0; i < paket.lvl + 1; i++) {
+      result += "\t"
+    }
+  }
+  result += paket.thema
+  return result
+}
 
 function sortSelectedBuckets() {
-  selected.value.sort(function(a, b) {
+  selected.value.sort(function (a, b) {
     return a - b;
   });
 }
@@ -157,7 +164,7 @@ function sortSelectedBuckets() {
   return result;
 }*/
 
-function getPaketSortedByBucket(bucket: Bucket) {
+function getPaketeSortedByBucket(bucket: Bucket) {
   return unsortedPaketeListsSortedByBucketsMap.get(bucket) as Paket[];
 }
 
@@ -186,7 +193,7 @@ function rootParentThemaOfPaket(paket: Paket): string {
   else return paket.thema;
 }
 
-function onStartDrag(e) {
+function onStartDrag(e: any) {
   const tooltips = document.getElementsByClassName("tooltip");
   console.log(e);
   for (const tooltip of tooltips) {
@@ -198,7 +205,7 @@ function onStartDrag(e) {
   }
 }
 
-function onEndDrag(e) {
+function onEndDrag(e: any) {
   const tooltips = document.getElementsByClassName("tooltiptext");
   console.log(e);
   /*for(const element of tooltips) {
@@ -240,37 +247,10 @@ function onEndDrag(e) {
 
 .list-group {
   width: 200px;
-  min-height: 250px;
+  /*min-height: 250px;*/
 }
 
-.destination-item {
+.ghostClass {
   display: none;
 }
-
-/* Tooltip container */
-.tooltip {
-  position: relative;
-  display: inline-block;
-}
-
-/* Tooltip text */
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: 120px;
-  background-color: black;
-  color: #fff;
-  text-align: center;
-  padding: 5px 0;
-  border-radius: 6px;
-
-  /* Position the tooltip text - see examples below! */
-  position: absolute;
-  z-index: 1;
-}
-
-/* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-}
-
 </style>
