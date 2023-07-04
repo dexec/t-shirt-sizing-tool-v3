@@ -4,7 +4,7 @@
       <template v-slot:default>
         <thead>
         <tr>
-          <th rowspan="2">Bucket</th>
+          <th v-if="projektStore.bucketmodus" rowspan="2">Bucket</th>
           <th rowspan="2">Anzahl geschätzt</th>
           <th rowspan="2">Anzahl ungeschätzt</th>
           <th rowspan="2">Anzahl gesamt</th>
@@ -15,9 +15,9 @@
           <th rowspan="2">Median</th>
           <th colspan="2">Summe Schätzungen</th>
           <th colspan="2">Durchschnittliche Summe</th>
-          <th colspan="2">Summe nach Median</th>
+          <th colspan="2">Mediane Summe</th>
         </tr>
-        <tr>
+        <tr v-if="projektStore.bucketmodus">
           <th>PT</th>
           <th>%</th>
           <th>PT</th>
@@ -57,7 +57,7 @@
           </td>
         </tr>
         <tr class="font-weight-bold">
-          <td>Summe</td>
+          <td  v-if="projektStore.bucketmodus">Summe</td>
           <td>{{ statistiken.summeAlleBucketsGeschaetzt() }}</td>
           <td>{{ statistiken.summeAlleBucketsUngeschaetzt() }}</td>
           <td>{{ statistiken.summeAlleBucketsGesamt() }}</td>
