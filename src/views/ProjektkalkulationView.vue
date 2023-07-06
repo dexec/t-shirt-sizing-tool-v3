@@ -48,8 +48,8 @@ const providedFunctions = ref([
   {functionName: "eintragErstellen", functionLabel: "Neuen Eintrag erstellen"},
   {functionName: "eintragEntfernen", functionLabel: "Eintrag entfernen"},
   {functionName: "zwischensummeErstellen", functionLabel: "Neue Zwischensumme erstellen"},
-  {functionName: "moveZeileUp", functionLabel: "Eintrag eine Zeile nach oben verschieben", icon:"mdi-arrow-up"},
-  {functionName: "moveZeileDown", functionLabel: "Eintrag eine Zeile nach unten verschieben",icon:"mdi-arrow-down"}
+  {functionName: "moveZeileUp", functionLabel: "Eintrag eine Zeile nach oben verschieben", icon: "mdi-arrow-up"},
+  {functionName: "moveZeileDown", functionLabel: "Eintrag eine Zeile nach unten verschieben", icon: "mdi-arrow-down"}
 
 ]);
 const gridApi = ref<GridApi>();
@@ -118,7 +118,7 @@ function onCellEditingStopped(e) {
 
 function onCellClicked(e) {
   columnDefs.value!.forEach(column => column.editable = false);
-  refreshTable(e.e.column.colId,e.rowIndex)
+  refreshTable(e.e.column.colId, e.rowIndex)
 }
 
 function onCellValueChanged(e) {
@@ -135,7 +135,7 @@ function onCellValueChanged(e) {
       else e.data.aufwandWert = e.oldValue;
       break;
   }
-  refreshTable(e.column.colId,e.rowIndex)
+  refreshTable(e.column.colId, e.rowIndex)
 }
 
 function onCellKeyPress(e) {
@@ -181,7 +181,7 @@ function onCellKeyPress(e) {
           if (shift || ctrl) {
             eintragEntfernen();
           } else {
-            if (!["anteilZwischensumme", "anteilGesamtprojekt"].includes(colKey)) {
+            if (!["anteilZwischensumme", "anteilGesamtprojekt"].includes(colKey) && e.data.bezeichnung!="ZWISCHENSUMME") {
               if (colKey == "aufwandWert") {
                 eintraegeStore.updateAufwand(e.rowIndex, 0);
               } else if (colKey == "aufschlagWert") {
@@ -228,7 +228,7 @@ function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: stri
   gridApi.value!.stopEditing(cancel);
   columnDefs.value!.forEach(column => column.editable = false);
   gridApi.value!.setFocusedCell(rowIndex, colKey);
-  refreshTable(colKey,rowIndex)
+  refreshTable(colKey, rowIndex)
 }
 
 function startEditingCell(e, colKey: string) {
@@ -315,7 +315,7 @@ function refreshTable(colKey?: Column | string, rowIndex?: number) {
     });
     gridApi.value!.onRowHeightChanged();
     columnDefs.value!.forEach(column => column.editable = false);
-    if (rowIndex!=undefined && colKey!=undefined) {
+    if (rowIndex != undefined && colKey != undefined) {
       gridApi.value!.getRowNode(rowIndex + "")!.setSelected(true);
       gridApi.value!.setFocusedCell(rowIndex, colKey);
     }
