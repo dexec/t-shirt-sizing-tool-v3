@@ -7,7 +7,7 @@ import {useBucketsStore} from "@/stores/buckets";
 
 export const usePaketeStore = defineStore("pakete", () => {
     const bucketStore = useBucketsStore();
-    const buckets = bucketStore.buckets as Bucket[];
+    const bucketsAsSortedArray = bucketStore.bucketsAsSortedArray;
     const stackForTreeView: Paket[] = [];
     const paketeAsTreeView = ref<Array<Paket>>([]);
     const paketeAsMap = ref(new Map<number, Paket>());
@@ -16,11 +16,11 @@ export const usePaketeStore = defineStore("pakete", () => {
     let highestID = 0;
     for (const paket of saveFile.pakete) {
         if (paket.id > highestID) highestID = paket.id;
-        paketeAsMap.value.set(paket.id, new Paket(paket.ticket_nr, paket.thema, paket.beschreibung, paket.komponente, buckets.find(bucket => bucket.name == paket.bucket) as Bucket, paket.schaetzung, paket.open, 0, null, [], paket.id));
+        paketeAsMap.value.set(paket.id, new Paket(paket.ticket_nr, paket.thema, paket.beschreibung, paket.komponente, bucketsAsSortedArray.find(bucket => bucket.name == paket.bucket) as Bucket, paket.schaetzung, paket.open, 0, null, [], paket.id));
     }
     Paket.idCounter = highestID + 1;
     //Stresstest generierung
-    const anzahlStresstests = 10;
+    const anzahlStresstests = 1000;
     for (let i = 0; i < anzahlStresstests; i++) {
         const newPaket = new Paket(i + anzahlStresstests + "", "Testing" + i, "Ticket zum Testen", "Test", null, null, false, 0, null, []);
         paketeAsMap.value.set(newPaket.id, newPaket);
@@ -61,8 +61,8 @@ export const usePaketeStore = defineStore("pakete", () => {
         }
     }
 
-    for (const bucket of buckets) {
-        unsortedPaketeListsSortedByBucketsMap.value.set(bucket, []);
+    for (const bucket of bucketsAsSortedArray) {
+        unsortedPaketeListsSortedByBucketsMap.value.set(bucket as Bucket, []);
     }
 
     paketeAsMap.value.forEach(paket => {
