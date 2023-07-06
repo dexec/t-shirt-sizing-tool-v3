@@ -17,18 +17,18 @@
         <v-card>
           <v-card-text>
             <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
-                        :value="bucket.id" @change="sortSelectedBuckets">
+                        :value="bucket.id" @change="sortSelectedBuckets()">
             </v-checkbox>
             <div v-if="buckets.length===0">Es gibt keine Buckets</div>
           </v-card-text>
         </v-card>
       </v-dialog>
-      <draggable :style="{visibility: (!showPaketeWithoutBucket || paketeWithoutBucket.length==0 ? 'visible':'hidden')}"
-                 :list="[]"
+      <draggable :list="[]"
+                 :style="{visibility: (!showPaketeWithoutBucket || paketeWithoutBucket.length==0 ? 'visible':'hidden')}"
                  class="paket"
+                 ghostClass="ghostClass"
                  group="pakete"
                  itemKey="name"
-                 ghostClass="ghostClass"
                  @change="removePaketFromBucket"
       >
         <template #header>
@@ -39,18 +39,18 @@
       </draggable>
     </v-row>
     <v-row>
-      <v-col cols="3" :style="{visibility: (showPaketeWithoutBucket ? 'visible':'hidden')}">
+      <v-col :style="{visibility: (showPaketeWithoutBucket ? 'visible':'hidden')}" cols="3">
         <h2>Unzugewiesene Pakete</h2>
         <draggable
             v-if="paketeWithoutBucket.length>0"
-            :list="paketeWithoutBucket"
+            v-model="paketeWithoutBucket"
             :sort="false"
             class="dragArea list-group"
+            ghostClass="ghostClass"
             group="pakete"
             itemKey="name"
             style="overflow-y:auto;height: 70vh"
             @change="removePaketFromBucket"
-            ghostClass="ghostClass"
         >
           <template #item="{ element }">
             <div :title="getTitleForPaket(element)" class="paket ma-2" style="position: relative;">
@@ -63,20 +63,21 @@
       </v-col>
       <v-col>
         <v-row class="d-flex flex-nowrap justify-start">
-          <div v-for="bucket of unsortedPaketeListsSortedByBucketsMap.keys()" :key="bucket.id" class="list-group">
-            <div v-if="selected.includes(bucket.id)" class="paket ma-2">{{ bucket.name }}</div>
+          <div v-for="bucketId of selected" :key="bucketId">
+            <div v-if="bucketsAsMap.get(bucketId)" class="list-group">
+              <div class="paket ma-2">{{ bucketsAsMap.get(bucketId).name }}</div>
+            </div>
           </div>
         </v-row>
-        <v-row class="d-flex flex-nowrap justify-start" style="overflow-y:scroll;overflow-x:hidden;">
-          <div v-for="bucket of unsortedPaketeListsSortedByBucketsMap.keys()" :key="bucket.id">
+        <v-row class="d-flex flex-nowrap justify-start" style="overflow-y:auto;overflow-x:hidden;">
+          <div v-for="bucketId of selected" :key="bucketId">
             <draggable
-                v-if="selected.includes(bucket.id)"
-                :list="getPaketeSortedByBucket(bucket)"
+                :list="getPaketeSortedByBucket(bucketsAsMap.get(bucketId)!)"
                 class="dragArea list-group"
                 group="pakete"
                 itemKey="name"
                 style="height: 65vh"
-                @change="changeBucketOfPaket($event,bucket as Bucket)"
+                @change="changeBucketOfPaket($event,buckets.find(bucket => bucket.id == bucketId)!)"
             >
               <template #item="{ element }">
                 <div :title="getTitleForPaket(element)" class="paket ma-2">
@@ -107,23 +108,16 @@ import draggable from "vuedraggable";
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
 const dialog = ref(false);
-const checked = ref(false);
-const showTrash = ref(true);
 const paketeWithoutBucket = computed(() => paketeStore.paketeChildrenWithNoBucket());
-const paketeChildren = computed(() => paketeStore.paketeChildren());
 const unsortedPaketeListsSortedByBucketsMap = paketeStore.unsortedPaketeListsSortedByBucketsMap;
 const showPaketeWithoutBucket = ref(true)
 const searchedPaket = ref(0);
 
-const buckets = bucketStore.buckets as Bucket[];
+const buckets = bucketStore.bucketsAsSortedArray as Bucket[];
+const bucketsAsMap = bucketStore.bucketsAsMap;
 const selected = ref<number[]>(buckets.map(bucket => bucket.id));
-onActivated(() => {
-  for (let bucketID of selected.value) {
-    if (!buckets.map(bucket => bucket.id).includes(bucketID)) {
-      selected.value.splice(selected.value.indexOf(bucketID), 1);
-    }
-  }
-});
+onActivated(() => sortSelectedBuckets());
+
 
 /*onMounted(() => {
   let rowBucketsButtonAndTrash = document.getElementById("rowBucketsButtonAndTrash");
@@ -151,9 +145,15 @@ function getTitleForPaket(paket: Paket): string {
 }
 
 function sortSelectedBuckets() {
-  selected.value.sort(function (a, b) {
-    return a - b;
-  });
+  const copySelected = [...selected.value]
+  selected.value.length = 0
+  for (let bucket of buckets) {
+    if (copySelected.includes(bucket.id)) {
+      selected.value.push(bucket.id)
+    }
+  }
+  copySelected.length = 0
+  selected.value.forEach(value => console.log(value))
 }
 
 /*function getPaketSortedByBucket(bucket: Bucket) {
@@ -177,7 +177,7 @@ function removePaketFromBucket(evt: any) {
 function changeBucketOfPaket(evt: any, bucket: Bucket) {
   if (evt.added) {
     const updatePaket = evt.added.element;
-    updatePaket.bucket = bucketStore.buckets.find(currentBucket => currentBucket == bucket);
+    updatePaket.bucket = bucketStore.bucketsAsMap.get(bucket.id);
   }
 }
 
