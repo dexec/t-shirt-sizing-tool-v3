@@ -57,7 +57,7 @@
           </td>
         </tr>
         <tr class="font-weight-bold">
-          <td  v-if="projektStore.bucketmodus">Summe</td>
+          <td v-if="projektStore.bucketmodus">Summe</td>
           <td>{{ statistiken.summeAlleBucketsGeschaetzt() }}</td>
           <td>{{ statistiken.summeAlleBucketsUngeschaetzt() }}</td>
           <td>{{ statistiken.summeAlleBucketsGesamt() }}</td>
