@@ -17,7 +17,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function berechne() {
         statistiken.value.length = 0;
         if (projekt.bucketmodus) {
-            buckets.buckets.forEach(bucket => {
+            buckets.bucketsAsSortedArray.forEach(bucket => {
                 const castedBucket = bucket as Bucket
                 statistiken.value.push(new Statistik(castedBucket, anzahlGeschaetzt(castedBucket), anzahlUngeschaetzt(castedBucket), anzahlGesamt(castedBucket), min(castedBucket), max(castedBucket), median(castedBucket), durchschnitt(castedBucket), anteilAnzahl(castedBucket), summeSchaetzungen(castedBucket), summeDurchschnitt(castedBucket), summeMedian(castedBucket)))
             })
@@ -112,9 +112,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function summeAlleBucketsGeschaetzt(): number {
         let result = 0;
         if (projekt.bucketmodus) {
-            for (const bucket of buckets.buckets) {
-                result += anzahlGeschaetzt(bucket as Bucket);
-            }
+            buckets.bucketsAsMap.forEach(bucket => result += anzahlGeschaetzt(bucket))
         } else {
             pakete.paketeChildren().forEach(paket => {
                 if (paket.zurRechnungFreigegeben()) {
@@ -128,9 +126,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function summeAlleBucketsUngeschaetzt(): number {
         let result = 0;
         if (projekt.bucketmodus) {
-            for (const bucket of buckets.buckets) {
-                result += anzahlUngeschaetzt(bucket as Bucket);
-            }
+            buckets.bucketsAsMap.forEach(bucket => result += anzahlUngeschaetzt(bucket))
         } else {
             pakete.paketeChildren().forEach(paket => {
                 if (!paket.zurRechnungFreigegeben()) {
@@ -144,9 +140,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function summeAlleBucketsGesamt(): number {
         let result = 0;
         if (projekt.bucketmodus) {
-            for (const bucket of buckets.buckets) {
-                result += anzahlGesamt(bucket as Bucket);
-            }
+            buckets.bucketsAsMap.forEach(bucket => result += anzahlGesamt(bucket))
         } else return pakete.paketeChildren().length
         return result;
     }
@@ -184,9 +178,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function summeAlleBucketsSchaetzungenSumme(): number {
         let result = 0;
         if (projekt.bucketmodus) {
-            for (const bucket of buckets.buckets) {
-                result += summeSchaetzungen(bucket as Bucket);
-            }
+            buckets.bucketsAsMap.forEach(bucket => result += summeSchaetzungen(bucket))
         } else {
             pakete.paketeChildren().forEach(paket => {
                 if (paket.zurRechnungFreigegeben()) result += paket.schaetzung!
@@ -198,9 +190,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function summeAlleBucketsDurchschnittSumme(): number {
         let result = 0;
         if (projekt.bucketmodus) {
-            for (const bucket of buckets.buckets) {
-                result += summeDurchschnitt(bucket as Bucket);
-            }
+            buckets.bucketsAsMap.forEach(bucket => result += summeDurchschnitt(bucket))
         } else {
             return summeAlleBucketsDurchschnitt() * summeAlleBucketsGeschaetzt();
         }
@@ -210,9 +200,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
     function summeAlleBucketsMedianSumme(): number {
         let result = 0;
         if (projekt.bucketmodus) {
-            for (const bucket of buckets.buckets) {
-                result += summeMedian(bucket as Bucket);
-            }
+            buckets.bucketsAsMap.forEach(bucket => result += summeMedian(bucket))
         } else {
             return summeAlleBucketsMedian() * summeAlleBucketsGeschaetzt();
         }
