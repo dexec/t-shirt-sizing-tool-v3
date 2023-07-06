@@ -10,7 +10,7 @@
     <v-textarea outlined solo></v-textarea>
     <h1 v-if="projektStore.bucketmodus">Buckets</h1>
     <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
-      <div v-for="(bucket,index) in bucketStore.buckets" :key="bucket.id">
+      <div v-for="(bucket,index) in bucketStore.bucketsAsSortedArray" :key="bucket.id">
         <v-container style="width: 300px;height: 150px">
           <v-row>
             <v-col>
@@ -43,7 +43,7 @@
               <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketAfter()">
                 <v-icon icon="mdi-plus"></v-icon>
               </v-btn>
-              <v-btn :disabled="!(index < bucketStore.buckets.length - 1)" :style="showArrowRight(bucket as Bucket, index)"
+              <v-btn :disabled="!(index < bucketStore.bucketsAsSortedArray.length - 1)" :style="showArrowRight(bucket as Bucket, index)"
                      class="button" @click="swapWithBucketAfter()">
                 <v-icon icon="mdi-arrow-right"></v-icon>
               </v-btn>
@@ -56,7 +56,7 @@
           </v-row>
         </v-container>
       </div>
-      <div v-if="bucketStore.buckets.length===0">
+      <div v-if="bucketStore.bucketsAsSortedArray.length===0">
         <v-btn @click="addFirstBucket()">
           <v-icon icon="mdi-plus"></v-icon>
         </v-btn>
