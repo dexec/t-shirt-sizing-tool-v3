@@ -104,7 +104,7 @@ export default {
           valueSetter: (params) => {
             let bucket;
             if (params.newValue === "") bucket = null;
-            else bucket = useBucketsStore().buckets.find(bucket => bucket.name === params.newValue);
+            else bucket = useBucketsStore().bucketsAsSortedArray.find(bucket => bucket.name === params.newValue);
             usePaketeStore().updateBucket(params.data, bucket);
           },
           valueGetter: (params) => {
@@ -113,7 +113,7 @@ export default {
           },
           cellEditor: 'agSelectCellEditor',
           cellEditorParams: {
-            values: ["", ...useBucketsStore().getBucketNames()]
+            values: ["", ...useBucketsStore().getBucketNamesSorted()]
           },
           cellStyle: params => {
             if (params.data.children.length > 0) return {backgroundColor: 'lightgrey'}
@@ -416,11 +416,9 @@ export default {
                   if (colKey === 'schaetzung') {
                     this.paketeStore.updateSchaetzung(e.data, -e.value)
                     e.data[colKey] = null
-                  }
-                  else if(colKey === 'bucket') {
+                  } else if (colKey === 'bucket') {
                     usePaketeStore().updateBucket(e.data, null)
-                  }
-                  else e.data[colKey] = null
+                  } else e.data[colKey] = null
                   this.refreshTable(colKey, e.data.id)
                 }
               }
