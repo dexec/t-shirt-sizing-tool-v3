@@ -1,28 +1,33 @@
 <template>
-  <div>
+  <v-container>
+  <v-row id="abc">
     <input type="file" @change="handleFileUpload">
-  </div>
+  </v-row>
+  </v-container>
 </template>
 
-<script>
+<script lang="ts">
+import {ImportProject} from "@/components/ImportProject";
 export default {
   methods: {
     handleFileUpload(event) {
-      console.log(event)
       const file = event.target.files[0];
       const reader = new FileReader();
 
       reader.onload = () => {
         const fileContents = reader.result;
-        console.log(fileContents)
+        const importProject = ImportProject.getInstance()
+        importProject.initialize(fileContents as string)
       };
-
       reader.readAsText(file);
     }
   }
 };
 </script>
+<script setup lang="ts">
+import {onMounted} from "vue";
 
+</script>
 <style scoped>
 #drop-area {
   border: 2px dashed #ccc;
