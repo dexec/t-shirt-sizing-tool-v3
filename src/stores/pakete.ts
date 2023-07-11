@@ -4,61 +4,22 @@ import {ref} from "vue";
 import saveFile from "@/stores/file.json";
 import type {Bucket} from "@/Bucket";
 import {useBucketsStore} from "@/stores/buckets";
+import {ImportProject} from "@/components/ImportProject";
 
 export const usePaketeStore = defineStore("pakete", () => {
     const bucketStore = useBucketsStore();
     const bucketsAsSortedArray = bucketStore.bucketsAsSortedArray;
-    const stackForTreeView: Paket[] = [];
-    const paketeAsTreeView = ref<Array<Paket>>([]);
-    const paketeAsMap = ref(new Map<number, Paket>());
+    const importProject = ImportProject.getInstance()
+    const paketeAsTreeView = ref<Array<Paket>>(importProject.getPaketeTreeView());
+    const paketeAsMap = ref(new Map<number, Paket>(importProject.getPaketeMap()));
     const unsortedPaketeListsSortedByBucketsMap = ref(new Map<Bucket, Paket[]>());
-
-    let highestID = 0;
-    for (const paket of saveFile.pakete) {
-        if (paket.id > highestID) highestID = paket.id;
-        paketeAsMap.value.set(paket.id, new Paket(paket.ticket_nr, paket.thema, paket.beschreibung, paket.komponente, bucketsAsSortedArray.find(bucket => bucket.name == paket.bucket) as Bucket, paket.schaetzung, paket.open, 0, null, [], paket.id));
-    }
+    //Stresstest Generierung
+    const highestID = 10000;
     Paket.idCounter = highestID + 1;
-    //Stresstest generierung
     const anzahlStresstests = 1000;
     for (let i = 0; i < anzahlStresstests; i++) {
         const newPaket = new Paket(i + anzahlStresstests + "", "Testing" + i, "Ticket zum Testen", "Test", null, null, false, 0, null, []);
         paketeAsMap.value.set(newPaket.id, newPaket);
-    }
-    paketeAsMap.value.forEach((value: Paket, key: number) => {
-        for (const paket of saveFile.paketeTree) {
-            if (paket.key == key) {
-                for (const paketChildId of paket.children) {
-                    const paketChild = paketeAsMap.value.get(paketChildId) as Paket;
-                    paketChild.parent = value;
-                    value.children.push(paketChild);
-                }
-            }
-        }
-    });
-    paketeAsMap.value.forEach((value: Paket) => {
-        let lvl = 0;
-        let parent = value.parent;
-        while (parent) {
-            lvl++;
-            parent = parent.parent;
-        }
-        value.lvl = lvl;
-        if (lvl == 0) stackForTreeView.push(value);
-        if (value.children.length > 0) value.schaetzung = value.children.filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0);
-    });
-
-    while (stackForTreeView.length > 0) {
-        const aktuellesPaket = stackForTreeView.shift();
-        if (aktuellesPaket != undefined) {
-            if (aktuellesPaket.children.length > 0) {
-                for (let i = aktuellesPaket.children.length - 1; i >= 0; i--) {
-                    if (aktuellesPaket.open)
-                        stackForTreeView.unshift(aktuellesPaket.children[i]);
-                }
-            }
-            paketeAsTreeView.value.push(aktuellesPaket);
-        }
     }
 
     for (const bucket of bucketsAsSortedArray) {
@@ -69,7 +30,6 @@ export const usePaketeStore = defineStore("pakete", () => {
         if (paket.bucket)
             unsortedPaketeListsSortedByBucketsMap.value.get(paket.bucket)!.push(paket);
     });
-
     function paketeAsFlatView() {
         return Array.from(paketeAsMap.value.values());
     }

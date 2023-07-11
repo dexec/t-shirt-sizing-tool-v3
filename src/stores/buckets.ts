@@ -3,15 +3,13 @@ import saveFile from './file.json';
 import {Bucket} from "@/Bucket";
 import {usePaketeStore} from "@/stores/pakete";
 import {ref} from "vue";
+import {ImportProject} from "@/components/ImportProject";
 
 export const useBucketsStore = defineStore('buckets', () => {
-    const bucketsAsSortedArray = ref<Bucket[]>([])
-    const bucketsAsMap = ref(new Map<number, Bucket>());
-    for (const bucketFile of saveFile.buckets) {
-        const newBucket = new Bucket(bucketFile.name);
-        bucketsAsSortedArray.value.push(newBucket);
-        bucketsAsMap.value.set(newBucket.id, newBucket);
-    }
+    const importProject = ImportProject.getInstance()
+    const bucketsAsSortedArray = ref<Bucket[]>(importProject.getBucketArray());
+    const bucketsAsMap = ref(new Map<number, Bucket>(importProject.getBucketMap()));
+
 
     function getBucketNamesSorted() {
         return bucketsAsSortedArray.value.map(bucket => bucket.name)
