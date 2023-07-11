@@ -241,8 +241,10 @@ export default {
       }
     },
     onCellValueChanged(params) {
-      if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue)
+      if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue) {
         this.paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
+        this.gridApi.refreshCells({force: true});
+      }
 
       /*if (params.column.colId === 'thema') {
         const currentPaketId = params.data.id
