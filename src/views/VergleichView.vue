@@ -13,6 +13,9 @@
           <v-btn class="mx-6 bucketsButton" v-bind="props">
             <span class="bucketsButtonText">Buckets konfigurieren</span>
           </v-btn>
+          <v-btn @click="log()">
+            <span>Log</span>
+          </v-btn>
         </template>
         <v-card>
           <v-card-text>
@@ -43,7 +46,7 @@
         <h2>Unzugewiesene Pakete</h2>
         <draggable
             v-if="paketeWithoutBucket.length>0"
-            v-model="paketeWithoutBucket"
+            :list="paketeWithoutBucket"
             :sort="false"
             class="dragArea list-group"
             ghostClass="ghostClass"
@@ -69,11 +72,11 @@
             </div>
           </div>
         </v-row>
-        <v-row class="d-flex flex-nowrap justify-start" style="overflow-y:auto;overflow-x:hidden;">
+        <v-row id="abc" class="d-flex flex-nowrap justify-start" style="overflow-y:auto;overflow-x:hidden;">
           <div v-for="bucketId of selected" :key="bucketId">
             <draggable
                 :list="getPaketeSortedByBucket(bucketsAsMap.get(bucketId)!)"
-                class="dragArea list-group"
+                class="dragArea list-group bucketDragArea"
                 group="pakete"
                 itemKey="name"
                 style="height: 65vh"
@@ -100,7 +103,7 @@
 <script lang="ts" setup>
 import {usePaketeStore} from "@/stores/pakete";
 import {useBucketsStore} from "@/stores/buckets";
-import {computed, onActivated, ref} from "vue";
+import {computed, onActivated, onMounted, ref} from "vue";
 import {Bucket} from "@/Bucket";
 import {Paket} from "@/Paket";
 import draggable from "vuedraggable";
@@ -108,16 +111,16 @@ import draggable from "vuedraggable";
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
 const dialog = ref(false);
-const paketeWithoutBucket = computed(() => paketeStore.paketeChildrenWithNoBucket());
 const unsortedPaketeListsSortedByBucketsMap = paketeStore.unsortedPaketeListsSortedByBucketsMap;
 const showPaketeWithoutBucket = ref(true)
 const searchedPaket = ref(0);
-
+const paketeWithoutBucket = computed(() => paketeStore.paketeChildrenWithNoBucket())
 const buckets = bucketStore.bucketsAsSortedArray as Bucket[];
 const bucketsAsMap = bucketStore.bucketsAsMap;
 const selected = ref<number[]>(buckets.map(bucket => bucket.id));
-onActivated(() => sortSelectedBuckets());
-
+onActivated(() => {
+  sortSelectedBuckets();
+});
 
 /*onMounted(() => {
   let rowBucketsButtonAndTrash = document.getElementById("rowBucketsButtonAndTrash");
@@ -131,6 +134,13 @@ onActivated(() => sortSelectedBuckets());
     console.log(draggablePaketWithoutBucket.style.height)
   }
 })*/
+function updateBucketAreaHeights() {
+  const scrollHeight = document.getElementById('abc')!.scrollHeight;
+  /*for (const element of document.getElementsByClassName('bucketDragArea')) {
+    (element as HTMLElement).style.height = scrollHeight + "px";
+  }*/
+}
+
 function getTitleForPaket(paket: Paket): string {
   let result: string = "";
   const parents = paketeStore.parentsOfPaket(paket).reverse();
@@ -153,7 +163,6 @@ function sortSelectedBuckets() {
     }
   }
   copySelected.length = 0
-  selected.value.forEach(value => console.log(value))
 }
 
 /*function getPaketSortedByBucket(bucket: Bucket) {
@@ -179,12 +188,20 @@ function changeBucketOfPaket(evt: any, bucket: Bucket) {
     const updatePaket = evt.added.element;
     updatePaket.bucket = bucketStore.bucketsAsMap.get(bucket.id);
   }
+  updateBucketAreaHeights();
 }
 
 function searchPaket(paket: Paket) {
   if (paket.id === searchedPaket.value) {
     return "border-color: red";
   }
+}
+
+function bucketAreaHeight() {
+  let scrollHeight = document.getElementById('abc')!.scrollHeight
+  console.log(scrollHeight)
+  if (scrollHeight) return 'height: ' + scrollHeight
+  else return 0;
 }
 
 function rootParentThemaOfPaket(paket: Paket): string {
