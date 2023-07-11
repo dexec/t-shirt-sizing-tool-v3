@@ -1,38 +1,38 @@
-import { AbstrakterEintrag } from "@/AbstrakterEintrag";
+import {AbstrakterEintrag} from "@/AbstrakterEintrag";
 
 export class Zwischensumme extends AbstrakterEintrag {
-  private _vorigerAbschnittAufschlag: number;
-  private _vorigerAbschnittAufwand: number;
-  private _zwischensummeAufwand: number;
+    private _vorigerAbschnittAufschlag: number;
+    private _vorigerAbschnittAufwand: number;
+    private _zwischensummeAufwand: number;
 
-  constructor(bezeichnung: string, anteilGesamtprojekt: number, vorigerAbschnittAufschlag: number, vorigerAbschnittAufwand: number, zwischensummeAufwand: number) {
-    super(bezeichnung, vorigerAbschnittAufwand / zwischensummeAufwand, anteilGesamtprojekt);
-    this._vorigerAbschnittAufschlag = vorigerAbschnittAufschlag;
-    this._vorigerAbschnittAufwand = vorigerAbschnittAufwand;
-    this._zwischensummeAufwand = zwischensummeAufwand;
-  }
+    constructor(bezeichnung: string, anteilGesamtprojekt: number, vorigerAbschnittAufschlag: number, vorigerAbschnittAufwand: number, zwischensummeAufwand: number) {
+        super(bezeichnung, zwischensummeAufwand == 0 ? 0 : vorigerAbschnittAufwand / zwischensummeAufwand, anteilGesamtprojekt);
+        this._vorigerAbschnittAufschlag = vorigerAbschnittAufschlag;
+        this._vorigerAbschnittAufwand = vorigerAbschnittAufwand;
+        this._zwischensummeAufwand = zwischensummeAufwand;
+    }
 
-  get vorigerAbschnittAufschlag(): number {
-    return this._vorigerAbschnittAufschlag;
-  }
+    get vorigerAbschnittAufschlag(): number {
+        return this._vorigerAbschnittAufschlag;
+    }
 
-  set vorigerAbschnittAufschlag(value: number) {
-    this._vorigerAbschnittAufschlag = value;
-  }
+    set vorigerAbschnittAufschlag(value: number) {
+        this._vorigerAbschnittAufschlag = value;
+    }
 
-  get vorigerAbschnittAufwand(): number {
-    return this._vorigerAbschnittAufwand;
-  }
+    get vorigerAbschnittAufwand(): number {
+        return this._vorigerAbschnittAufwand;
+    }
 
-  set vorigerAbschnittAufwand(value: number) {
-    this._vorigerAbschnittAufwand = value;
-  }
+    set vorigerAbschnittAufwand(value: number) {
+        this._vorigerAbschnittAufwand = value;
+    }
 
-  get zwischensummeAufwand(): number {
-    return this._zwischensummeAufwand;
-  }
+    get zwischensummeAufwand(): number {
+        return this._zwischensummeAufwand;
+    }
 
-  set zwischensummeAufwand(value: number) {
-    this._zwischensummeAufwand = value;
-  }
+    set zwischensummeAufwand(value: number) {
+        this._zwischensummeAufwand = value;
+    }
 }
