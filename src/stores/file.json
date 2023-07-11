@@ -115,7 +115,7 @@
       "beschreibung": "Es soll eine UI erstellt werden",
       "komponente": "A",
       "bucket": null,
-      "schaetzung": 321,
+      "schaetzung": null,
       "open": true
     },
     {
@@ -155,7 +155,7 @@
       "beschreibung": "Einen Protoypen bauen, um den Testern eine klickbare Oberfläche zu bieten",
       "komponente": "Komp-A",
       "bucket": null,
-      "schaetzung": 500,
+      "schaetzung": null,
       "open": false
     },
     {
