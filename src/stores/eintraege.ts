@@ -150,7 +150,7 @@ export const useEintraegeStore = defineStore('eintrage', () => {
             if (rowDataIndex > 1 && rowDataIndex < eintraege.value.length - 1) {
                 const eintrag = eintraege.value[rowDataIndex];
                 eintraege.value[rowDataIndex] = eintraege.value[rowDataIndex - 1];
-                eintraege.value[rowDataIndex -1] = eintrag;
+                eintraege.value[rowDataIndex - 1] = eintrag;
                 berechne();
             }
         }
