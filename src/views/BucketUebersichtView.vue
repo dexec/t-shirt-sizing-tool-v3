@@ -56,6 +56,8 @@
             }}
           </td>
         </tr>
+<!--        TODO Keine Summenreihe, wenn bucketmodus aber keine Buckets definiert sind.
+        Dann lieber Nachricht, dass man Buckets definieren sollte-->
         <tr class="font-weight-bold">
           <td v-if="projektStore.bucketmodus">Summe</td>
           <td>{{ statistiken.summeAlleBucketsGeschaetzt() }}</td>
@@ -79,6 +81,7 @@
 <script lang="ts" setup>
 import {useStatistikenStore} from "@/stores/statistiken";
 import {useProjektStore} from "@/stores/projekt";
+import AppBar from "@/components/AppBar.vue";
 
 const statistiken = useStatistikenStore();
 const projektStore = useProjektStore();
