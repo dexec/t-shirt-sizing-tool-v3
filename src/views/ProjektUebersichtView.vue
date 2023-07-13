@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex flex-column" style="width: 50%">
-    <v-btn>Projekt speichern</v-btn>
+    <v-btn @click="downloadProject">Projekt speichern</v-btn>
     <v-btn v-if="projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketmodus</v-btn>
     <v-btn v-else-if="!projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketloser Modus</v-btn>
     <h1>Projektinformationen</h1>
@@ -70,6 +70,8 @@ import {useBucketsStore} from "@/stores/buckets";
 import {useProjektStore} from "@/stores/projekt";
 import {ref} from "vue";
 import type {Bucket} from "@/Bucket";
+import AppBar from "@/components/AppBar.vue";
+import {ExportProject} from "@/components/ExportProject";
 
 const newBucketName = ref('')
 const currentSelectedBucket = ref(-1)
@@ -136,6 +138,11 @@ function clearData() {
   newBucketName.value = ''
   currentSelectedBucket.value = -1
   currentEditBucket.value = -1
+}
+
+function downloadProject() {
+  const exportProject = ExportProject.getInstance();
+  console.log(exportProject.createFile().text())
 }
 </script>
 
