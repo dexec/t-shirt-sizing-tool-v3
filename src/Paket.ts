@@ -15,8 +15,11 @@ export class Paket {
     private _children: Paket[]
 
     constructor(ticket_nr: string, thema: string, beschreibung: string, komponente: string, bucket: Bucket | null, schaetzung: number | null, open: boolean, lvl: number, parent: Paket | null, children: Paket[], id?: number) {
-        if (id != null) this._id = id;
-        else this._id = Paket._idCounter++;
+        if (id != null) {
+            this._id = id;
+            if (Paket._idCounter < id) Paket._idCounter = id
+        } else this._id = Paket._idCounter;
+        Paket._idCounter++;
         this._ticket_nr = ticket_nr;
         this._thema = thema;
         this._beschreibung = beschreibung;
@@ -27,15 +30,6 @@ export class Paket {
         this._lvl = lvl;
         this._parent = parent;
         this._children = children;
-    }
-
-
-    static get idCounter(): number {
-        return this._idCounter;
-    }
-
-    static set idCounter(value: number) {
-        this._idCounter = value;
     }
 
     get id(): number {
