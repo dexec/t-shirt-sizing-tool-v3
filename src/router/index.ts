@@ -8,13 +8,15 @@ import ProjektUebersichtView from "@/views/ProjektUebersichtView.vue";
 import testView from "@/views/testView.vue";
 import testView2 from "@/views/testView2.vue";
 import {useProjektStore} from "@/stores/projekt";
+import LandingPageView from "@/views/LandingPageView.vue";
 
 const router = createRouter({
     history: createWebHashHistory(import.meta.env.BASE_URL),
     routes: [
         {
             path: '/',
-            redirect: '/projekt',
+            name: 'landingpage',
+            component: LandingPageView
         },
         {
             path: '/projekt',
@@ -54,13 +56,13 @@ const router = createRouter({
         },
     ]
 })
-
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
     const projektStore = useProjektStore();
+    if (!projektStore.geladen && to.name!='landingpage') {
+        return {name: 'landingpage'}
+    }
     if (to.path === '/vergleich' && !projektStore.bucketmodus) {
-        next(false);
-    } else {
-        next();
+        return false
     }
 })
 
