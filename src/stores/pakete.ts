@@ -1,7 +1,6 @@
 import {defineStore} from "pinia";
 import {Paket} from "@/Paket";
 import {ref} from "vue";
-import saveFile from "@/stores/file.json";
 import type {Bucket} from "@/Bucket";
 import {useBucketsStore} from "@/stores/buckets";
 import {ImportProject} from "@/components/ImportProject";
@@ -13,15 +12,6 @@ export const usePaketeStore = defineStore("pakete", () => {
     const paketeAsTreeView = ref<Array<Paket>>(importProject.getPaketeTreeView());
     const paketeAsMap = ref(new Map<number, Paket>(importProject.getPaketeMap()));
     const unsortedPaketeListsSortedByBucketsMap = ref(new Map<Bucket, Paket[]>());
-    //Stresstest Generierung
-    const highestID = 10000;
-    Paket.idCounter = highestID + 1;
-    const anzahlStresstests = 1000;
-    for (let i = 0; i < anzahlStresstests; i++) {
-        const newPaket = new Paket(i + anzahlStresstests + "", "Testing" + i, "Ticket zum Testen", "Test", null, null, false, 0, null, []);
-        paketeAsMap.value.set(newPaket.id, newPaket);
-    }
-
     for (const bucket of bucketsAsSortedArray) {
         unsortedPaketeListsSortedByBucketsMap.value.set(bucket as Bucket, []);
     }
@@ -30,6 +20,15 @@ export const usePaketeStore = defineStore("pakete", () => {
         if (paket.bucket)
             unsortedPaketeListsSortedByBucketsMap.value.get(paket.bucket)!.push(paket);
     });
+
+    generatePakete(0);
+    function generatePakete(numberPakete: number) {
+        for(let i = 0;i<numberPakete;i++) {
+            const newPaket = new Paket(i + numberPakete + "", "Testing " + i, "Ticket zum Testen", "Test", null, null, false, 0, null, []);
+            paketeAsMap.value.set(newPaket.id, newPaket);
+            paketeAsTreeView.value.push(newPaket)
+        }
+    }
     function paketeAsFlatView() {
         return Array.from(paketeAsMap.value.values());
     }
@@ -101,7 +100,7 @@ export const usePaketeStore = defineStore("pakete", () => {
             if (changedPaket.open) {
                 const paketeToAdd: Paket[] = [];
                 while (stack.length > 0) {
-                    const aktuellesPaket = stack.shift() as Paket;
+                    const aktuellesPaket = stack.shift()!;
                     if (aktuellesPaket.open) {
                         stack.unshift(...aktuellesPaket.children.reverse());
                     }
