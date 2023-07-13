@@ -26,6 +26,7 @@ export default {
 </script>
 <script setup lang="ts">
 import {onMounted} from "vue";
+import AppBar from "@/components/AppBar.vue";
 
 </script>
 <style scoped>
