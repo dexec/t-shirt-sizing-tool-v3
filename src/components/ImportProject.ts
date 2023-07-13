@@ -26,7 +26,7 @@ export class ImportProject {
 
     private fileToPaketeArray(paketefromFile: any[], paketeTree: any[]): void {
         for (const paketFromFile of paketefromFile) {
-            this._pakete.push(new Paket(paketFromFile.ticket_nr, paketFromFile.thema, paketFromFile.beschreibung, paketFromFile.komponente, this._buckets.find(bucket => bucket.name == paketFromFile.bucket) as Bucket, paketFromFile.schaetzung, paketFromFile.open, 0, null, [], paketFromFile.id));
+            this._pakete.push(new Paket(paketFromFile.ticket_nr, paketFromFile.thema, paketFromFile.beschreibung, paketFromFile.komponente, paketFromFile.bucket ? this._buckets.find(bucket => bucket.name == paketFromFile.bucket)! : null, paketFromFile.schaetzung, paketFromFile.open, 0, null, [], paketFromFile.id));
         }
         this.setPaketeTreeStructure(paketeTree);
         this.setPaketeLevelAndSchaetzung();
@@ -78,6 +78,10 @@ export class ImportProject {
             else if (eintrag.aufwandWert) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, 0, eintrag.aufwandWert, false, aktuelleZwischensumme));
         }
         this._eintraege.push(new Zwischensumme("ENDSUMME", 0, 0, 0, 0))
+    }
+
+    public getEintrageArray(): AbstrakterEintrag[] {
+        return this._eintraege;
     }
 
     public getBucketMap(): Map<number, Bucket> {
