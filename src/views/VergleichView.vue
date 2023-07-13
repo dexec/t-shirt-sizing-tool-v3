@@ -22,7 +22,7 @@
             <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
                         :value="bucket.id" @change="sortSelectedBuckets()">
             </v-checkbox>
-            <div v-if="buckets.length===0">Es gibt keine Buckets</div>
+            <div v-if="buckets.length == 0">Es gibt keine Buckets</div>
           </v-card-text>
         </v-card>
       </v-dialog>
@@ -134,6 +134,10 @@ onActivated(() => {
     console.log(draggablePaketWithoutBucket.style.height)
   }
 })*/
+
+function log() {
+  console.log("log")
+}
 function updateBucketAreaHeights() {
   const scrollHeight = document.getElementById('abc')!.scrollHeight;
   /*for (const element of document.getElementsByClassName('bucketDragArea')) {
