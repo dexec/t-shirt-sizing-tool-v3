@@ -13,9 +13,6 @@
           <v-btn class="mx-6 bucketsButton" v-bind="props">
             <span class="bucketsButtonText">Buckets konfigurieren</span>
           </v-btn>
-          <v-btn @click="log()">
-            <span>Log</span>
-          </v-btn>
         </template>
         <v-card>
           <v-card-text>
@@ -27,7 +24,7 @@
         </v-card>
       </v-dialog>
       <draggable :list="[]"
-                 :style="{visibility: (!showPaketeWithoutBucket || paketeWithoutBucket.length==0 ? 'visible':'hidden')}"
+                 :style="{visibility: (!showPaketeWithoutBucket || paketeWithoutBucket.length===0 ? 'visible':'hidden')}"
                  class="paket"
                  ghostClass="ghostClass"
                  group="pakete"
@@ -103,7 +100,7 @@
 <script lang="ts" setup>
 import {usePaketeStore} from "@/stores/pakete";
 import {useBucketsStore} from "@/stores/buckets";
-import {computed, onActivated, onMounted, ref} from "vue";
+import {computed, onActivated, ref} from "vue";
 import {Bucket} from "@/Bucket";
 import {Paket} from "@/Paket";
 import draggable from "vuedraggable";
