@@ -5,9 +5,9 @@
     <v-btn v-else-if="!projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketloser Modus</v-btn>
     <h1>Projektinformationen</h1>
     <h3>Projektname</h3>
-    <v-text-field outlined solo></v-text-field>
+    <v-text-field outlined solo v-model="projektStore.projektname"></v-text-field>
     <h3>Beschreibung</h3>
-    <v-textarea outlined solo></v-textarea>
+    <v-textarea outlined solo v-model="projektStore.projektbeschreibung"></v-textarea>
     <h1 v-if="projektStore.bucketmodus">Buckets</h1>
     <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
       <div v-for="(bucket,index) in bucketStore.bucketsAsSortedArray" :key="bucket.id">
@@ -142,7 +142,17 @@ function clearData() {
 
 function downloadProject() {
   const exportProject = ExportProject.getInstance();
-  console.log(exportProject.createFile().text())
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(exportProject.createFile());
+  link.download = "test";
+
+  // Simulate a click on the link
+  const clickEvent = new MouseEvent("click", {
+    view: window,
+    bubbles: true,
+    cancelable: true
+  });
+  link.dispatchEvent(clickEvent);
 }
 </script>
 
