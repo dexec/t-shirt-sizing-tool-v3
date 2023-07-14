@@ -1,5 +1,4 @@
 import {defineStore} from 'pinia';
-import saveFile from './file.json';
 import {Bucket} from "@/Bucket";
 import {usePaketeStore} from "@/stores/pakete";
 import {ref} from "vue";
