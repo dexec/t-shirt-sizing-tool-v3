@@ -20,6 +20,11 @@
       "aufwandWert": 100
     }
   ],
+  "projekt": {
+    "projektname": "Testname",
+    "projektbeschreibung": "Dies ist ein neues Projekt",
+    "bucketmodus": true
+  },
   "eintraege": [
     {
       "bezeichnung": "And. analyse",

@@ -3,12 +3,18 @@ import {Paket} from "@/Paket";
 import type {AbstrakterEintrag} from "@/AbstrakterEintrag";
 import {Zwischensumme} from "@/Zwischensumme";
 import {Eintrag} from "@/Eintrag";
+import {Projekt} from "@/Projekt";
 
 export class ImportProject {
     private static instance: ImportProject
     private _buckets: Bucket[] = []
     private _pakete: Paket[] = []
     private _eintraege: AbstrakterEintrag[] = []
+    private _projekt: Projekt
+
+    private constructor() {
+        this._projekt = new Projekt("", "", false)
+    }
 
     public static getInstance(): ImportProject {
         if (!ImportProject.instance) {
@@ -22,6 +28,7 @@ export class ImportProject {
         this.fileToBucketArray(jsonfile.buckets);
         this.fileToPaketeArray(jsonfile.pakete, jsonfile.paketeTree);
         this.fileToEintrageArray(jsonfile.eintraege);
+        this.fileToProjectData(jsonfile.projekt)
     }
 
     private fileToPaketeArray(paketefromFile: any[], paketeTree: any[]): void {
@@ -67,19 +74,29 @@ export class ImportProject {
     }
 
     private fileToEintrageArray(eintrageFromFile: any[]): void {
+
         this._eintraege.unshift(new Zwischensumme("STARTSUMME", 0, 0, 0, 0));
         let aktuelleZwischensumme = this._eintraege[0] as Zwischensumme;
         for (const eintrag of eintrageFromFile) {
             if (eintrag.bezeichnung == "ZWISCHENSUMME") {
+                console.log(eintrag)
                 const newZwischsumme = new Zwischensumme(eintrag.bezeichnung, 0, 0, 0, 0)
                 aktuelleZwischensumme = newZwischsumme;
-                this._eintraege.push(newZwischsumme);
-            } else if (eintrag.aufschlagWert) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, eintrag.aufschlagWert, 0, true, aktuelleZwischensumme));
-            else if (eintrag.aufwandWert) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, 0, eintrag.aufwandWert, false, aktuelleZwischensumme));
+                this._eintraege.push(newZwischsumme)
+            } else if (eintrag.aufschlagWert != undefined) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, eintrag.aufschlagWert, 0, true, aktuelleZwischensumme));
+            else if (eintrag.aufwandWert != undefined) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, 0, eintrag.aufwandWert, false, aktuelleZwischensumme));
         }
         this._eintraege.push(new Zwischensumme("ENDSUMME", 0, 0, 0, 0))
+
     }
 
+    private fileToProjectData(projectData: any): void {
+        this._projekt = new Projekt(projectData.projektname, projectData.projektbeschreibung, projectData.bucketmodus)
+    }
+
+    public getProjectData():Projekt {
+        return this._projekt
+    }
     public getEintrageArray(): AbstrakterEintrag[] {
         return this._eintraege;
     }
@@ -124,4 +141,6 @@ export class ImportProject {
         }
         return result;
     }
+
+
 }

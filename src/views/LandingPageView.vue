@@ -4,6 +4,7 @@
     <v-sheet :height="600" :width="600" border="md" class="d-flex flex-column align-center justify-center"
              color="#978A87">
       <v-btn class="mb-5" height="150" width="300" @click="createNewProject">Neues Projekt anlegen</v-btn>
+      <v-btn class="mb-5" height="150" width="300" @click="createNewSample">Sample Projekt anlegen</v-btn>
       <v-btn height="150" width="300" @click="uploadFile">Projekt laden</v-btn>
       <input ref="fileRef" accept=".json" hidden type="file" @change="handleFileUpload">
     </v-sheet>
@@ -15,13 +16,30 @@
 import {ref} from "vue";
 import {ImportProject} from "@/components/ImportProject";
 import router from "@/router";
-import {useProjektStore} from "@/stores/projekt";
-
+import saveFile from "@/stores/file.json"
+import {useLandingpageStore} from "@/stores/landingpage";
 function createNewProject() {
-  const emptyProject = '{"eintraege":[],"buckets":[],"pakete":[],"paketeTree":[]}'
+  const emptyProject = '{\n' +
+      '  "projekt": {\n' +
+      '    "projektname": "",\n' +
+      '    "projektbeschreibung": "",\n' +
+      '    "bucketmodus": true\n' +
+      '  },\n' +
+      '  "eintraege": [],\n' +
+      '  "buckets": [],\n' +
+      '  "pakete": [],\n' +
+      '  "paketeTree": []\n' +
+      '}'
   const importProject = ImportProject.getInstance()
   importProject.initialize(emptyProject)
-  useProjektStore().geladen = true
+  useLandingpageStore().geladen = true
+  router.push('/projekt')
+}
+
+function createNewSample() {
+  const importProject = ImportProject.getInstance();
+  importProject.initialize(JSON.stringify(saveFile));
+  useLandingpageStore().geladen = true
   router.push('/projekt')
 }
 
@@ -41,13 +59,14 @@ function handleFileUpload(event: any) {
       const jsonFile = JSON.parse(fileContents as string);
       if (jsonFile.buckets && jsonFile.eintraege && jsonFile.pakete && jsonFile.paketeTree) {
         importProject.initialize(JSON.stringify(jsonFile))
-        useProjektStore().geladen = true
+        useLandingpageStore().geladen = true
         router.push('/projekt')
       }
     };
     reader.readAsText(file);
   }
 }
+
 
 const showOverlay = ref(true)
 </script>

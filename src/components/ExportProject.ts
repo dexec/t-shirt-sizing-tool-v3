@@ -3,6 +3,7 @@ import {useEintraegeStore} from "@/stores/eintraege";
 import {Eintrag} from "@/Eintrag";
 import {Zwischensumme} from "@/Zwischensumme";
 import {usePaketeStore} from "@/stores/pakete";
+import {useProjektStore} from "@/stores/projekt";
 
 export class ExportProject {
     private static instance: ExportProject
@@ -19,11 +20,35 @@ export class ExportProject {
     }[] = []
     private _paketeTree: { key: number, children: number[] }[] = []
     private _eintraege: { bezeichnung: string, aufschlagWert?: number, aufwandWert?: number }[] = []
+    private _projekt: { projektname: string, projektbeschreibung: string, bucketmodus: boolean }
+
+
 
     public createFile(): Blob {
-        const merged = {...this._buckets,...this._pakete,...this._paketeTree,...this._eintraege};
-        console.log(merged)
-        return new Blob([json], {type: "application/json"});
+        const mergedObjects: {
+            projekt: { projektname: string, projektbeschreibung: string, bucketmodus: boolean }
+            buckets: { name: string }[],
+            pakete: {
+                id: number,
+                ticket_nr: string,
+                thema: string,
+                beschreibung: string,
+                komponente: string,
+                bucket: string | null,
+                schaetzung: number | null,
+                open: boolean
+            }[],
+            paketeTree: { key: number, children: number[] }[],
+            eintraege: { bezeichnung: string, aufschlagWert?: number, aufwandWert?: number }[]
+        }
+            = {
+            projekt: this._projekt,
+            buckets: this._buckets,
+            pakete: this._pakete,
+            paketeTree: this._paketeTree,
+            eintraege: this._eintraege
+        }
+        return new Blob([JSON.stringify(mergedObjects)], {type: "application/json"});
     }
 
     public static getInstance(): ExportProject {
@@ -34,9 +59,15 @@ export class ExportProject {
     }
 
     private constructor() {
+        this._projekt = {
+            projektname: "",
+            projektbeschreibung: "",
+            bucketmodus: false
+        }
         this.saveBuckets();
         this.saveEintraege();
         this.savePakete();
+        this.saveProjekt();
     }
 
     private saveBuckets() {
@@ -84,6 +115,15 @@ export class ExportProject {
                 const childrenIds: number[] = [...aktuellesPaket.children.map(child => child.id)]
                 this._paketeTree.push({key: aktuellesPaket.id, children: childrenIds})
             }
+        }
+    }
+
+    private saveProjekt() {
+        const projektStore = useProjektStore();
+        this._projekt = {
+            projektname: projektStore.projektname,
+            projektbeschreibung: projektStore.projektbeschreibung,
+            bucketmodus: projektStore.bucketmodus
         }
     }
 }
