@@ -181,7 +181,7 @@ function onCellKeyPress(e) {
           if (shift || ctrl) {
             eintragEntfernen();
           } else {
-            if (!["anteilZwischensumme", "anteilGesamtprojekt"].includes(colKey) && e.data.bezeichnung!="ZWISCHENSUMME") {
+            if (!["anteilZwischensumme", "anteilGesamtprojekt"].includes(colKey) && e.data.bezeichnung != "ZWISCHENSUMME") {
               if (colKey == "aufwandWert") {
                 eintraegeStore.updateAufwand(e.rowIndex, 0);
               } else if (colKey == "aufschlagWert") {
