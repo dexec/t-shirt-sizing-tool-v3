@@ -1,17 +1,20 @@
 <template>
   <div class="d-flex flex-column" style="width: 50%">
     <v-btn @click="downloadProject">Projekt speichern</v-btn>
-    <v-btn v-if="projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketmodus</v-btn>
-    <v-btn v-else-if="!projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketloser Modus</v-btn>
+    <v-btn v-if="projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketmodus
+    </v-btn>
+    <v-btn v-else-if="!projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketloser
+      Modus
+    </v-btn>
     <h1>Projektinformationen</h1>
     <h3>Projektname</h3>
-    <v-text-field outlined solo v-model="projektStore.projektname"></v-text-field>
+    <v-text-field v-model="projektStore.projektname" outlined solo></v-text-field>
     <h3>Beschreibung</h3>
-    <v-textarea outlined solo v-model="projektStore.projektbeschreibung"></v-textarea>
+    <v-textarea v-model="projektStore.projektbeschreibung" outlined solo></v-textarea>
     <h1 v-if="projektStore.bucketmodus">Buckets</h1>
     <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
       <div v-for="(bucket,index) in bucketStore.bucketsAsSortedArray" :key="bucket.id">
-        <v-container style="width: 300px;height: 150px">
+        <v-container style="width: 300px;height: 150px" class="mb-4">
           <v-row>
             <v-col>
               <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketBefore()">
@@ -43,16 +46,19 @@
               <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketAfter()">
                 <v-icon icon="mdi-plus"></v-icon>
               </v-btn>
-              <v-btn :disabled="!(index < bucketStore.bucketsAsSortedArray.length - 1)" :style="showArrowRight(bucket as Bucket, index)"
+              <v-btn :disabled="!(index < bucketStore.bucketsAsSortedArray.length - 1)"
+                     :style="showArrowRight(bucket as Bucket, index)"
                      class="button" @click="swapWithBucketAfter()">
                 <v-icon icon="mdi-arrow-right"></v-icon>
               </v-btn>
             </v-col>
           </v-row>
-          <v-row justify="center">
-            <v-btn :style="showButtons(bucket as Bucket)" class="button" @click="loeschenBucket">
-              <v-icon icon="mdi-minus"></v-icon>
-            </v-btn>
+          <v-row>
+            <v-col class="d-flex justify-center">
+              <v-btn :style="showButtons(bucket as Bucket)" class="button" @click="loeschenBucket">
+                <v-icon icon="mdi-minus"></v-icon>
+              </v-btn>
+            </v-col>
           </v-row>
         </v-container>
       </div>
@@ -70,7 +76,6 @@ import {useBucketsStore} from "@/stores/buckets";
 import {useProjektStore} from "@/stores/projekt";
 import {ref} from "vue";
 import type {Bucket} from "@/Bucket";
-import AppBar from "@/components/AppBar.vue";
 import {ExportProject} from "@/components/ExportProject";
 
 const newBucketName = ref('')
