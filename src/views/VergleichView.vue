@@ -62,21 +62,25 @@
         <span v-if="paketeWithoutBucket.length==0">Es gibt keine Pakete ohne Bucket</span>
       </v-col>
       <v-col>
-        <v-row class="d-flex flex-nowrap justify-start">
-          <div v-for="bucketId of selected" :key="bucketId">
-            <div v-if="bucketsAsMap.get(bucketId)" class="list-group">
-              <div class="paket ma-2">{{ bucketsAsMap.get(bucketId).name }}</div>
+        <v-row>
+          <v-col class="d-flex flex-nowrap justify-start">
+            <div v-for="bucketId of selected" :key="bucketId">
+              <div v-if="bucketsAsMap.get(bucketId)" class="list-group">
+                <div class="paket ma-2">{{ bucketsAsMap.get(bucketId).name }}</div>
+              </div>
             </div>
-          </div>
+          </v-col>
         </v-row>
-        <v-row id="abc" class="d-flex flex-nowrap justify-start" style="overflow-y:auto;overflow-x:hidden;">
-          <div v-for="bucketId of selected" :key="bucketId">
+        <v-row id="abc"
+               style="height:65vh; overflow-y:auto; overflow-x:hidden;">
+          <v-col class="d-flex flex-nowrap justify-start">
             <draggable
+                v-for="bucketId of selected" :key="bucketId"
                 :list="getPaketeSortedByBucket(bucketsAsMap.get(bucketId)!)"
-                class="dragArea list-group bucketDragArea"
+                class="dragArea list-group"
                 group="pakete"
                 itemKey="name"
-                style="height: 65vh"
+                style="min-height: 100%;"
                 @change="changeBucketOfPaket($event,buckets.find(bucket => bucket.id == bucketId)!)"
             >
               <template #item="{ element }">
@@ -90,7 +94,7 @@
                 </div>
               </template>
             </draggable>
-          </div>
+          </v-col>
         </v-row>
       </v-col>
     </v-row>
@@ -135,6 +139,7 @@ onActivated(() => {
 function log() {
   console.log("log")
 }
+
 function updateBucketAreaHeights() {
   const scrollHeight = document.getElementById('abc')!.scrollHeight;
   /*for (const element of document.getElementsByClassName('bucketDragArea')) {
