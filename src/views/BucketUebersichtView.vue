@@ -81,7 +81,6 @@
 <script lang="ts" setup>
 import {useStatistikenStore} from "@/stores/statistiken";
 import {useProjektStore} from "@/stores/projekt";
-import AppBar from "@/components/AppBar.vue";
 
 const statistiken = useStatistikenStore();
 const projektStore = useProjektStore();
