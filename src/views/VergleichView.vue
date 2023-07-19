@@ -4,39 +4,41 @@
                     @blur="this.searchedPaket=null"></v-autocomplete>-->
   <!--  <context-menu :provided-functions-prop="[...this.providedFunctions]"></context-menu>-->
   <v-container>
-    <v-row id="rowBucketsButtonAndTrash" class="mb-6" justify="center">
-      <v-btn class="bucketsButton" @click="showPaketeWithoutBucket=!showPaketeWithoutBucket"><span
-          class="bucketsButtonText">Toggle
+    <v-row class="mb-6">
+      <v-col class="d-flex flex-nowrap justify-center">
+        <v-btn class="bucketsButton" @click="showPaketeWithoutBucket=!showPaketeWithoutBucket"><span
+            class="bucketsButtonText">Toggle
           Arbeitspakete</span></v-btn>
-      <v-dialog v-model="dialog" width="auto">
-        <template v-slot:activator="{props}">
-          <v-btn class="mx-6 bucketsButton" v-bind="props">
-            <span class="bucketsButtonText">Buckets konfigurieren</span>
-          </v-btn>
-        </template>
-        <v-card>
-          <v-card-text>
-            <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
-                        :value="bucket.id" @change="sortSelectedBuckets()">
-            </v-checkbox>
-            <div v-if="buckets.length == 0">Es gibt keine Buckets</div>
-          </v-card-text>
-        </v-card>
-      </v-dialog>
-      <draggable :list="[]"
-                 :style="{visibility: (!showPaketeWithoutBucket || paketeWithoutBucket.length===0 ? 'visible':'hidden')}"
-                 class="paket"
-                 ghostClass="ghostClass"
-                 group="pakete"
-                 itemKey="name"
-                 @change="removePaketFromBucket"
-      >
-        <template #header>
-          <v-icon icon="mdi-trash-can"></v-icon>
-        </template>
-        <template #item="{  }">
-        </template>
-      </draggable>
+        <v-dialog v-model="dialog" width="auto">
+          <template v-slot:activator="{props}">
+            <v-btn class="mx-6 bucketsButton" v-bind="props">
+              <span class="bucketsButtonText">Buckets konfigurieren</span>
+            </v-btn>
+          </template>
+          <v-card>
+            <v-card-text>
+              <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
+                          :value="bucket.id" @change="sortSelectedBuckets()">
+              </v-checkbox>
+              <div v-if="buckets.length == 0">Es gibt keine Buckets</div>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
+        <draggable :list="[]"
+                   :style="{visibility: (!showPaketeWithoutBucket || paketeWithoutBucket.length===0 ? 'visible':'hidden')}"
+                   class="paket"
+                   ghostClass="ghostClass"
+                   group="pakete"
+                   itemKey="name"
+                   @change="removePaketFromBucket"
+        >
+          <template #header>
+            <v-icon icon="mdi-trash-can"></v-icon>
+          </template>
+          <template #item="{  }">
+          </template>
+        </draggable>
+      </v-col>
     </v-row>
     <v-row>
       <v-col :style="{visibility: (showPaketeWithoutBucket ? 'visible':'hidden')}" cols="3">
@@ -71,8 +73,7 @@
             </div>
           </v-col>
         </v-row>
-        <v-row id="abc"
-               style="height:65vh; overflow-y:auto; overflow-x:hidden;">
+        <v-row style="height:65vh; overflow-y:auto; overflow-x:hidden;">
           <v-col class="d-flex flex-nowrap justify-start">
             <draggable
                 v-for="bucketId of selected" :key="bucketId"
