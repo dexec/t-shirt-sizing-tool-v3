@@ -55,8 +55,8 @@
             @change="removePaketFromBucket"
         >
           <template #item="{ element }">
-            <div :title="getTitleForPaket(element)" class="paket ma-2" style="position: relative;">
-              <span class="paketContent">#{{ (element as Paket).ticket_nr }}</span>
+            <div v-if="applyFilter(element)" :title="getTitleForPaket(element)" class="paket ma-2" style="position: relative;">
+              <span class="paketContent">{{ (element as Paket).ticket_nr }}</span>
               <span class="paketContent">{{ (element as Paket).thema }}</span>
             </div>
           </template>
@@ -85,8 +85,8 @@
                 @change="changeBucketOfPaket($event,buckets.find(bucket => bucket.id == bucketId)!)"
             >
               <template #item="{ element }">
-                <div :title="getTitleForPaket(element)" class="paket ma-2">
-                  <span :style="searchPaket(element)" class="list-group-item paketContent">#{{
+                <div v-if="applyFilter(element)" :title="getTitleForPaket(element)" class="paket ma-2">
+                  <span :style="searchPaket(element)" class="list-group-item paketContent">{{
                       (element as Paket).ticket_nr
                     }}</span>
                   <span :style="searchPaket(element)" class="list-group-item  paketContent">{{
@@ -109,6 +109,7 @@ import {computed, onActivated, ref} from "vue";
 import {Bucket} from "@/Bucket";
 import {Paket} from "@/Paket";
 import draggable from "vuedraggable";
+import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
 
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
@@ -124,30 +125,6 @@ onActivated(() => {
   sortSelectedBuckets();
 });
 
-/*onMounted(() => {
-  let rowBucketsButtonAndTrash = document.getElementById("rowBucketsButtonAndTrash");
-  let draggablePaketWithoutBucket = document.getElementById("draggablePaketWithoutBucket")
-  if(rowBucketsButtonAndTrash && draggablePaketWithoutBucket) {
-    let rowBucketsButtonAndTrashHeight = rowBucketsButtonAndTrash.offsetHeight;
-    console.log(rowBucketsButtonAndTrashHeight)
-    let draggablePaketWithoutBucketHeight = window.outerHeight-rowBucketsButtonAndTrashHeight-64
-    draggablePaketWithoutBucket.style.height=draggablePaketWithoutBucketHeight+"px";
-    draggablePaketWithoutBucket.style.overflowY="scroll";
-    console.log(draggablePaketWithoutBucket.style.height)
-  }
-})*/
-
-function log() {
-  console.log("log")
-}
-
-function updateBucketAreaHeights() {
-  const scrollHeight = document.getElementById('abc')!.scrollHeight;
-  /*for (const element of document.getElementsByClassName('bucketDragArea')) {
-    (element as HTMLElement).style.height = scrollHeight + "px";
-  }*/
-}
-
 function getTitleForPaket(paket: Paket): string {
   let result: string = "";
   const parents = paketeStore.parentsOfPaket(paket).reverse();
@@ -160,7 +137,16 @@ function getTitleForPaket(paket: Paket): string {
   result += paket.thema
   return result
 }
-
+function applyFilter(paket: Paket): boolean {
+  const variablenAustauschStore = useVariablenAustauschStore();
+  const paketStringIndexed: {[index: string]:any} = paket
+  for(const key in paketStringIndexed) {
+    if(typeof paketStringIndexed[key] ==="string" && paketStringIndexed[key].includes(variablenAustauschStore.searchPaketString)) {
+      return true
+    }
+  }
+  return false
+}
 function sortSelectedBuckets() {
   const copySelected = [...selected.value]
   selected.value.length = 0
@@ -191,11 +177,12 @@ function removePaketFromBucket(evt: any) {
 }
 
 function changeBucketOfPaket(evt: any, bucket: Bucket) {
+  //TODO Wenn man ein Paket in ein Bucket zieht, soll die Überschrift des Buckets kurz aufleuchten,
+  // um zu sehen, in welchem Bucket das Paket landen wird sobald man loslässt
   if (evt.added) {
     const updatePaket = evt.added.element;
     updatePaket.bucket = bucketStore.bucketsAsMap.get(bucket.id);
   }
-  updateBucketAreaHeights();
 }
 
 function searchPaket(paket: Paket) {
