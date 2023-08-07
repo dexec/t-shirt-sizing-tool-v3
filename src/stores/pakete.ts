@@ -2,33 +2,12 @@ import {defineStore} from "pinia";
 import {Paket} from "@/Paket";
 import {ref} from "vue";
 import type {Bucket} from "@/Bucket";
-import {useBucketsStore} from "@/stores/buckets";
-import {ImportProject} from "@/components/ImportProject";
 
 export const usePaketeStore = defineStore("pakete", () => {
-    const bucketStore = useBucketsStore();
-    const bucketsAsSortedArray = bucketStore.bucketsAsSortedArray;
-    const importProject = ImportProject.getInstance()
-    const paketeAsTreeView = ref<Array<Paket>>(importProject.getPaketeTreeView());
-    const paketeAsMap = ref(new Map<number, Paket>(importProject.getPaketeMap()));
+    const paketeAsTreeView = ref<Array<Paket>>([]);
+    const paketeAsMap = ref(new Map<number, Paket>());
     const unsortedPaketeListsSortedByBucketsMap = ref(new Map<Bucket, Paket[]>());
-    for (const bucket of bucketsAsSortedArray) {
-        unsortedPaketeListsSortedByBucketsMap.value.set(bucket as Bucket, []);
-    }
 
-    paketeAsMap.value.forEach(paket => {
-        if (paket.bucket)
-            unsortedPaketeListsSortedByBucketsMap.value.get(paket.bucket)!.push(paket);
-    });
-
-    generatePakete(0);
-    function generatePakete(numberPakete: number) {
-        for(let i = 0;i<numberPakete;i++) {
-            const newPaket = new Paket(i + numberPakete + "", "Testing " + i, "Ticket zum Testen", "Test", null, null, false, 0, null, []);
-            paketeAsMap.value.set(newPaket.id, newPaket);
-            paketeAsTreeView.value.push(newPaket)
-        }
-    }
     function paketeAsFlatView() {
         return Array.from(paketeAsMap.value.values());
     }
@@ -58,12 +37,12 @@ export const usePaketeStore = defineStore("pakete", () => {
         return result;
     }
 
-    function parentsOfPaket(paket:Paket): Array<Paket> {
-        const result: Paket[]=[];
+    function parentsOfPaket(paket: Paket): Array<Paket> {
+        const result: Paket[] = [];
         let parentOfPaket = paket.parent;
-        while(parentOfPaket) {
+        while (parentOfPaket) {
             result.push(parentOfPaket);
-            parentOfPaket=parentOfPaket.parent;
+            parentOfPaket = parentOfPaket.parent;
         }
         return result;
     }
@@ -90,36 +69,31 @@ export const usePaketeStore = defineStore("pakete", () => {
     }
 
     function updateTreeViewAfterChangedOpenState(changedPaket: Paket): number {
-        const parent = changedPaket.parent;
-        if (parent && !parent.open) {
-            return updateTreeViewAfterChangedOpenState(parent);
-        } else {
-            const indexOfChangedPaket = paketeAsTreeView.value.indexOf(changedPaket);
-            let counter = 0;
-            const stack = [...changedPaket.children];
-            if (changedPaket.open) {
-                const paketeToAdd: Paket[] = [];
-                while (stack.length > 0) {
-                    const aktuellesPaket = stack.shift()!;
-                    if (aktuellesPaket.open) {
-                        stack.unshift(...aktuellesPaket.children.reverse());
-                    }
-                    paketeToAdd.push(aktuellesPaket);
+        const indexOfChangedPaket = paketeAsTreeView.value.indexOf(changedPaket);
+        let counter = 0;
+        const stack = [...changedPaket.children];
+        if (changedPaket.open) {
+            const paketeToAdd: Paket[] = [];
+            while (stack.length > 0) {
+                const aktuellesPaket = stack.shift()!;
+                if (aktuellesPaket.open) {
+                    stack.unshift(...aktuellesPaket.children.reverse());
                 }
-                paketeAsTreeView.value.splice(indexOfChangedPaket + 1, 0, ...paketeToAdd);
-                counter += paketeToAdd.length;
-            } else {
-                while (stack.length > 0) {
-                    const aktuellesPaket = stack.shift() as Paket;
-                    if (aktuellesPaket.open) {
-                        stack.unshift(...aktuellesPaket.children);
-                    }
-                    counter++;
-                }
-                paketeAsTreeView.value.splice(indexOfChangedPaket + 1, counter);
+                paketeToAdd.push(aktuellesPaket);
             }
-            return counter;
+            paketeAsTreeView.value.splice(indexOfChangedPaket + 1, 0, ...paketeToAdd);
+            counter += paketeToAdd.length;
+        } else {
+            while (stack.length > 0) {
+                const aktuellesPaket = stack.shift() as Paket;
+                if (aktuellesPaket.open) {
+                    stack.unshift(...aktuellesPaket.children);
+                }
+                counter++;
+            }
+            paketeAsTreeView.value.splice(indexOfChangedPaket + 1, counter);
         }
+        return counter;
     }
 
     function updateLvl(addLvl: number, paket: Paket) {
@@ -185,7 +159,7 @@ export const usePaketeStore = defineStore("pakete", () => {
                 const indexOfPaketBeforeAsChild = paketBefore.parent.children.indexOf(paketBefore);
                 paketBefore.parent.children.splice(indexOfPaketBeforeAsChild + 1, 0, newPaket);
                 newPaket.parent = paketBefore.parent;
-                updateBucket(newPaket,null)
+                updateBucket(newPaket, null)
             }
             newPaket.lvl = paketBefore.lvl;
             paketeAsTreeView.value.splice(indexOfPaketBefore + 1, 0, newPaket);
@@ -457,6 +431,8 @@ export const usePaketeStore = defineStore("pakete", () => {
             updateTreeViewAfterChangedOpenState(paketToMove);
         }
         paketeAsTreeView.value.splice(indexOfPaketToMove, 1);
+        if (paketToMove.lvl == 0) paketToMove.parent = null;
+        else paketToMove.parent = parentOfPaketToMove.parent;
         const parentOpenAfter = parentOfPaketToMove.open;
         if (parentOfPaketToMove.open) {
             parentOfPaketToMove.open = false;
@@ -471,8 +447,7 @@ export const usePaketeStore = defineStore("pakete", () => {
             parentOfPaketToMove.open = true;
             updateTreeViewAfterChangedOpenState(parentOfPaketToMove);
         }
-        if (paketToMove.lvl == 0) paketToMove.parent = null;
-        else paketToMove.parent = parentOfPaketToMove.parent;
+
     }
 
     return {

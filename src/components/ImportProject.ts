@@ -4,39 +4,47 @@ import type {AbstrakterEintrag} from "@/AbstrakterEintrag";
 import {Zwischensumme} from "@/Zwischensumme";
 import {Eintrag} from "@/Eintrag";
 import {Projekt} from "@/Projekt";
+import {useBucketsStore} from "@/stores/buckets";
+import {useProjektStore} from "@/stores/projekt";
+import {useEintraegeStore} from "@/stores/eintraege";
+import {usePaketeStore} from "@/stores/pakete";
 
 export class ImportProject {
-    private static instance: ImportProject
-    private _buckets: Bucket[] = []
-    private _pakete: Paket[] = []
-    private _eintraege: AbstrakterEintrag[] = []
-    private _projekt: Projekt
+    private readonly _buckets: Bucket[] = []
+    private readonly _pakete: Paket[] = []
+    private readonly _eintraege: AbstrakterEintrag[] = []
+    private _projekt: Projekt = new Projekt("", "", false)
 
-    private constructor() {
-        this._projekt = new Projekt("", "", false)
-    }
-
-    public static getInstance(): ImportProject {
-        if (!ImportProject.instance) {
-            ImportProject.instance = new ImportProject()
-        }
-        return ImportProject.instance;
-    }
-
-    public initialize(fileContents: string) {
+    constructor(fileContents: string) {
         const jsonfile = JSON.parse(fileContents);
         this.fileToBucketArray(jsonfile.buckets);
         this.fileToPaketeArray(jsonfile.pakete, jsonfile.paketeTree);
         this.fileToEintrageArray(jsonfile.eintraege);
         this.fileToProjectData(jsonfile.projekt)
+        this.writeProjectStore();
+        this.writeEintraegeStore();
+        this.writeBucketStoreBucketArray();
+        this.writeBucketStoreBucketMap();
+        this.writePaketeStorePaketeMap();
+        this.writePaketeStorePaketeTreeView();
+        this.writePaketeStoreUnsortedPaketeListsSortedByBucketsMap();
     }
 
     private fileToPaketeArray(paketefromFile: any[], paketeTree: any[]): void {
         for (const paketFromFile of paketefromFile) {
             this._pakete.push(new Paket(paketFromFile.ticket_nr, paketFromFile.thema, paketFromFile.beschreibung, paketFromFile.komponente, paketFromFile.bucket ? this._buckets.find(bucket => bucket.name == paketFromFile.bucket)! : null, paketFromFile.schaetzung, paketFromFile.open, 0, null, [], paketFromFile.id));
         }
+        //Nur dev-Zweck
+        this.generatePakete(1000);
         this.setPaketeTreeStructure(paketeTree);
         this.setPaketeLevelAndSchaetzung();
+    }
+
+    private generatePakete(numberPakete: number) {
+        for (let i = 0; i < numberPakete; i++) {
+            const newPaket = new Paket(i + numberPakete + "", "Testing " + i, "Ticket zum Testen", "Test", null, null, false, 0, null, []);
+            this._pakete.push(newPaket);
+        }
     }
 
     private setPaketeTreeStructure(paketeTree: any[]): void {
@@ -71,15 +79,15 @@ export class ImportProject {
             const newBucket = new Bucket(bucketFromFile.name);
             this._buckets.push(newBucket);
         }
+        const useBucketStore = useBucketsStore();
+        useBucketStore.bucketsAsSortedArray = this._buckets;
     }
 
     private fileToEintrageArray(eintrageFromFile: any[]): void {
-
         this._eintraege.unshift(new Zwischensumme("STARTSUMME", 0, 0, 0, 0));
         let aktuelleZwischensumme = this._eintraege[0] as Zwischensumme;
         for (const eintrag of eintrageFromFile) {
             if (eintrag.bezeichnung == "ZWISCHENSUMME") {
-                console.log(eintrag)
                 const newZwischsumme = new Zwischensumme(eintrag.bezeichnung, 0, 0, 0, 0)
                 aktuelleZwischensumme = newZwischsumme;
                 this._eintraege.push(newZwischsumme)
@@ -94,35 +102,44 @@ export class ImportProject {
         this._projekt = new Projekt(projectData.projektname, projectData.projektbeschreibung, projectData.bucketmodus)
     }
 
-    public getProjectData():Projekt {
-        return this._projekt
-    }
-    public getEintrageArray(): AbstrakterEintrag[] {
-        return this._eintraege;
+    private writeProjectStore() {
+        const projectStore = useProjektStore();
+        projectStore.projektbeschreibung = this._projekt.projektbeschreibung;
+        projectStore.projektname = this._projekt.projektname;
+        projectStore.bucketmodus = this._projekt.bucketmodus;
     }
 
-    public getBucketMap(): Map<number, Bucket> {
+    private writeEintraegeStore() {
+        const eintraegeStore = useEintraegeStore();
+        eintraegeStore.eintraege = this._eintraege;
+    }
+
+    private writeBucketStoreBucketMap() {
+        const bucketStore = useBucketsStore();
         const bucketsAsMap = new Map<number, Bucket>();
         for (const bucket of this._buckets) {
             bucketsAsMap.set(bucket.id, bucket);
         }
-        return bucketsAsMap
+        bucketStore.bucketsAsMap = bucketsAsMap;
     }
 
-    public getBucketArray(): Bucket[] {
-        return this._buckets
+    private writeBucketStoreBucketArray() {
+        const bucketStore = useBucketsStore();
+        bucketStore.bucketsAsSortedArray = this._buckets
     }
 
-    public getPaketeMap(): Map<number, Paket> {
-        const result = new Map<number, Paket>();
+    private writePaketeStorePaketeMap() {
+        const paketeStore = usePaketeStore();
+        const paketeMap = new Map<number, Paket>();
         for (const paket of this._pakete) {
-            result.set(paket.id, paket)
+            paketeMap.set(paket.id, paket)
         }
-        return result;
+        paketeStore.paketeAsMap = paketeMap;
     }
 
-    public getPaketeTreeView(): Paket[] {
-        const result: Paket[] = [];
+    private writePaketeStorePaketeTreeView() {
+        const paketeStore = usePaketeStore();
+        const paketeAsTreeView: Paket[] = [];
         const stackForTreeView: Paket[] = []
         for (const paket of this._pakete) {
             if (paket.lvl == 0) stackForTreeView.push(paket)
@@ -136,11 +153,22 @@ export class ImportProject {
                             stackForTreeView.unshift(aktuellesPaket.children[i]);
                     }
                 }
-                result.push(aktuellesPaket);
+                paketeAsTreeView.push(aktuellesPaket);
             }
         }
-        return result;
+        paketeStore.paketeAsTreeView = paketeAsTreeView;
     }
 
-
+    private writePaketeStoreUnsortedPaketeListsSortedByBucketsMap() {
+        const paketeStore = usePaketeStore();
+        const unsortedPaketeListsSortedByBucketsMap=  new Map<Bucket, Paket[]>()
+        for (const bucket of this._buckets) {
+            unsortedPaketeListsSortedByBucketsMap.set(bucket as Bucket, []);
+        }
+        this._pakete.forEach(paket => {
+            if (paket.bucket)
+                unsortedPaketeListsSortedByBucketsMap.get(paket.bucket)!.push(paket);
+        });
+        paketeStore.unsortedPaketeListsSortedByBucketsMap = unsortedPaketeListsSortedByBucketsMap;
+    }
 }

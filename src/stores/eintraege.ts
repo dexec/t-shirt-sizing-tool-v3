@@ -4,11 +4,10 @@ import {Zwischensumme} from "@/Zwischensumme";
 import type {AbstrakterEintrag} from "@/AbstrakterEintrag";
 import {useStatistikenStore} from "@/stores/statistiken";
 import {ref} from "vue";
-import {ImportProject} from "@/components/ImportProject";
 
 export const useEintraegeStore = defineStore('eintraege', () => {
-        const eintraege = ref<Array<AbstrakterEintrag>>(ImportProject.getInstance().getEintrageArray());
-        berechne();
+        const eintraege = ref<Array<AbstrakterEintrag>>([]);
+        if(eintraege.value.length>0) berechne();
 
         function berechne() {
             const statistiken = useStatistikenStore();

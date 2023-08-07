@@ -6,7 +6,6 @@ import {Statistik} from "@/Statistik";
 import type {Paket} from "@/Paket";
 import {ref} from "vue";
 import {useProjektStore} from "@/stores/projekt";
-//TODO values() durch forEach ersetzen!
 export const useStatistikenStore = defineStore('statistiken', () => {
     const buckets = useBucketsStore();
     const pakete = usePaketeStore();
@@ -19,7 +18,7 @@ export const useStatistikenStore = defineStore('statistiken', () => {
         if (projekt.bucketmodus) {
             buckets.bucketsAsSortedArray.forEach(bucket => {
                 const castedBucket = bucket as Bucket
-                statistiken.value.push(new Statistik(castedBucket, anzahlGeschaetzt(castedBucket), anzahlUngeschaetzt(castedBucket), anzahlGesamt(castedBucket), min(castedBucket), max(castedBucket), median(castedBucket), durchschnitt(castedBucket), anteilAnzahl(castedBucket), summeSchaetzungen(castedBucket), summeDurchschnitt(castedBucket), summeMedian(castedBucket)))
+                statistiken.value.push(new Statistik(castedBucket, anzahlGeschaetzt(castedBucket), anzahlUngeschaetzt(castedBucket), anzahlGesamt(castedBucket), min(castedBucket), max(castedBucket), median(castedBucket), durchschnitt(castedBucket), anteilAnzahl(castedBucket), summeSchaetzungen(castedBucket), summeDurchschnitt(castedBucket), summeMedian(castedBucket)));
             })
         }
     }

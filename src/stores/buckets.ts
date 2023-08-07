@@ -2,13 +2,11 @@ import {defineStore} from 'pinia';
 import {Bucket} from "@/Bucket";
 import {usePaketeStore} from "@/stores/pakete";
 import {ref} from "vue";
-import {ImportProject} from "@/components/ImportProject";
 
 export const useBucketsStore = defineStore('buckets', () => {
-    const importProject = ImportProject.getInstance()
-    const bucketsAsSortedArray = ref<Bucket[]>(importProject.getBucketArray());
-    const bucketsAsMap = ref(new Map<number, Bucket>(importProject.getBucketMap()));
+    const bucketsAsSortedArray = ref<Bucket[]>([]);
 
+    const bucketsAsMap = ref(new Map<number, Bucket>());
 
     function getBucketNamesSorted() {
         return bucketsAsSortedArray.value.map(bucket => bucket.name)
