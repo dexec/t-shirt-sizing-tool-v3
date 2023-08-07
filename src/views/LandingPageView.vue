@@ -17,7 +17,7 @@ import {ref} from "vue";
 import {ImportProject} from "@/components/ImportProject";
 import router from "@/router";
 import saveFile from "@/stores/file.json"
-import {useLandingpageStore} from "@/stores/landingpage";
+import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
 function createNewProject() {
   const emptyProject = '{\n' +
       '  "projekt": {\n' +
@@ -30,16 +30,14 @@ function createNewProject() {
       '  "pakete": [],\n' +
       '  "paketeTree": []\n' +
       '}'
-  const importProject = ImportProject.getInstance()
-  importProject.initialize(emptyProject)
-  useLandingpageStore().geladen = true
+  new ImportProject(emptyProject)
+  useVariablenAustauschStore().geladen = true
   router.push('/projekt')
 }
 
 function createNewSample() {
-  const importProject = ImportProject.getInstance();
-  importProject.initialize(JSON.stringify(saveFile));
-  useLandingpageStore().geladen = true
+  new ImportProject(JSON.stringify(saveFile));
+  useVariablenAustauschStore().geladen = true
   router.push('/projekt')
 }
 
@@ -55,18 +53,14 @@ function handleFileUpload(event: any) {
     const reader = new FileReader();
     reader.onload = () => {
       const fileContents = reader.result;
-      const importProject = ImportProject.getInstance()
       const jsonFile = JSON.parse(fileContents as string);
       if (jsonFile.buckets && jsonFile.eintraege && jsonFile.pakete && jsonFile.paketeTree) {
-        importProject.initialize(JSON.stringify(jsonFile))
-        useLandingpageStore().geladen = true
+        new ImportProject(JSON.stringify(jsonFile))
+        useVariablenAustauschStore().geladen = true
         router.push('/projekt')
       }
     };
     reader.readAsText(file);
   }
 }
-
-
-const showOverlay = ref(true)
 </script>
