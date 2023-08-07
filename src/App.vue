@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <AppBar v-if="useLandingpageStore().geladen"></AppBar>
+      <AppBar v-if="useVariablenAustauschStore().geladen"></AppBar>
       <router-view v-slot="{Component}">
         <keep-alive include="VergleichView">
           <component :is="Component"></component>
@@ -16,5 +16,5 @@
 </style>
 <script lang="ts" setup>
 import AppBar from "@/components/AppBar.vue";
-import {useLandingpageStore} from "@/stores/landingpage";
+import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
 </script>
