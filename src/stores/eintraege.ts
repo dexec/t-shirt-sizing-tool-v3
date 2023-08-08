@@ -7,7 +7,7 @@ import {ref} from "vue";
 
 export const useEintraegeStore = defineStore('eintraege', () => {
         const eintraege = ref<Array<AbstrakterEintrag>>([]);
-        if(eintraege.value.length>0) berechne();
+        if (eintraege.value.length > 0) berechne();
 
         function berechne() {
             const statistiken = useStatistikenStore();
@@ -24,42 +24,42 @@ export const useEintraegeStore = defineStore('eintraege', () => {
                 }
             }
             for (let i = 1; i < eintraege.value.length; i++) {
-                    if (eintraege.value[i] instanceof Eintrag) {
-                        const aktuellerEintrag = eintraege.value[i] as Eintrag
-                        aktuellerEintrag.referenzierteZwischensumme = zwischensumme
-                        if (aktuellerEintrag.isAufschlagBase) {
-                            aktuellerEintrag.aufwandWert = aktuellerEintrag.aufschlagWert * aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand / 100
-                        } else {
-                            if (aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand == 0) aktuellerEintrag.aufschlagWert = 0
-                            else aktuellerEintrag.aufschlagWert = aktuellerEintrag.aufwandWert / aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand * 100
-                        }
-                        vorigerAbschnittAufwand += aktuellerEintrag.aufwandWert;
+                if (eintraege.value[i] instanceof Eintrag) {
+                    const aktuellerEintrag = eintraege.value[i] as Eintrag
+                    aktuellerEintrag.referenzierteZwischensumme = zwischensumme
+                    if (aktuellerEintrag.isAufschlagBase) {
+                        aktuellerEintrag.aufwandWert = aktuellerEintrag.aufschlagWert * aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand / 100
                     } else {
-                        const aktuelleZwischensumme = eintraege.value[i] as Zwischensumme;
-                        aktuelleZwischensumme.vorigerAbschnittAufwand = vorigerAbschnittAufwand
-                        if(zwischensumme.zwischensummeAufwand==0)aktuelleZwischensumme.vorigerAbschnittAufschlag=0
-                        else aktuelleZwischensumme.vorigerAbschnittAufschlag = vorigerAbschnittAufwand/zwischensumme.zwischensummeAufwand;
-                        aktuelleZwischensumme.zwischensummeAufwand = zwischensumme.zwischensummeAufwand + aktuelleZwischensumme.vorigerAbschnittAufwand;
-                        zwischensumme = aktuelleZwischensumme;
-                        vorigerAbschnittAufwand = 0;
+                        if (aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand == 0) aktuellerEintrag.aufschlagWert = 0
+                        else aktuellerEintrag.aufschlagWert = aktuellerEintrag.aufwandWert / aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand * 100
                     }
+                    vorigerAbschnittAufwand += aktuellerEintrag.aufwandWert;
+                } else {
+                    const aktuelleZwischensumme = eintraege.value[i] as Zwischensumme;
+                    aktuelleZwischensumme.vorigerAbschnittAufwand = vorigerAbschnittAufwand
+                    if (zwischensumme.zwischensummeAufwand == 0) aktuelleZwischensumme.vorigerAbschnittAufschlag = 0
+                    else aktuelleZwischensumme.vorigerAbschnittAufschlag = vorigerAbschnittAufwand / zwischensumme.zwischensummeAufwand*100;
+                    aktuelleZwischensumme.zwischensummeAufwand = zwischensumme.zwischensummeAufwand + aktuelleZwischensumme.vorigerAbschnittAufwand;
+                    zwischensumme = aktuelleZwischensumme;
+                    vorigerAbschnittAufwand = 0;
                 }
-                for (let i = eintraege.value.length - 2; i >= 1; i--) {
-                    if (eintraege.value[i] instanceof Eintrag) {
-                        const aktuellerEintrag = eintraege.value[i] as Eintrag
-                        if(zwischensumme.zwischensummeAufwand==0) aktuellerEintrag.anteilZwischensumme=0
-                        else aktuellerEintrag.anteilZwischensumme = Math.round((aktuellerEintrag.aufwandWert / zwischensumme.zwischensummeAufwand + Number.EPSILON) * 100);
-                        if(endsumme.zwischensummeAufwand==0) aktuellerEintrag.anteilGesamtprojekt=0
-                        else aktuellerEintrag.anteilGesamtprojekt = Math.round((aktuellerEintrag.aufwandWert / endsumme.zwischensummeAufwand + Number.EPSILON) * 100);
-                    } else {
-                        const aktuelleZwischensumme = eintraege.value[i] as Zwischensumme
-                        zwischensumme = aktuelleZwischensumme
-                        if(aktuelleZwischensumme.zwischensummeAufwand==0) aktuelleZwischensumme.anteilZwischensumme = 0
-                        else aktuelleZwischensumme.anteilZwischensumme = Math.round((aktuelleZwischensumme.vorigerAbschnittAufwand / aktuelleZwischensumme.zwischensummeAufwand + Number.EPSILON) * 100);
-                        if(endsumme.zwischensummeAufwand==0) aktuelleZwischensumme.anteilGesamtprojekt=0
-                        else aktuelleZwischensumme.anteilGesamtprojekt = Math.round((aktuelleZwischensumme.vorigerAbschnittAufwand / endsumme.zwischensummeAufwand + Number.EPSILON) * 100);
-                    }
+            }
+            for (let i = eintraege.value.length - 2; i >= 1; i--) {
+                if (eintraege.value[i] instanceof Eintrag) {
+                    const aktuellerEintrag = eintraege.value[i] as Eintrag
+                    if (zwischensumme.zwischensummeAufwand == 0) aktuellerEintrag.anteilZwischensumme = 0
+                    else aktuellerEintrag.anteilZwischensumme = Math.round((aktuellerEintrag.aufwandWert / zwischensumme.zwischensummeAufwand + Number.EPSILON) * 100);
+                    if (endsumme.zwischensummeAufwand == 0) aktuellerEintrag.anteilGesamtprojekt = 0
+                    else aktuellerEintrag.anteilGesamtprojekt = Math.round((aktuellerEintrag.aufwandWert / endsumme.zwischensummeAufwand + Number.EPSILON) * 100);
+                } else {
+                    const aktuelleZwischensumme = eintraege.value[i] as Zwischensumme
+                    zwischensumme = aktuelleZwischensumme
+                    if (aktuelleZwischensumme.zwischensummeAufwand == 0) aktuelleZwischensumme.anteilZwischensumme = 0
+                    else aktuelleZwischensumme.anteilZwischensumme = Math.round((aktuelleZwischensumme.vorigerAbschnittAufwand / aktuelleZwischensumme.zwischensummeAufwand + Number.EPSILON) * 100);
+                    if (endsumme.zwischensummeAufwand == 0) aktuelleZwischensumme.anteilGesamtprojekt = 0
+                    else aktuelleZwischensumme.anteilGesamtprojekt = Math.round((aktuelleZwischensumme.vorigerAbschnittAufwand / endsumme.zwischensummeAufwand + Number.EPSILON) * 100);
                 }
+            }
 
         }
 
