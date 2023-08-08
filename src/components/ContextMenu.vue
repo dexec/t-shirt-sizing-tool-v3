@@ -13,40 +13,7 @@
     </div>
   </div>
 </template>
-<!--<script>
-import {inject} from "vue";
 
-export default {
-  props: {
-    providedFunctionsProp: Array
-  },
-  setup(props) {
-    const providedFunctions = []
-    for (let providedFunctionProp of props.providedFunctionsProp) {
-      const providedFunction = inject(providedFunctionProp.functionName);
-      if (typeof providedFunction === 'function') providedFunctions.push({
-        functionLabel: providedFunctionProp.functionLabel,
-        functionName: providedFunctionProp.functionName,
-        function: providedFunction
-      })
-    }
-    return {providedFunctions}
-  },
-  methods: {
-    showMenu(e) {
-      e.preventDefault();
-      const contextMenu = document.querySelector(".wrapper")
-      let x = e.clientX
-      let y = e.clientY
-      contextMenu.style.left = `${x}px`;
-      contextMenu.style.top = `${y}px`;
-      contextMenu.style.display = "block";
-      //TODO Beim Klick soll der Fokus zurück auf Tabelle gehen
-      document.addEventListener("click", () => contextMenu.style.display = "none");
-    }
-  }
-}
-</script>-->
 <script setup lang="ts">
 import type { Ref } from "vue";
 import { inject, ref } from "vue";
