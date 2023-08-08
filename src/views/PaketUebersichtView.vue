@@ -50,7 +50,7 @@ function onGridReady(params: any) {
 const columnApi = ref<ColumnApi>();
 
 const defaultColDef = reactive({
-  resizable: true,filter:'agTextColumnFilter',
+  resizable: true, filter: 'agTextColumnFilter',
   suppressKeyboardEvent: (params: any) => {
     let key = params.event.key;
     return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter', 'F2'].includes(key) || ['Delete', 'Enter', 'F2', 'Escape'].includes(key) /*|| suppressedKeysArray.includes(key)*/;
