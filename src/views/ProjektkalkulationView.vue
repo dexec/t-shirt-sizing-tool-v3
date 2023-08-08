@@ -1,19 +1,21 @@
 <template>
-  <div style="width: 100%;height: 100%">
+
+  <div class="d-flex flex-row" style="width: 100%;height: 100%">
     <ag-grid-vue
         :columnDefs="columnDefs"
         :defaultColDef="defaultColDef"
         :rowData="rowData"
         class="ag-theme-alpine"
         rowSelection="single"
-        style="width: 100%;height: 100%"
+        style="width: 65%;height: 100%"
         @cellValueChanged="onCellValueChanged"
         @contextmenu="rightClickOnCell"
+        @cell-clicked="onCellClicked"
         @cell-key-down="onCellKeyPress"
         @cell-double-clicked="onCellDoubleClicked"
         @grid-ready="onGridReady"
     ></ag-grid-vue>
-    <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctions]"></context-menu>
+    <div style="width:35%; border: 1px solid black">{{ explanationString }}</div>
   </div>
 </template>
 <script lang="ts" setup>
@@ -73,24 +75,28 @@ const columnDefs = ref([
     field: "aufschlagWert",
     headerName: "Aufschlag",
     cellRenderer: AufschlagCellRenderer,
+    cellStyle: {},
     editable: false
   },
   {
     field: "aufwandWert",
     headerName: "Aufwand",
     cellRenderer: AufwandCellRenderer,
+    cellStyle: {},
     editable: false
   },
   {
     field: "anteilZwischensumme",
     headerName: "Anteil an nächster Zwischensumme",
     cellRenderer: AnteilAnZwischensummeCellRenderer,
+    cellStyle: {},
     editable: false
   },
   {
     field: "anteilGesamtprojekt",
     headerName: "Anteil am Gesamtprojekt",
     cellRenderer: AnteilAmGesamtprojektCellRenderer,
+    cellStyle: {},
     editable: false
   }]);
 const defaultColDef = reactive(
@@ -116,9 +122,110 @@ function onCellEditingStopped(e) {
 
 }
 
+const explanationString = ref("");
+
 function onCellClicked(e) {
-  columnDefs.value!.forEach(column => column.editable = false);
-  refreshTable(e.e.column.colId, e.rowIndex)
+  columnDefs.value!.forEach(column => {
+    column.editable = false;
+    column.cellStyle = {};
+  });
+  switch (e.colDef.field) {
+    case "bezeichnung":
+      break;
+    case "aufschlagWert": {
+      clickedAufschlagOrAufwand(e.data.bezeichnung, "aufschlagWert", e.rowIndex);
+      break;
+    }
+    case "aufwandWert":
+      clickedAufschlagOrAufwand(e.data.bezeichnung, "aufwandWert", e.rowIndex);
+      break;
+    case "anteilZwischensumme":
+      clickedAnteilZwischensumme(e.data.bezeichnung, e.rowIndex);
+      break;
+    case "anteilGesamtprojekt":
+      clickedOnAnteilGesamtprojekt(e.data.bezeichnung, e.rowIndex);
+      break;
+  }
+  refreshTable(e.column.colId, e.rowIndex)
+}
+
+function clickedAufschlagOrAufwand(bezeichnung: string, column: string, rowIndex: number) {
+  const columnNeighbor = column == "aufschlagWert" ? "aufwandWert" : "aufschlagWert"
+  if (!["ZWISCHENSUMME", "STARTSUMME", "ENDSUMME"].includes(bezeichnung)) {
+    for (let i = rowIndex; i >= 0; i--) {
+      if (["STARTSUMME", "ZWISCHENSUMME"].includes(rowData[i].bezeichnung)) {
+        columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == column)!.cellStyle = (params: any) => {
+          if (params.rowIndex == i && column == "aufwandWert") return {'background-color': 'blue', color: 'white'}
+          if (params.rowIndex == rowIndex) return {'background-color': 'red', color: 'white'}
+          return {color: 'black'}
+        }
+        columnDefs.value.find(column => column.field == columnNeighbor)!.cellStyle = (params: any) => {
+          if (params.rowIndex == i && column == "aufschlagWert") return {'background-color': 'blue', color: 'white'}
+          if (params.rowIndex == rowIndex) return {'background-color': 'green', color: 'white'};
+          return {color: 'black'};
+        }
+        break;
+      }
+    }
+  } else if (bezeichnung == "ZWISCHENSUMME") {
+    const vorigerAbschnittEintraege: number[] = [];
+    for (let i = rowIndex - 1; !["STARTSUMME", "ZWISCHENSUMME"].includes(rowData[i].bezeichnung); i--) {
+      vorigerAbschnittEintraege.push(i);
+    }
+    columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == column)!.cellStyle = (params: any) => {
+      if (params.rowIndex == rowIndex) return {'background-color': 'red', color: 'white'}
+      if (vorigerAbschnittEintraege.includes(params.rowIndex)) return {'background-color': 'green', color: 'white'}
+      if (params.rowIndex == 0 && column == "aufwandWert") return {'background-color': 'blue', color: 'white'};
+      return {color: 'black'}
+    }
+  }
+}
+
+function clickedAnteilZwischensumme(bezeichnung: string, rowIndex: number) {
+  if (!["ZWISCHENSUMME", "STARTSUMME", "ENDSUMME"].includes(bezeichnung)) {
+    for (let i = rowIndex; i < rowData.length; i++) {
+      if (["ZWISCHENSUMME", "ENDSUMME"].includes(rowData[i].bezeichnung)) {
+        columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == "aufwandWert")!.cellStyle = (params: any) => {
+          if (params.rowIndex == i) return {'background-color': 'blue', color: 'white'}
+          if (params.rowIndex == rowIndex) return {'background-color': 'green', color: 'white'}
+          return {color: 'black'}
+        }
+        columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == "anteilZwischensumme")!.cellStyle = (params: any) => {
+          if (params.rowIndex == rowIndex) return {'background-color': 'red', color: 'white'}
+          return {color: 'black'}
+        }
+        break;
+      }
+    }
+  } else if (bezeichnung == "ZWISCHENSUMME") {
+    const vorigerAbschnittEintraege: number[] = [];
+    for (let i = rowIndex - 1; !["STARTSUMME", "ZWISCHENSUMME"].includes(rowData[i].bezeichnung); i--) {
+      vorigerAbschnittEintraege.push(i);
+    }
+    columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == "aufwandWert")!.cellStyle = (params: any) => {
+      if (params.rowIndex == rowIndex) return {'background-color': 'blue', color: 'white'}
+      if (vorigerAbschnittEintraege.includes(params.rowIndex)) return {'background-color': 'green', color: 'white'}
+      return {color: 'black'}
+    }
+    columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == "anteilZwischensumme")!.cellStyle = (params: any) => {
+      if (params.rowIndex == rowIndex) return {'background-color': 'red', color: 'white'}
+      return {color: 'black'}
+    }
+  }
+}
+
+function clickedOnAnteilGesamtprojekt(bezeichnung: string, rowIndex: number) {
+  if (!["STARTSUMME", "ENDSUMME"].includes(bezeichnung)) {
+    columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == "aufwandWert")!.cellStyle = (params: any) => {
+      if (params.rowIndex == rowIndex) return {'background-color': 'green', color: 'white'}
+      if(params.rowIndex==rowData.length-1) return {'background-color': 'blue', color: 'white'}
+      return {color: 'black'}
+    }
+    columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == "anteilGesamtprojekt")!.cellStyle = (params: any) => {
+      if (params.rowIndex == rowIndex) return {'background-color': 'red', color: 'white'}
+      return {color: 'black'}
+    }
+  }
 }
 
 function onCellValueChanged(e) {
@@ -324,270 +431,6 @@ function refreshTable(colKey?: Column | string, rowIndex?: number) {
 }
 
 </script>
-<!--<script>
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import {AgGridVue} from "ag-grid-vue3";
-
-import {useEintraegeStore} from "@/stores/eintraege";
-import {nextTick} from "vue";
-import BezeichnungCellRenderer from "@/components/projektkalkulation/BezeichnungCellRenderer.vue";
-import AufschlagCellRenderer from "@/components/projektkalkulation/AufschlagCellRenderer.vue";
-import AufwandCellRenderer from "@/components/projektkalkulation/AufwandCellRenderer.vue";
-import AnteilAnZwischensummeCellRenderer from "@/components/projektkalkulation/AnteilAnZwischensummeCellRenderer.vue";
-import AnteilAmGesamtprojektCellRenderer from "@/components/projektkalkulation/AnteilAmGesamtprojektCellRenderer.vue";
-
-export default {
-  name: "ProjektkalkulationView",
-  components: {
-    AgGridVue,
-    // eslint-disable-next-line vue/no-unused-components
-    BezeichnungCellRenderer,
-    // eslint-disable-next-line vue/no-unused-components
-    AufschlagCellRenderer,
-    // eslint-disable-next-line vue/no-unused-components
-    AufwandCellRenderer,
-    // eslint-disable-next-line vue/no-unused-components
-    AnteilAnZwischensummeCellRenderer,
-    // eslint-disable-next-line vue/no-unused-components
-    AnteilAmGesamtprojektCellRenderer
-  },
-  data() {
-    return {
-      gridApi: null,
-      columnApi: null,
-      defaultColDef: {
-        editable: false,
-        suppressKeyboardEvent: params => {
-          let key = params.event.key;
-          return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter', 'F2'].includes(key);
-        }
-      },
-      columnDefs: [
-        {
-          field: "bezeichnung",
-          headerName: "Bezeichnung",
-          cellRenderer: BezeichnungCellRenderer
-        },
-        {
-          field: "aufschlagWert",
-          headerName: "Aufschlag",
-          cellRenderer: AufschlagCellRenderer
-        },
-        {
-          field: "aufwandWert",
-          headerName: "Aufwand",
-          cellRenderer: AufwandCellRenderer
-        },
-        {
-          field: "anteilZwischensumme",
-          headerName: "Anteil an nächster Zwischensumme",
-          cellRenderer: AnteilAnZwischensummeCellRenderer
-        },
-        {
-          field: "anteilGesamtprojekt",
-          headerName: "Anteil am Gesamtprojekt",
-          cellRenderer: AnteilAmGesamtprojektCellRenderer
-        }
-      ]
-    };
-  },
-  setup() {
-    const eintraegeStore = useEintraegeStore();
-    eintraegeStore.berechne();
-    const rowData = eintraegeStore.eintraege;
-    const printableChar = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!"£$%^&amp;*()_+-=[];\\\'#,. /\\|<>?:@~{}'
-    const suppressedKeysArray = [];
-    for (let char of printableChar)
-      suppressedKeysArray.push(char)
-    return {eintraegeStore, rowData, suppressedKeysArray};
-  },
-  methods: {
-    showMenu(e) {
-      e.preventDefault();
-      const contextMenu = document.querySelector(".wrapper")
-      let x = e.clientX
-      let y = e.clientY
-      contextMenu.style.left = `${x}px`;
-      contextMenu.style.top = `${y}px`;
-      contextMenu.style.display = "block";
-      document.addEventListener("click", () => contextMenu.style.display = "none");
-    },
-    rightClickOnCell(e) {
-      this.showMenu(e)
-      const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
-      this.gridApi.getRowNode(focusedRowIndex).setSelected(true)
-    },
-    onGridReady(params) {
-      this.gridApi = params.api;
-      this.columnApi = params.columnApi;
-      this.refreshTable(this.columnApi.getColumns()[0].getColId(), 0)
-    },
-    onCellValueChanged(params) {
-      switch (params.colDef.field) {
-        case "bezeichnung":
-          this.eintraegeStore.updateBezeichnung(params.rowIndex, params.newValue);
-          break;
-        case "aufschlagWert":
-          if (!isNaN(params.newValue)) this.eintraegeStore.updateAufschlag(params.rowIndex, +params.newValue);
-          else params.data.aufschlagWert = params.oldValue;
-          break;
-        case "aufwandWert":
-          if (!isNaN(params.newValue)) this.eintraegeStore.updateAufwand(params.rowIndex, +params.newValue);
-          else params.data.aufwandWert = params.oldValue;
-          break;
-      }
-      this.refreshTable(params.colDef, params.rowIndex);
-    },
-    aufschlagErstellen() {
-      if (this.gridApi.getSelectedRows()[0] && this.gridApi.getSelectedRows()[0].bezeichnung !== "ENDSUMME") {
-        const rowIndexSelectedRow = this.rowData.indexOf(this.gridApi.getSelectedRows()[0])
-        this.eintraegeStore.addNewAufschlag(rowIndexSelectedRow);
-        this.refreshTable(this.columnApi.getColumns()[0].getColId(), rowIndexSelectedRow + 1);
-      }
-    },
-    zwischensummeErstellen() {
-      if (this.gridApi.getSelectedRows()[0]) {
-        const focusedCell = this.gridApi.getFocusedCell();
-        const bezeichnungSelectedRow = this.gridApi.getSelectedRows()[0].bezeichnung;
-        const bezeichnungSelectedRowUnder = this.rowData[focusedCell.rowIndex + 1].bezeichnung
-        if (bezeichnungSelectedRow !== ("ZWISCHENSUMME" && "ENDSUMME" && "STARTSUMME") && bezeichnungSelectedRowUnder !== ("ZWISCHENSUMME" && "STARTSUMME")) {
-          console.log("abcd")
-          this.eintraegeStore.addNewZwischensumme(focusedCell.rowIndex);
-          this.refreshTable(focusedCell.column, focusedCell.rowIndex + 1);
-        }
-      }
-    },
-    zeileEntfernen() {
-      if (this.gridApi.getSelectedRows()[0]) {
-        const focusedCell = this.gridApi.getFocusedCell();
-        const focusedRowIndex = focusedCell.rowIndex;
-        const focusedRowColKey = focusedCell.column;
-        const bezeichnungSelectedRow = this.gridApi.getSelectedRows()[0].bezeichnung;
-        if (bezeichnungSelectedRow !== ("ENDSUMME" && "STARTSUMME")) {
-          this.eintraegeStore.deleteEintrag(focusedRowIndex);
-          if (this.rowData[focusedRowIndex]) this.refreshTable(focusedRowColKey, focusedRowIndex)
-          else if (this.rowData.length !== 0) {
-            this.refreshTable(focusedRowColKey, this.rowData.length - 1);
-          } else {
-            this.refreshTable(focusedRowColKey, null)
-          }
-        }
-      }
-    },
-    refreshTable(colKey, rowIndex) {
-      nextTick(() => {
-        //this.rowData = this.eintraegeStore.eintraege;
-        this.gridApi.setRowData(this.eintraegeStore.eintraege);
-        this.gridApi.forEachNode(function (node) {
-          if (node.data.bezeichnung === "ZWISCHENSUMME") node.setRowHeight(80);
-        });
-        this.gridApi.onRowHeightChanged();
-        if (rowIndex !== null) {
-          this.gridApi.getRowNode(rowIndex).setSelected(true);
-          this.gridApi.setFocusedCell(rowIndex, colKey);
-        } else {
-          this.gridApi.setFocusedCell(null)
-        }
-        this.gridApi.refreshCells({force: true});
-      });
-    },
-    moveZeileDown() {
-      if (this.gridApi.getSelectedRows()[0]) {
-        const bezeichnungSelectedRow = this.gridApi.getSelectedRows()[0].bezeichnung;
-        const focusedCell = this.gridApi.getFocusedCell();
-        const focusedRowIndex = focusedCell.rowIndex;
-        const bezeichnungSelectedRowUnder = this.rowData[focusedCell.rowIndex + 1].bezeichnung
-        if (bezeichnungSelectedRowUnder !== "ENDSUMME" && bezeichnungSelectedRow !== ("ENDSUMME" && "STARTSUMME")) {
-          const focusedRowColKey = focusedCell.column;
-          this.eintraegeStore.moveDown(focusedRowIndex);
-          this.refreshTable(focusedRowColKey, focusedRowIndex + 1)
-        }
-      }
-    },
-    moveZeileUp() {
-      if (this.gridApi.getSelectedRows()[0]) {
-        const bezeichnungSelectedRow = this.gridApi.getSelectedRows()[0].bezeichnung;
-        if (bezeichnungSelectedRow !== ("ENDSUMME" && "STARTSUMME")) {
-          const focusedCell = this.gridApi.getFocusedCell();
-          const focusedRowIndex = focusedCell.rowIndex;
-          const focusedRowColKey = focusedCell.column;
-          this.eintraegeStore.moveUp(this.gridApi.getFocusedCell().rowIndex);
-          this.refreshTable(focusedRowColKey, focusedRowIndex - 1)
-        }
-      }
-    },
-    onCellKeyPress(e) {
-      if (e.event) {
-        let key = e.event.key
-        let ctrl = e.event.ctrlKey;
-        let shift = e.event.shiftKey;
-        if (this.gridApi.getEditingCells().length === 0)
-          switch (key) {
-            case 'ArrowDown':
-              if (e.data.bezeichnung === "STARTSUMME" && (shift || ctrl)) {
-                this.refreshTable(e.column, 1)
-              } else if (shift || ctrl) {
-                this.moveZeileDown()
-              } else {
-                const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
-                const selectedPaket = this.gridApi.getRowNode(focusedRowIndex)
-                if (selectedPaket) {
-                  selectedPaket.setSelected(true)
-                }
-              }
-              break;
-            case 'ArrowUp':
-              if (e.data.bezeichnung === "ENDSUMME" && (shift || ctrl)) {
-                this.refreshTable(e.column, this.rowData.length - 2)
-              } else if (shift || ctrl) {
-                this.moveZeileUp()
-              } else {
-                const focusedRowIndex = this.gridApi.getFocusedCell().rowIndex;
-                const selectedPaket = this.gridApi.getRowNode(focusedRowIndex)
-                if (selectedPaket) {
-                  selectedPaket.setSelected(true)
-                }
-              }
-              break;
-            case '-':
-            case '_':
-            case 'Delete':
-              if (shift) {
-                this.zeileEntfernen();
-              }
-              break;
-            case '+' :
-              if (!ctrl)
-                this.aufschlagErstellen();
-              break;
-            case '*':
-              if (!ctrl)
-                this.zwischensummeErstellen()
-              break;
-            case 'F2':
-              if (e.column.colId === ("bezeichnung" || "aufschlagWert" || "aufwandWert") && e.data.bezeichnung !== ("STARTSTUMME" && "ZWISCHENSUMME" && "ENDSUMME")) {
-                this.columnDefs.find(column => column.field === e.column.colId).editable = true
-                nextTick(() => this.gridApi.startEditingCell({
-                  rowIndex: e.rowIndex,
-                  colKey: e.column,
-                  rowPinned: e.rowPinned,
-                  key: key
-                }))
-              }
-              break;
-            case 'Enter':
-              nextTick(() => this.columnDefs.find(column => column.field === e.column.colId).editable = false)
-              this.gridApi.stopEditing()
-              break;
-          }
-      }
-    },
-  }
-};
-</script>-->
-
-
 <style scoped>
 .wrapper {
   display: none;
