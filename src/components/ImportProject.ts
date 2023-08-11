@@ -35,7 +35,7 @@ export class ImportProject {
             this._pakete.push(new Paket(paketFromFile.ticket_nr, paketFromFile.thema, paketFromFile.beschreibung, paketFromFile.komponente, paketFromFile.bucket ? this._buckets.find(bucket => bucket.name == paketFromFile.bucket)! : null, paketFromFile.schaetzung, paketFromFile.open, 0, null, [], paketFromFile.id));
         }
         //Nur dev-Zweck
-        this.generatePakete(1000);
+        this.generatePakete(0);
         this.setPaketeTreeStructure(paketeTree);
         this.setPaketeLevelAndSchaetzung();
     }
