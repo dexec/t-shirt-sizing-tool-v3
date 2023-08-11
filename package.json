@@ -20,7 +20,8 @@
     "vue": "^3.2.13",
     "vue-router": "^4.1.6",
     "vuedraggable": "^4.1.0",
-    "vuetify": "^3.1.5"
+    "vuetify": "^3.1.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.0/xlsx-0.20.0.tgz"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
