@@ -36,6 +36,7 @@ import {useProjektStore} from "@/stores/projekt";
 import {Column, ColumnApi, GridApi} from "ag-grid-community";
 import type {Bucket} from "@/Bucket";
 import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
+import type {Paket} from "@/Paket";
 
 const gridApi = ref<GridApi>();
 let getRowId = (params: any): number => params.data._id;
@@ -130,9 +131,20 @@ const columnDefs = ref([
   }
 ])
 const variablenAustauschStore = useVariablenAustauschStore();
-
 watch(() => variablenAustauschStore.searchPaketString, (newValue) => {
-  gridApi.value?.setQuickFilter(newValue);
+
+  gridApi.value!.setQuickFilter(newValue);
+  for (let paket of paketeStore.paketeAsFlatView()) {
+    const paketStringIndexed: { [index: string]: any } = paket
+    for (const key in paketStringIndexed) {
+      if (typeof paketStringIndexed[key] === "string" && gridApi.value!.getQuickFilter() != "" && paketStringIndexed[key].includes(gridApi.value!.getQuickFilter())) {
+        paketeStore.showPaket(paket as Paket)
+      }
+    }
+  }
+  refreshTable();
+
+
 });
 provide("addNewPaket", addNewPaket);
 provide("addNewKindPaket", addNewKindPaket);
