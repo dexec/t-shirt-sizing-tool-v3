@@ -42,6 +42,8 @@
     </v-row>
     <v-row>
       <v-col :style="{visibility: (showPaketeWithoutBucket ? 'visible':'hidden')}" cols="3">
+        <v-text-field id="filterForPaketeList" v-model="paketeListeFilter" label="Pakete filtern" clearable @click:clear="paketeListeFilter=''"
+                      style="width:200px;"></v-text-field>
         <h2>Unzugewiesene Pakete</h2>
         <draggable
             v-if="paketeWithoutBucket.length>0"
@@ -55,7 +57,8 @@
             @change="removePaketFromBucket"
         >
           <template #item="{ element }">
-            <div v-if="applyFilter(element)" :title="getTitleForPaket(element)" class="paket ma-2" style="position: relative;">
+            <div v-if="applyFilter(element,paketeListeFilter)" :title="getTitleForPaket(element)" class="paket ma-2"
+                 style="position: relative;">
               <span class="paketContent">{{ (element as Paket).ticket_nr }}</span>
               <span class="paketContent">{{ (element as Paket).thema }}</span>
             </div>
@@ -64,6 +67,12 @@
         <span v-if="paketeWithoutBucket.length==0">Es gibt keine Pakete ohne Bucket</span>
       </v-col>
       <v-col>
+        <v-row>
+          <v-col>
+            <v-text-field id="filterForPakete" v-model="paketeTabelleFilter" label="Pakete filtern" clearable @click:clear="paketeTabelleFilter=''"
+                          style="width:200px;"></v-text-field>
+          </v-col>
+        </v-row>
         <v-row>
           <v-col class="d-flex flex-nowrap justify-start">
             <div v-for="bucketId of selected" :key="bucketId">
@@ -85,7 +94,8 @@
                 @change="changeBucketOfPaket($event,buckets.find(bucket => bucket.id == bucketId)!)"
             >
               <template #item="{ element }">
-                <div v-if="applyFilter(element)" :title="getTitleForPaket(element)" class="paket ma-2">
+                <div v-if="applyFilter(element,paketeTabelleFilter)" :title="getTitleForPaket(element)"
+                     class="paket ma-2">
                   <span :style="searchPaket(element)" class="list-group-item paketContent">{{
                       (element as Paket).ticket_nr
                     }}</span>
@@ -137,16 +147,30 @@ function getTitleForPaket(paket: Paket): string {
   result += paket.thema
   return result
 }
-function applyFilter(paket: Paket): boolean {
+
+const paketeTabelleFilter = ref("");
+const paketeListeFilter = ref("");
+
+function applyFilter(paket: Paket, filterString: string): boolean {
   const variablenAustauschStore = useVariablenAustauschStore();
-  const paketStringIndexed: {[index: string]:any} = paket
-  for(const key in paketStringIndexed) {
-    if(typeof paketStringIndexed[key] ==="string" && paketStringIndexed[key].includes(variablenAustauschStore.searchPaketString)) {
-      return true
+  const paketStringIndexed: { [index: string]: any } = paket
+  let searchStringFound = false;
+  for (const key in paketStringIndexed) {
+    if (typeof paketStringIndexed[key] === "string" &&  paketStringIndexed[key].includes(variablenAustauschStore.searchPaketString)) {
+      searchStringFound =  true;
+      break;
+    }
+  }
+  if(searchStringFound) {
+    for (const key in paketStringIndexed) {
+      if (typeof paketStringIndexed[key] === "string" && paketStringIndexed[key].includes(filterString)) {
+        return true
+      }
     }
   }
   return false
 }
+
 function sortSelectedBuckets() {
   const copySelected = [...selected.value]
   selected.value.length = 0
