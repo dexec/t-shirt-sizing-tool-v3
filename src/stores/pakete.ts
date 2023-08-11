@@ -96,6 +96,18 @@ export const usePaketeStore = defineStore("pakete", () => {
         return counter;
     }
 
+    function showPaket(paket: Paket) {
+        let parentOfPaket = paket.parent;
+        const parents:Paket[]=[]
+        while(parentOfPaket) {
+            if(!parentOfPaket.open) parents.unshift(parentOfPaket);
+            parentOfPaket = parentOfPaket.parent;
+        }
+       for(const paketOfParents of parents) {
+           paketOfParents.open = true;
+           updateTreeViewAfterChangedOpenState(paketOfParents);
+       }
+    }
     function updateLvl(addLvl: number, paket: Paket) {
         const stack = [paket];
         while (stack.length > 0) {
@@ -460,9 +472,10 @@ export const usePaketeStore = defineStore("pakete", () => {
         paketeOfBucket,
         parentsOfPaket,
         rootParentOfPaket,
+        updateTreeViewAfterChangedOpenState,
+        showPaket,
         updateSchaetzung,
         updateBucket,
-        updateTreeViewAfterChangedOpenState,
         deletePaket,
         addNew,
         addNewChild,
