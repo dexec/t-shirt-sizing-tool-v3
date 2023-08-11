@@ -8,7 +8,7 @@
       <v-tab to="/kalkulation">Projektkalkulation</v-tab>
       <v-tab to="/test2">Test2</v-tab>
     </v-tabs>
-    <v-text-field style="width:200px; position: absolute; right: 10px" v-model="variablenAustauschStore.searchPaketString" label="Pakete filtern"></v-text-field>
+    <v-text-field style="width:200px; position: absolute; right: 10px" v-model="variablenAustauschStore.searchPaketString" clearable @click:clear="variablenAustauschStore.searchPaketString=''" label="Pakete filtern"></v-text-field>
   </v-app-bar>
 </template>
 
