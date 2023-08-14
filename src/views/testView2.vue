@@ -3,7 +3,7 @@
     <button class="download-btn" type="button" v-on:click="download">Download</button>
   </div>
   <div class="result-table">
-    <button class="download-btn" type="button" v-on:click="testfunction">Test</button>
+    <button class="download-btn" type="button" v-on:click="testfunction(paketeStore.paketeFullTreeView())">Test</button>
   </div>
 </template>
 
@@ -30,90 +30,98 @@
 </style>
 
 <script lang="ts" setup>
-import XLSX from 'xlsx';
-import {usePaketeStore} from "@/stores/pakete";
-import {useBucketsStore} from "@/stores/buckets";
-import type {Bucket} from "@/Bucket";
-import type {Paket} from "@/Paket";
-import type {Statistik} from "@/Statistik";
-import {useStatistikenStore} from "@/stores/statistiken";
+import { usePaketeStore } from "@/stores/pakete";
+import { useBucketsStore } from "@/stores/buckets";
+import type { Bucket } from "@/Bucket";
+import { Paket } from "@/Paket";
+import type { Statistik } from "@/Statistik";
+import { useStatistikenStore } from "@/stores/statistiken";
+import type { WorkBook, WorkSheet } from "xlsx-js-style";
+import * as XLSX from "xlsx-js-style";
+import { useProjektStore } from "@/stores/projekt";
+import type { AbstrakterEintrag } from "@/AbstrakterEintrag";
+import { useEintraegeStore } from "@/stores/eintraege";
+import { Eintrag } from "@/Eintrag";
+import { Zwischensumme } from "@/Zwischensumme";
 
-interface SerializablePaket {
-  ticket_nr: string,
-  thema: string,
-  beschreibung: string,
-  komponente: string,
-  bucket: string | null,
-  schaetzung: number | null
-}
-
-interface SerializableStatistik {
-  bucket: string,
-  anzahlGeschaetzt: number
-  anzahlUngeschaetzt: number
-  anzahlGesamt: number
-  min: number
-  max: number
-  median: number
-  durchschnitt: number
-  anteilAnzahl: number
-  summeSchaetzungenPT: number
-  summeSchaetzungenProzent: number
-  summeDurchschnittPT: number
-  summeDurchschnittProzent: number
-  summeMedianPT: number
-  summeMedianProzent: number
-}
-
-const headersForPakete = ["Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Bucket", "Schätzung"]
-const headersForStatistiken = [
-  "Bucket",
-  "Anzahl geschätzt",
-  "Anzahl ungeschätzt",
-  "Anzahl gesamt",
-  "Min",
-  "Max",
-  "Anteil Anzahl",
-  "Mittelwert",
-  "Median",
-  "Summe Schätzungen",
-    "",
-  "Durchschnittliche Summe",
-    "",
-  "Mediane Summe",
-""];
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
 const statistikenStore = useStatistikenStore();
+const projektStore = useProjektStore();
+const eintraegeStore = useEintraegeStore();
+eintraegeStore.berechne();
 
 function download() {
-
-  const wb = XLSX.utils.book_new()
-  createSheetForStatistiken(wb, statistikenStore.statistiken as Statistik[]);
-  createSheetForPakete(wb, paketeStore.paketeAsFlatView(), "Alle Pakete");
-  createSheetForPakete(wb, paketeStore.paketeChildrenWithNoBucket(), "Alle Pakete ohne Bucket");
-  createSheetsForBuckets(wb, paketeStore.unsortedPaketeListsSortedByBucketsMap);
-  XLSX.writeFile(wb, 'demo.xlsx')
-
+  const wb = XLSX.utils.book_new();
+  const sheetKalkulation = createSheetForKalkulation(statistikenStore.statistiken as Statistik[], eintraegeStore.eintraege as AbstrakterEintrag[], projektStore.bucketmodus);
+  const sheetAllePakete = createSheetForPakete(paketeStore.paketeFullTreeView(), projektStore.bucketmodus);
+  const sheetAllePaketeOhneBucket = createSheetForPakete(paketeStore.paketeChildrenWithNoBucket(), projektStore.bucketmodus);
+  XLSX.utils.book_append_sheet(wb, sheetKalkulation, "Projektkalkulation");
+  XLSX.utils.book_append_sheet(wb, sheetAllePakete, "Alle Pakete");
+  if (projektStore.bucketmodus) {
+    XLSX.utils.book_append_sheet(wb, sheetAllePaketeOhneBucket, "Alle Pakete ohne Bucket");
+    createSheetsForBuckets(wb, paketeStore.unsortedPaketeListsSortedByBucketsMap);
+  }
+  XLSX.writeFile(wb, "demo.xlsx");
 }
 
-async function createSheetForPakete(wb: XLSX.WorkBook, pakete: Paket[], sheetName: string) {
-  const arraySerializablePaket: SerializablePaket[] = []
+function createSheetForPakete(pakete: Paket[], bucketmodus: boolean) {
+  if (bucketmodus) return createSheetForPaketeBucketmodus(pakete);
+  else return createSheetForPaketeBucketlosermodus(pakete);
+}
+
+function createSheetForPaketeBucketmodus(pakete: Paket[]) {
+  interface SerializablePaket {
+    lvl:string,
+    ticket_nr: string,
+    thema: string,
+    beschreibung: string,
+    komponente: string,
+    bucket: string | null,
+    schaetzung: number | null
+  }
+  const headersForPakete = ["Hierarchie", "Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Bucket", "Schätzung"];
+  const arraySerializablePaket: SerializablePaket[] = [];
+  let lastLvl = 0;
+  let currentHierachy = "";
   for (const paket of pakete) {
+    if(currentHierachy=="") currentHierachy="1"
+    else if (paket.lvl > lastLvl) {
+      currentHierachy += ".1";
+    }
+    else if (paket.lvl < lastLvl) {
+      currentHierachy = currentHierachy.slice(0, currentHierachy.length - 2);
+      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
+      currentHierachyLastDigit++;
+      currentHierachy = currentHierachy.slice(0,currentHierachy.length-1)
+      currentHierachy += currentHierachyLastDigit
+    }
+    else if (paket.lvl == lastLvl) {
+      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
+      currentHierachyLastDigit++;
+      currentHierachy=currentHierachy.slice(0,currentHierachy.length-2)
+      currentHierachy += "." + currentHierachyLastDigit
+    }
+    lastLvl=paket.lvl;
     const serializablePaket: SerializablePaket = {
+      lvl:currentHierachy,
       ticket_nr: paket.ticket_nr,
       thema: paket.thema,
       beschreibung: paket.beschreibung,
       komponente: paket.komponente,
       bucket: paket.bucket?.name ?? null,
       schaetzung: paket.schaetzung ?? null
-    }
+    };
     for (let i = 0; i < paket.lvl; i++) {
-      serializablePaket.ticket_nr = "   " + serializablePaket.ticket_nr
+      serializablePaket.ticket_nr = "   " + serializablePaket.ticket_nr;
     }
     arraySerializablePaket.push(serializablePaket);
   }
-  const sheetPakete = XLSX.utils.json_to_sheet(arraySerializablePaket, {
+  const sheetPakete = XLSX.utils.json_to_sheet([], {
+    skipHeader: true,
+    cellStyles: true
+  });
+  XLSX.utils.sheet_add_json(sheetPakete, arraySerializablePaket, {
     origin: "A2",
     skipHeader: true,
     cellStyles: true
@@ -122,13 +130,86 @@ async function createSheetForPakete(wb: XLSX.WorkBook, pakete: Paket[], sheetNam
     origin: "A1",
     skipHeader: true,
     cellStyles: true
-  })
-  XLSX.utils.book_append_sheet(wb, sheetPakete, sheetName);
+  });
+  return sheetPakete;
 }
 
-function createSheetsForBuckets(wb: XLSX.WorkBook, map: Map<Bucket, Paket[]>) {
+function createSheetForPaketeBucketlosermodus(pakete: Paket[]) {
+  interface SerializablePaket {
+    lvl: string,
+    ticket_nr: string,
+    thema: string,
+    beschreibung: string,
+    komponente: string,
+    schaetzung: number | null
+  }
+
+  const headersForPakete = ["Hierarchie", "Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Schätzung"];
+  const arraySerializablePaket: SerializablePaket[] = [];
+  let lastLvl = 0;
+  let currentHierachy = "";
+  for (const paket of pakete) {
+    if(currentHierachy=="") currentHierachy="1"
+    else if (paket.lvl > lastLvl) {
+      currentHierachy += ".1";
+    }
+    else if (paket.lvl < lastLvl) {
+      currentHierachy = currentHierachy.slice(0, currentHierachy.length - 2);
+      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
+      currentHierachyLastDigit++;
+      currentHierachy = currentHierachy.slice(0,currentHierachy.length-1)
+      currentHierachy += currentHierachyLastDigit
+    }
+    else if (paket.lvl == lastLvl) {
+      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
+      currentHierachyLastDigit++;
+      currentHierachy=currentHierachy.slice(0,currentHierachy.length-2)
+      currentHierachy += "." + currentHierachyLastDigit
+    }
+    lastLvl=paket.lvl;
+    const serializablePaket: SerializablePaket = {
+      lvl:currentHierachy,
+      ticket_nr: paket.ticket_nr,
+      thema: paket.thema,
+      beschreibung: paket.beschreibung,
+      komponente: paket.komponente,
+      schaetzung: paket.schaetzung ?? null
+    };
+    for (let i = 0; i < paket.lvl; i++) {
+      serializablePaket.ticket_nr = "   " + serializablePaket.ticket_nr;
+    }
+    arraySerializablePaket.push(serializablePaket);
+  }
+  const sheetPakete = XLSX.utils.json_to_sheet([], {
+    skipHeader: true,
+    cellStyles: true
+  });
+  XLSX.utils.sheet_add_json(sheetPakete, arraySerializablePaket, {
+    origin: "A2",
+    skipHeader: true,
+    cellStyles: true
+  });
+  XLSX.utils.sheet_add_json(sheetPakete, [headersForPakete], {
+    origin: "A1",
+    skipHeader: true,
+    cellStyles: true
+  });
+  return sheetPakete;
+}
+
+function createSheetsForBuckets(wb: WorkBook, map: Map<Bucket, Paket[]>) {
+  interface SerializablePaket {
+    ticket_nr: string,
+    thema: string,
+    beschreibung: string,
+    komponente: string,
+    bucket: string | null,
+    schaetzung: number | null
+  }
+
+  const headersForPakete = ["Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Bucket", "Schätzung"];
   map.forEach((value, key) => {
-    const arraySerializablePaket: SerializablePaket[] = []
+    const arraySerializablePaket: SerializablePaket[] = [];
     for (const paket of value) {
       const serializablePaket: SerializablePaket = {
         ticket_nr: paket.ticket_nr,
@@ -137,16 +218,63 @@ function createSheetsForBuckets(wb: XLSX.WorkBook, map: Map<Bucket, Paket[]>) {
         komponente: paket.komponente,
         bucket: paket.bucket?.name ?? null,
         schaetzung: paket.schaetzung ?? null
-      }
+      };
       arraySerializablePaket.push(serializablePaket);
     }
-    const sheetBucket = XLSX.utils.json_to_sheet(arraySerializablePaket, {origin: "A2", skipHeader: true});
-    XLSX.utils.sheet_add_json(sheetBucket, [headersForPakete], {origin: "A1", skipHeader: true})
+    const sheetBucket = XLSX.utils.json_to_sheet([], { skipHeader: true });
+    XLSX.utils.sheet_add_json(sheetBucket, arraySerializablePaket, { origin: "A2", skipHeader: true });
+    XLSX.utils.sheet_add_json(sheetBucket, [headersForPakete], { origin: "A1", skipHeader: true });
     XLSX.utils.book_append_sheet(wb, sheetBucket, "Bucket " + key.name);
-  })
+  });
 }
 
-function createSheetForStatistiken(wb: XLSX.WorkBook, statistiken: Statistik[]) {
+function createSheetForKalkulation(statistiken: Statistik[], eintraege: AbstrakterEintrag[], bucketmodus: boolean) {
+  const sheetKalkulation = XLSX.utils.json_to_sheet([], { skipHeader: true });
+  const anzahlZeilenStatistiken = addStatistikenToSheet(sheetKalkulation, statistiken, bucketmodus);
+  createSheetForEintraege(sheetKalkulation, eintraege, anzahlZeilenStatistiken+4);
+  return sheetKalkulation;
+}
+
+function addStatistikenToSheet(sheet: WorkSheet, statistiken: Statistik[], bucketmodus: boolean) {
+  if (bucketmodus) return addStatistikenToSheetBucketmodus(sheet, statistiken);
+  else return addStatistikenToSheetBucketlosermodus(sheet);
+}
+
+function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statistik[]) {
+  interface SerializableStatistik {
+    bucket: string,
+    anzahlGeschaetzt: number
+    anzahlUngeschaetzt: number
+    anzahlGesamt: number
+    min: number
+    max: number
+    anteilAnzahl: number
+    durchschnitt: number | null
+    median: number | null
+    summeSchaetzungenPT: number
+    summeSchaetzungenProzent: number | null
+    summeDurchschnittPT: number
+    summeDurchschnittProzent: number | null
+    summeMedianPT: number
+    summeMedianProzent: number | null
+  }
+
+  const headersForStatistiken = [
+    "Bucket",
+    "Anzahl geschätzt",
+    "Anzahl ungeschätzt",
+    "Anzahl gesamt",
+    "Min",
+    "Max",
+    "Anteil Anzahl",
+    "Mittelwert",
+    "Median",
+    "Summe Schätzungen",
+    "",
+    "Durchschnittliche Summe",
+    "",
+    "Mediane Summe",
+    ""];
   const arraySerializableStatistik: SerializableStatistik[] = [];
   for (const statistik of statistiken) {
     const serializableStatistik: SerializableStatistik = {
@@ -156,61 +284,233 @@ function createSheetForStatistiken(wb: XLSX.WorkBook, statistiken: Statistik[]) 
       anzahlGesamt: statistik.anzahlGesamt,
       min: statistik.min,
       max: statistik.max,
-      median: statistik.median,
-      durchschnitt: statistik.durchschnitt,
       anteilAnzahl: statistik.anteilAnzahl,
+      durchschnitt: statistik.durchschnitt,
+      median: statistik.median,
       summeSchaetzungenPT: statistik.summeSchaetzungen,
-      summeSchaetzungenProzent: Math.round((statistik.summeSchaetzungen / statistikenStore.summeAlleBucketsSchaetzungenSumme() || 0) * 100),
+      summeSchaetzungenProzent: statistik.summeSchaetzungen / statistikenStore.summeAlleBucketsSchaetzungenSumme() || 0,
       summeDurchschnittPT: statistik.summeDurchschnitt,
-      summeDurchschnittProzent: Math.round((statistik.summeDurchschnitt / statistikenStore.summeAlleBucketsDurchschnittSumme() || 0) * 100),
+      summeDurchschnittProzent: statistik.summeDurchschnitt / statistikenStore.summeAlleBucketsDurchschnittSumme() || 0,
       summeMedianPT: statistik.summeMedian,
-      summeMedianProzent: Math.round((statistik.summeMedian / statistikenStore.summeAlleBucketsMedianSumme() || 0) * 100)
-    }
+      summeMedianProzent: statistik.summeMedian / statistikenStore.summeAlleBucketsMedianSumme() || 0
+    };
     arraySerializableStatistik.push(serializableStatistik);
   }
-  const sheetStatistiken = XLSX.utils.json_to_sheet(arraySerializableStatistik, {origin: "A3", skipHeader: true})
-  XLSX.utils.sheet_add_json(sheetStatistiken, [headersForStatistiken], {origin: "A1", skipHeader: true})
-  if(!sheetStatistiken["!merges"]) {
-    sheetStatistiken["!merges"] = [];
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("A1:A2"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("B1:B2"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("C1:C2"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("D1:D2"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("E1:E2"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("F1:F2"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("G1:G2"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("H1:H2"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("I1:I2"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("J1:K1"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("L1:M1"))
-    sheetStatistiken["!merges"]?.push(XLSX.utils.decode_range("N1:O1"))
+
+  const summeStatistiken: SerializableStatistik = {
+    bucket: "Summe",
+    anzahlGeschaetzt: statistikenStore.summeAlleBucketsGeschaetzt(),
+    anzahlUngeschaetzt: statistikenStore.summeAlleBucketsUngeschaetzt(),
+    anzahlGesamt: statistikenStore.summeAlleBucketsGesamt(),
+    min: statistikenStore.summeAlleBucketsMin(),
+    max: statistikenStore.summeAlleBucketsMax(),
+    anteilAnzahl: 1,
+    durchschnitt: null,
+    median: null,
+    summeSchaetzungenPT: statistikenStore.summeAlleBucketsSchaetzungenSumme(),
+    summeSchaetzungenProzent: null,
+    summeDurchschnittPT: statistikenStore.summeAlleBucketsDurchschnittSumme(),
+    summeDurchschnittProzent: null,
+    summeMedianPT: statistikenStore.summeAlleBucketsMedianSumme(),
+    summeMedianProzent: null
+  };
+  arraySerializableStatistik.push(summeStatistiken);
+  XLSX.utils.sheet_add_json(sheet, arraySerializableStatistik, { origin: "A3", skipHeader: true });
+  XLSX.utils.sheet_add_json(sheet, [headersForStatistiken], { origin: "A1", skipHeader: true });
+
+  for (let i = 0; i < arraySerializableStatistik.length - 1; i++) {
+    sheet[XLSX.utils.encode_cell({ r: i + 2, c: 6 })].z = "0.00%";
+    sheet[XLSX.utils.encode_cell({ r: i + 2, c: 10 })].z = "0.00%";
+    sheet[XLSX.utils.encode_cell({ r: i + 2, c: 12 })].z = "0.00%";
+    sheet[XLSX.utils.encode_cell({ r: i + 2, c: 14 })].z = "0.00%";
   }
-  XLSX.utils.sheet_add_json(sheetStatistiken,[["PT","%","PT","%","PT","%"]],{origin:"J2",skipHeader:true})
-  XLSX.utils.book_append_sheet(wb, sheetStatistiken, "Statistiken");
+  sheet[XLSX.utils.encode_cell({ r: arraySerializableStatistik.length + 1, c: 6 })].z = "0.00%";
+  if (!sheet["!merges"]) {
+    sheet["!merges"] = [];
+    sheet["!merges"]?.push(XLSX.utils.decode_range("A1:A2"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("B1:B2"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("C1:C2"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("D1:D2"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("E1:E2"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("F1:F2"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("G1:G2"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("H1:H2"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("I1:I2"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("J1:K1"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("L1:M1"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range("N1:O1"));
+    sheet["!merges"]?.push(XLSX.utils.decode_range(XLSX.utils.encode_cell({
+      r: arraySerializableStatistik.length + 1,
+      c: 9
+    }) + ":" + XLSX.utils.encode_cell({ r: arraySerializableStatistik.length + 1, c: 10 })));
+    sheet["!merges"]?.push(XLSX.utils.decode_range(XLSX.utils.encode_cell({
+      r: arraySerializableStatistik.length + 1,
+      c: 11
+    }) + ":" + XLSX.utils.encode_cell({ r: arraySerializableStatistik.length + 1, c: 12 })));
+    sheet["!merges"]?.push(XLSX.utils.decode_range(XLSX.utils.encode_cell({
+      r: arraySerializableStatistik.length + 1,
+      c: 13
+    }) + ":" + XLSX.utils.encode_cell({ r: arraySerializableStatistik.length + 1, c: 14 })));
+  }
+  XLSX.utils.sheet_add_json(sheet, [["PT", "%", "PT", "%", "PT", "%"]], { origin: "J2", skipHeader: true });
+  return arraySerializableStatistik.length;
 }
 
-async function testfunction() {
-    /* Extract VBA Blob from test file */
-    const url = "https://docs.sheetjs.com/vba/SheetJSVBAFormula.xlsm";
-    const raw_data = await (await fetch(url)).arrayBuffer();
-    const blob = XLSX.read(raw_data, {bookVBA: true}).vbaraw;
+function addStatistikenToSheetBucketlosermodus(sheet: WorkSheet) {
+  interface SerializableStatistik {
+    anzahlGeschaetzt: number;
+    anzahlUngeschaetzt: number;
+    anzahlGesamt: number;
+    min: number;
+    max: number;
+    anteilAnzahl: number;
+    durchschnitt: number;
+    median: number;
+    summeSchaetzungen: number;
+    summeDurchschnitt: number;
+    summeMedian: number;
+  }
 
-    /* generate worksheet and workbook */
-    const worksheet = XLSX.utils.aoa_to_sheet([
-      ["Cell", "A1", "RC"],
-      [
-        {t:"n", f:"LEN(A1)"},      // A2
-        {t:"s", f:"GetFormulaA1(A2)"},  // B2
-        {t:"s", f:"GetFormulaRC(A2)"}   // C2
-      ]
-    ]);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+  const headersForStatistiken = [
+    "Anzahl geschätzt",
+    "Anzahl ungeschätzt",
+    "Anzahl gesamt",
+    "Min",
+    "Max",
+    "Anteil Anzahl",
+    "Mittelwert",
+    "Median",
+    "Summe Schätzungen",
+    "Durchschnittliche Summe",
+    "Mediane Summe"];
+  const arraySerializableStatistik: SerializableStatistik[] = [];
+  const serializableStatistik: SerializableStatistik = {
+    anzahlGeschaetzt: statistikenStore.summeAlleBucketsGeschaetzt(),
+    anzahlUngeschaetzt: statistikenStore.summeAlleBucketsUngeschaetzt(),
+    anzahlGesamt: statistikenStore.summeAlleBucketsGesamt(),
+    min: statistikenStore.summeAlleBucketsMin(),
+    max: statistikenStore.summeAlleBucketsMax(),
+    anteilAnzahl: 1,
+    durchschnitt: statistikenStore.summeAlleBucketsDurchschnitt(),
+    median: statistikenStore.summeAlleBucketsMedian(),
+    summeDurchschnitt: statistikenStore.summeAlleBucketsDurchschnittSumme(),
+    summeMedian: statistikenStore.summeAlleBucketsMedianSumme(),
+    summeSchaetzungen: statistikenStore.summeAlleBucketsSchaetzungenSumme()
+  };
+  arraySerializableStatistik.push(serializableStatistik);
+  XLSX.utils.sheet_add_json(sheet, arraySerializableStatistik, { origin: "A2", skipHeader: true });
+  XLSX.utils.sheet_add_json(sheet, [headersForStatistiken], { origin: "A1", skipHeader: true });
+  sheet[XLSX.utils.encode_cell({ r: 1, c: 5 })].z = "0.00%";
+  return arraySerializableStatistik.length;
+}
 
-    /* add VBA blob to new workbook */
-    workbook.vbaraw = blob;
+function createSheetForEintraege(sheet: WorkSheet, eintraege: AbstrakterEintrag[], startzeile: number) {
+  interface SerializableEintrag {
+    bezeichnung: string,
+    aufschlag: number | null,
+    aufwand: number,
+    anteilZwischensumme: number | null,
+    anteilGesamtprojekt: number | null
+  }
 
-    /* create an XLSM file and try to save to SheetJSVBANeu.xlsm */
-    XLSX.writeFile(workbook, "SheetJSVBANeu.xlsm", { bookVBA: true });
+  const headersForEintraege = [
+    "Bezeichnung",
+    "Aufschlag",
+    "Aufwand",
+    "Anteil an nächster Zwischensumme",
+    "Anteil am Gesamtprojekt"
+  ];
+  const arraySerializableEintraege: SerializableEintrag[] = [];
+  for (const eintrag of eintraege) {
+    if (eintrag instanceof Eintrag) {
+      const serializableEintrag: SerializableEintrag = {
+        bezeichnung: eintrag.bezeichnung,
+        aufschlag: eintrag.aufschlagWert/100,
+        aufwand: eintrag.aufwandWert,
+        anteilZwischensumme: eintrag.anteilZwischensumme/100,
+        anteilGesamtprojekt: eintrag.anteilGesamtprojekt/100
+      };
+      arraySerializableEintraege.push(serializableEintrag);
+    } else if (eintrag instanceof Zwischensumme) {
+      if(eintrag.bezeichnung=="STARTSUMME"||eintrag.bezeichnung=="ENDSUMME") {
+        const serializableEintrag: SerializableEintrag = {
+          bezeichnung: eintrag.bezeichnung,
+          aufschlag: null,
+          aufwand: eintrag.zwischensummeAufwand,
+          anteilZwischensumme: null,
+          anteilGesamtprojekt: null
+        };
+        arraySerializableEintraege.push(serializableEintrag);
+      }
+      else {
+        const serializableEintrag: SerializableEintrag = {
+          bezeichnung: eintrag.bezeichnung,
+          aufschlag: eintrag.vorigerAbschnittAufschlag / 100,
+          aufwand: eintrag.zwischensummeAufwand,
+          anteilZwischensumme: eintrag.anteilZwischensumme / 100,
+          anteilGesamtprojekt: eintrag.anteilGesamtprojekt / 100
+        };
+        arraySerializableEintraege.push(serializableEintrag);
+      }
+    }
+  }
+  XLSX.utils.sheet_add_json(sheet, [headersForEintraege], { origin: { c: 0, r: startzeile }, skipHeader: true });
+  XLSX.utils.sheet_add_json(sheet, arraySerializableEintraege, {
+    origin: { c: 0, r: startzeile + 1 },
+    skipHeader: true
+  });
+  for (let i = 0; i < arraySerializableEintraege.length; i++) {
+    sheet[XLSX.utils.encode_cell({r:startzeile+i,c:1})].z="0.00%"
+  }
+}
+
+function testfunction(pakete: Paket[]) {
+  const array=[];
+  let lastLvl = 0;
+  let currentHierachy = "";
+  for (const paket of pakete) {
+    if(currentHierachy=="") currentHierachy="1"
+    else if (paket.lvl > lastLvl) {
+      currentHierachy += ".1";
+    }
+    else if (paket.lvl < lastLvl) {
+      currentHierachy = currentHierachy.slice(0, currentHierachy.length - 2);
+      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
+      currentHierachyLastDigit++;
+      currentHierachy = currentHierachy.slice(0,currentHierachy.length-1)
+      currentHierachy += currentHierachyLastDigit
+    }
+    else if (paket.lvl == lastLvl) {
+      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
+      currentHierachyLastDigit++;
+      currentHierachy=currentHierachy.slice(0,currentHierachy.length-2)
+      currentHierachy += "." + currentHierachyLastDigit
+    }
+    array.push({ticket_nr:paket.ticket_nr,lvl:paket.lvl,hiearchy:currentHierachy})
+    lastLvl=paket.lvl;
+  }
+}
+
+function styleFunction() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet([]);
+  const array = [{ attr1: "attr1" }, { attr2: "attr2" }];
+  XLSX.utils.sheet_add_json(ws, array, { skipHeader: true });
+  ws["A1"].s = {
+    font: {
+      name: "Calibri",
+      sz: 24,
+      bold: true,
+      color: { rgb: "FF0000" }
+    },
+    border: {
+      top: { style: "thin", color: { rgb: "FF0000" } },
+      bottom: { style: "thin", color: { rgb: "FF0000" } },
+      left: { style: "thin", color: { rgb: "FF0000" } },
+      right: { style: "thin", color: { rgb: "FF0000" } }
+    }
+  };
+  XLSX.utils.book_append_sheet(wb, ws, "Test1");
+  XLSX.writeFile(wb, "demo.xlsx");
 }
 </script>
