@@ -134,7 +134,7 @@ const variablenAustauschStore = useVariablenAustauschStore();
 watch(() => variablenAustauschStore.searchPaketString, (newValue) => {
 
   gridApi.value!.setQuickFilter(newValue);
-  for (let paket of paketeStore.paketeAsFlatView()) {
+  for (let paket of paketeStore.paketeAsMap.values()) {
     const paketStringIndexed: { [index: string]: any } = paket
     for (const key in paketStringIndexed) {
       if (typeof paketStringIndexed[key] === "string" && gridApi.value!.getQuickFilter() != "" && paketStringIndexed[key].includes(gridApi.value!.getQuickFilter())) {
