@@ -49,16 +49,17 @@ const bucketStore = useBucketsStore();
 const statistikenStore = useStatistikenStore();
 const projektStore = useProjektStore();
 const eintraegeStore = useEintraegeStore();
+statistikenStore.berechne();
 eintraegeStore.berechne();
 
 function download() {
   const wb = XLSX.utils.book_new();
   const sheetKalkulation = createSheetForKalkulation(statistikenStore.statistiken as Statistik[], eintraegeStore.eintraege as AbstrakterEintrag[], projektStore.bucketmodus);
   const sheetAllePakete = createSheetForPakete(paketeStore.paketeFullTreeView(), projektStore.bucketmodus);
-  const sheetAllePaketeOhneBucket = createSheetForPakete(paketeStore.paketeChildrenWithNoBucket(), projektStore.bucketmodus);
   XLSX.utils.book_append_sheet(wb, sheetKalkulation, "Projektkalkulation");
   XLSX.utils.book_append_sheet(wb, sheetAllePakete, "Alle Pakete");
   if (projektStore.bucketmodus) {
+    const sheetAllePaketeOhneBucket = createSheetForAllePaketeOhneBucket(paketeStore.paketeChildrenWithNoBucket());
     XLSX.utils.book_append_sheet(wb, sheetAllePaketeOhneBucket, "Alle Pakete ohne Bucket");
     createSheetsForBuckets(wb, paketeStore.unsortedPaketeListsSortedByBucketsMap);
   }
@@ -83,28 +84,28 @@ function createSheetForPaketeBucketmodus(pakete: Paket[]) {
   const headersForPakete = ["Hierarchie", "Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Bucket", "Schätzung"];
   const arraySerializablePaket: SerializablePaket[] = [];
   let lastLvl = 0;
-  let currentHierachy = "";
+  let currentHierarchy = "";
   for (const paket of pakete) {
-    if(currentHierachy=="") currentHierachy="1"
+    if(currentHierarchy=="") currentHierarchy="1"
     else if (paket.lvl > lastLvl) {
-      currentHierachy += ".1";
+      currentHierarchy += ".1";
     }
     else if (paket.lvl < lastLvl) {
-      currentHierachy = currentHierachy.slice(0, currentHierachy.length - 2);
-      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
-      currentHierachyLastDigit++;
-      currentHierachy = currentHierachy.slice(0,currentHierachy.length-1)
-      currentHierachy += currentHierachyLastDigit
+      currentHierarchy = currentHierarchy.slice(0, currentHierarchy.length - 2);
+      let currentHierarchyLastDigit = parseInt(currentHierarchy.charAt(currentHierarchy.length-1));
+      currentHierarchyLastDigit++;
+      currentHierarchy = currentHierarchy.slice(0,currentHierarchy.length-1)
+      currentHierarchy += currentHierarchyLastDigit
     }
     else if (paket.lvl == lastLvl) {
-      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
-      currentHierachyLastDigit++;
-      currentHierachy=currentHierachy.slice(0,currentHierachy.length-2)
-      currentHierachy += "." + currentHierachyLastDigit
+      let currentHierarchyLastDigit = parseInt(currentHierarchy.charAt(currentHierarchy.length-1));
+      currentHierarchyLastDigit++;
+      currentHierarchy=currentHierarchy.slice(0,currentHierarchy.length-1)
+      currentHierarchy += currentHierarchyLastDigit
     }
     lastLvl=paket.lvl;
     const serializablePaket: SerializablePaket = {
-      lvl:currentHierachy,
+      lvl:currentHierarchy,
       ticket_nr: paket.ticket_nr,
       thema: paket.thema,
       beschreibung: paket.beschreibung,
@@ -147,28 +148,28 @@ function createSheetForPaketeBucketlosermodus(pakete: Paket[]) {
   const headersForPakete = ["Hierarchie", "Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Schätzung"];
   const arraySerializablePaket: SerializablePaket[] = [];
   let lastLvl = 0;
-  let currentHierachy = "";
+  let currentHierarchy = "";
   for (const paket of pakete) {
-    if(currentHierachy=="") currentHierachy="1"
+    if(currentHierarchy=="") currentHierarchy="1"
     else if (paket.lvl > lastLvl) {
-      currentHierachy += ".1";
+      currentHierarchy += ".1";
     }
     else if (paket.lvl < lastLvl) {
-      currentHierachy = currentHierachy.slice(0, currentHierachy.length - 2);
-      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
-      currentHierachyLastDigit++;
-      currentHierachy = currentHierachy.slice(0,currentHierachy.length-1)
-      currentHierachy += currentHierachyLastDigit
+      currentHierarchy = currentHierarchy.slice(0, currentHierarchy.length - 2);
+      let currentHierarchyLastDigit = parseInt(currentHierarchy.charAt(currentHierarchy.length-1));
+      currentHierarchyLastDigit++;
+      currentHierarchy = currentHierarchy.slice(0,currentHierarchy.length-1)
+      currentHierarchy += currentHierarchyLastDigit
     }
     else if (paket.lvl == lastLvl) {
-      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
-      currentHierachyLastDigit++;
-      currentHierachy=currentHierachy.slice(0,currentHierachy.length-2)
-      currentHierachy += "." + currentHierachyLastDigit
+      let currentHierarchyLastDigit = parseInt(currentHierarchy.charAt(currentHierarchy.length-1));
+      currentHierarchyLastDigit++;
+      currentHierarchy=currentHierarchy.slice(0,currentHierarchy.length-1)
+      currentHierarchy += currentHierarchyLastDigit
     }
     lastLvl=paket.lvl;
     const serializablePaket: SerializablePaket = {
-      lvl:currentHierachy,
+      lvl:currentHierarchy,
       ticket_nr: paket.ticket_nr,
       thema: paket.thema,
       beschreibung: paket.beschreibung,
@@ -197,17 +198,52 @@ function createSheetForPaketeBucketlosermodus(pakete: Paket[]) {
   return sheetPakete;
 }
 
+function createSheetForAllePaketeOhneBucket(pakete:Paket[]) {
+  interface SerializablePaket {
+    ticket_nr: string,
+    thema: string,
+    beschreibung: string,
+    komponente: string,
+    schaetzung: number | null
+  }
+  const headersForPakete = ["Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Schätzung"];
+  const arraySerializablePaket: SerializablePaket[] = [];
+  for(const paket of pakete) {
+    const serializablePaket: SerializablePaket = {
+      ticket_nr: paket.ticket_nr,
+      thema: paket.thema,
+      beschreibung: paket.beschreibung,
+      komponente: paket.komponente,
+      schaetzung: paket.schaetzung ?? null
+    };
+    arraySerializablePaket.push(serializablePaket);
+  }
+  const sheetPakete = XLSX.utils.json_to_sheet([], {
+    skipHeader: true,
+    cellStyles: true
+  });
+  XLSX.utils.sheet_add_json(sheetPakete, arraySerializablePaket, {
+    origin: "A2",
+    skipHeader: true,
+    cellStyles: true
+  });
+  XLSX.utils.sheet_add_json(sheetPakete, [headersForPakete], {
+    origin: "A1",
+    skipHeader: true,
+    cellStyles: true
+  });
+  return sheetPakete;
+}
 function createSheetsForBuckets(wb: WorkBook, map: Map<Bucket, Paket[]>) {
   interface SerializablePaket {
     ticket_nr: string,
     thema: string,
     beschreibung: string,
     komponente: string,
-    bucket: string | null,
     schaetzung: number | null
   }
 
-  const headersForPakete = ["Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Bucket", "Schätzung"];
+  const headersForPakete = ["Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Schätzung"];
   map.forEach((value, key) => {
     const arraySerializablePaket: SerializablePaket[] = [];
     for (const paket of value) {
@@ -216,7 +252,6 @@ function createSheetsForBuckets(wb: WorkBook, map: Map<Bucket, Paket[]>) {
         thema: paket.thema,
         beschreibung: paket.beschreibung,
         komponente: paket.komponente,
-        bucket: paket.bucket?.name ?? null,
         schaetzung: paket.schaetzung ?? null
       };
       arraySerializablePaket.push(serializablePaket);
@@ -231,7 +266,7 @@ function createSheetsForBuckets(wb: WorkBook, map: Map<Bucket, Paket[]>) {
 function createSheetForKalkulation(statistiken: Statistik[], eintraege: AbstrakterEintrag[], bucketmodus: boolean) {
   const sheetKalkulation = XLSX.utils.json_to_sheet([], { skipHeader: true });
   const anzahlZeilenStatistiken = addStatistikenToSheet(sheetKalkulation, statistiken, bucketmodus);
-  createSheetForEintraege(sheetKalkulation, eintraege, anzahlZeilenStatistiken+4);
+  addEintraegeToSheet(sheetKalkulation, eintraege, anzahlZeilenStatistiken+4);
   return sheetKalkulation;
 }
 
@@ -317,14 +352,60 @@ function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statist
   arraySerializableStatistik.push(summeStatistiken);
   XLSX.utils.sheet_add_json(sheet, arraySerializableStatistik, { origin: "A3", skipHeader: true });
   XLSX.utils.sheet_add_json(sheet, [headersForStatistiken], { origin: "A1", skipHeader: true });
-
+  sheet[XLSX.utils.encode_cell({ r: arraySerializableStatistik.length + 1, c: 6 })].z = "0.00%";
   for (let i = 0; i < arraySerializableStatistik.length - 1; i++) {
     sheet[XLSX.utils.encode_cell({ r: i + 2, c: 6 })].z = "0.00%";
     sheet[XLSX.utils.encode_cell({ r: i + 2, c: 10 })].z = "0.00%";
     sheet[XLSX.utils.encode_cell({ r: i + 2, c: 12 })].z = "0.00%";
     sheet[XLSX.utils.encode_cell({ r: i + 2, c: 14 })].z = "0.00%";
+    const sheetName = "Bucket " + arraySerializableStatistik[i].bucket;
+    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+      r: i + 2,
+      c: 1
+    }), "COUNTIF('" + sheetName + "'!E:E,\"<>\")-1");
+    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+      r: i + 2,
+      c: 2
+    }), "COUNTIF('" + sheetName + "'!A:A,\"<>\")-COUNTIF('" + sheetName + "'!E:E,\"<>\")");
+    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({r: i + 2, c: 3}), "B" + (i + 3) + "+C" + (i + 3));
   }
-  sheet[XLSX.utils.encode_cell({ r: arraySerializableStatistik.length + 1, c: 6 })].z = "0.00%";
+
+  XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 1
+  }), "SUM(B3:B" + (arraySerializableStatistik.length + 1) + ")");
+  XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 2
+  }), "SUM(C3:C" + (arraySerializableStatistik.length + 1) + ")");
+  XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 3
+  }), "SUM(D3:D" + (arraySerializableStatistik.length + 1) + ")");
+  XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 4
+  }), "MIN(IF(E3:E" + (arraySerializableStatistik.length + 1) + "<>0, E3:E" + (arraySerializableStatistik.length + 1) + "))");
+  XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 5
+  }), "MAX(F3:F" + (arraySerializableStatistik.length + 1) + ")");
+  XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 6
+  }), "SUM(G3:G"+(arraySerializableStatistik.length + 1) + ")");
+  XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 9
+  }), "SUM(J3:J" + (arraySerializableStatistik.length + 1) + ")");
+  XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 11
+  }), "SUM(L3:L" + (arraySerializableStatistik.length + 1) + ")");
+  XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 13
+  }), "SUM(N3:N" + (arraySerializableStatistik.length + 1) + ")");
   if (!sheet["!merges"]) {
     sheet["!merges"] = [];
     sheet["!merges"]?.push(XLSX.utils.decode_range("A1:A2"));
@@ -404,7 +485,7 @@ function addStatistikenToSheetBucketlosermodus(sheet: WorkSheet) {
   return arraySerializableStatistik.length;
 }
 
-function createSheetForEintraege(sheet: WorkSheet, eintraege: AbstrakterEintrag[], startzeile: number) {
+function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], startzeile: number) {
   interface SerializableEintrag {
     bezeichnung: string,
     aufschlag: number | null,
@@ -459,36 +540,32 @@ function createSheetForEintraege(sheet: WorkSheet, eintraege: AbstrakterEintrag[
     origin: { c: 0, r: startzeile + 1 },
     skipHeader: true
   });
+  sheet["D12"].s={
+    font: {
+      name: "Calibri",
+      bold: true,
+      color: { rgb: "FF0000" }
+    },
+    alignment: {
+      wrapText:true
+    }
+  }
   for (let i = 0; i < arraySerializableEintraege.length; i++) {
     sheet[XLSX.utils.encode_cell({r:startzeile+i,c:1})].z="0.00%"
   }
 }
 
 function testfunction(pakete: Paket[]) {
-  const array=[];
-  let lastLvl = 0;
-  let currentHierachy = "";
-  for (const paket of pakete) {
-    if(currentHierachy=="") currentHierachy="1"
-    else if (paket.lvl > lastLvl) {
-      currentHierachy += ".1";
-    }
-    else if (paket.lvl < lastLvl) {
-      currentHierachy = currentHierachy.slice(0, currentHierachy.length - 2);
-      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
-      currentHierachyLastDigit++;
-      currentHierachy = currentHierachy.slice(0,currentHierachy.length-1)
-      currentHierachy += currentHierachyLastDigit
-    }
-    else if (paket.lvl == lastLvl) {
-      let currentHierachyLastDigit = parseInt(currentHierachy.charAt(currentHierachy.length-1));
-      currentHierachyLastDigit++;
-      currentHierachy=currentHierachy.slice(0,currentHierachy.length-2)
-      currentHierachy += "." + currentHierachyLastDigit
-    }
-    array.push({ticket_nr:paket.ticket_nr,lvl:paket.lvl,hiearchy:currentHierachy})
-    lastLvl=paket.lvl;
-  }
+  const wb = XLSX.utils.book_new();
+  const ws  =XLSX.utils.json_to_sheet([]);
+  const ws1 = XLSX.utils.json_to_sheet([{id:2,schaetzung:500},{id:3,schaetzung:300}]);
+  const ws2  =XLSX.utils.json_to_sheet([{id:1,schaertzung:600}]);
+  XLSX.utils.sheet_add_json(ws1,[{id:"abc"}],{origin:"A4",skipHeader:true})
+  XLSX.utils.sheet_set_array_formula(ws1,"A4","MAX(IF(E3:E8<>0, E3:E8))")
+  XLSX.utils.book_append_sheet(wb,ws,"Sheet")
+  XLSX.utils.book_append_sheet(wb,ws1,"Sheet 1")
+  XLSX.utils.book_append_sheet(wb,ws2,"Sheet 2")
+  XLSX.writeFile(wb, "test.xlsx");
 }
 
 function styleFunction() {
