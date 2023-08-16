@@ -49,14 +49,22 @@ export const useStatistikenStore = defineStore("statistiken", () => {
   }
 
   function min(bucket: Bucket): number {
-    let result = 0;
+    let result: number | null = null;
     pakete.paketeChildren().forEach(paket => {
-      if (paket.bucket == bucket && paket.zurRechnungFreigegeben()) {
-        if (result == 0 || paket.schaetzung! < result) result = paket.schaetzung!;
+      if (paket.bucket === bucket && paket.zurRechnungFreigegeben()) {
+        if (paket.schaetzung === 0) {
+          result = 0;
+          return;
+        }
+        if (result === null || paket.schaetzung! < result) {
+          result = paket.schaetzung!;
+        }
       }
     });
-    return result;
+    return result !== null ? result : 0;
   }
+
+
 
   function max(bucket: Bucket): number {
     let result = 0;
