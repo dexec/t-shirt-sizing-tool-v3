@@ -62,10 +62,9 @@ function download() {
     const sheetAllePaketeOhneBucket = createSheetForAllePaketeOhneBucket(paketeStore.paketeChildrenWithNoBucket());
     XLSX.utils.book_append_sheet(wb, sheetAllePaketeOhneBucket, "Alle Pakete ohne Bucket");
     createSheetsForBuckets(wb, paketeStore.unsortedPaketeListsSortedByBucketsMap);
-  }
-  else {
+  } else {
     const sheetAlleKindPakete = createSheetForAllePaketeOhneBucket(paketeStore.paketeChildren());
-    XLSX.utils.book_append_sheet(wb,sheetAlleKindPakete,"Alle Kind Pakete")
+    XLSX.utils.book_append_sheet(wb, sheetAlleKindPakete, "Alle Kind Pakete");
   }
   XLSX.writeFile(wb, "demo.xlsx");
 }
@@ -88,25 +87,16 @@ function createSheetForPaketeBucketmodus(pakete: Paket[]) {
 
   const headersForPakete = ["Hierarchie", "Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Bucket", "Schätzung"];
   const arraySerializablePaket: SerializablePaket[] = [];
-  let lastLvl = 0;
-  let currentHierarchy = "";
   for (const paket of pakete) {
-    if (currentHierarchy == "") currentHierarchy = "1";
-    else if (paket.lvl > lastLvl) {
-      currentHierarchy += ".1";
-    } else if (paket.lvl < lastLvl) {
-      currentHierarchy = currentHierarchy.slice(0, currentHierarchy.length - 2);
-      let currentHierarchyLastDigit = parseInt(currentHierarchy.charAt(currentHierarchy.length - 1));
-      currentHierarchyLastDigit++;
-      currentHierarchy = currentHierarchy.slice(0, currentHierarchy.length - 1);
-      currentHierarchy += currentHierarchyLastDigit;
-    } else if (paket.lvl == lastLvl) {
-      let currentHierarchyLastDigit = parseInt(currentHierarchy.charAt(currentHierarchy.length - 1));
-      currentHierarchyLastDigit++;
-      currentHierarchy = currentHierarchy.slice(0, currentHierarchy.length - 1);
-      currentHierarchy += currentHierarchyLastDigit;
+    let currentHierarchy = "";
+    let parent = paket.parent;
+    let childOfParent = paket;
+    for (let i = paket.lvl; i > 0; i--) {
+      currentHierarchy ="."+  (parent!.children.indexOf(childOfParent) + 1)  + currentHierarchy;
+      childOfParent = parent!;
+      parent = parent!.parent;
     }
-    lastLvl = paket.lvl;
+    currentHierarchy = (pakete.filter(paketOfPakete => paketOfPakete.lvl == 0).indexOf(childOfParent) + 1) + currentHierarchy;
     const serializablePaket: SerializablePaket = {
       lvl: currentHierarchy,
       ticket_nr: paket.ticket_nr,
@@ -150,26 +140,16 @@ function createSheetForPaketeBucketlosermodus(pakete: Paket[]) {
 
   const headersForPakete = ["Hierarchie", "Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Schätzung"];
   const arraySerializablePaket: SerializablePaket[] = [];
-  let lastLvl = 0;
-  let currentHierarchy = "";
-  //Breitensuche?
   for (const paket of pakete) {
-    if (currentHierarchy == "") currentHierarchy = "1";
-    else if (paket.lvl > lastLvl) {
-      currentHierarchy += ".1";
-    } else if (paket.lvl < lastLvl) {
-      currentHierarchy = currentHierarchy.slice(0, currentHierarchy.length - 2);
-      let currentHierarchyLastDigit = parseInt(currentHierarchy.charAt(currentHierarchy.length - 1));
-      currentHierarchyLastDigit++;
-      currentHierarchy = currentHierarchy.slice(0, currentHierarchy.length - 1);
-      currentHierarchy += currentHierarchyLastDigit;
-    } else if (paket.lvl == lastLvl) {
-      let currentHierarchyLastDigit = parseInt(currentHierarchy.charAt(currentHierarchy.length - 1));
-      currentHierarchyLastDigit++;
-      currentHierarchy = currentHierarchy.slice(0, currentHierarchy.length - 1);
-      currentHierarchy += currentHierarchyLastDigit;
+    let currentHierarchy = "";
+    let parent = paket.parent;
+    let childOfParent = paket;
+    for (let i = paket.lvl; i > 0; i--) {
+      currentHierarchy = "." + (parent!.children.indexOf(childOfParent) + 1) + currentHierarchy;
+      childOfParent = parent!;
+      parent = parent!.parent;
     }
-    lastLvl = paket.lvl;
+    currentHierarchy = (pakete.filter(paketOfPakete => paketOfPakete.lvl == 0).indexOf(childOfParent) + 1) + currentHierarchy;
     const serializablePaket: SerializablePaket = {
       lvl: currentHierarchy,
       ticket_nr: paket.ticket_nr,
@@ -183,6 +163,7 @@ function createSheetForPaketeBucketlosermodus(pakete: Paket[]) {
     }
     arraySerializablePaket.push(serializablePaket);
   }
+  console.log(arraySerializablePaket);
   const sheetPakete = XLSX.utils.json_to_sheet([], {
     skipHeader: true,
     cellStyles: true
@@ -281,12 +262,12 @@ function addStatistikenToSheet(sheet: WorkSheet, statistiken: Statistik[], bucke
 
 function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statistik[]) {
   interface SerializableStatistik {
-    bucket: string,
+    bucket: string
     anzahlGeschaetzt: number
     anzahlUngeschaetzt: number
     anzahlGesamt: number
-    min: number
-    max: number
+    min: number| null
+    max: number | null
     anteilAnzahl: number
     durchschnitt: number | null
     median: number | null
@@ -319,7 +300,7 @@ function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statist
     const serializableStatistik: SerializableStatistik = {
       bucket: statistik.bucket.name,
       anzahlGeschaetzt: statistik.anzahlGeschaetzt,
-      anzahlUngeschaetzt: statistik.anzahlUngeschaetzt,
+      anzahlUngeschaetzt:statistik.anzahlUngeschaetzt,
       anzahlGesamt: statistik.anzahlGesamt,
       min: statistik.min,
       max: statistik.max,
@@ -393,61 +374,61 @@ function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statist
     sheet[XLSX.utils.encode_cell({ r: i + 2, c: 14 })].z = "0.00%";
     const sheetName = "Bucket " + arraySerializableStatistik[i].bucket;
     //Anzahl geschätzt
-    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    sheet[XLSX.utils.encode_cell({
       r: i + 2,
       c: 1
-    }), "COUNTIF('" + sheetName + "'!E:E,\"<>\")-1");
+    })].f = `COUNTIF('${sheetName}'!E:E,"<>")-1`
     //Anzahl ungeschätzt
-    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    sheet[XLSX.utils.encode_cell({
       r: i + 2,
       c: 2
-    }), "COUNTIF('" + sheetName + "'!A:A,\"<>\")-COUNTIF('" + sheetName + "'!E:E,\"<>\")");
+    })].f=`COUNTIF('${sheetName}'!A:A,"<>")-COUNTIF('${sheetName}'!E:E,"<>")`
     //Anzahl gesamt
-    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    sheet[XLSX.utils.encode_cell({
       r: i + 2,
       c: 3
-    }), "B" + (i + 3) + "+C" + (i + 3));
+    })].f=`B${i + 3}+C${i + 3}`
     //Min
-    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    sheet[XLSX.utils.encode_cell({
       r: i + 2,
       c: 4
-    }), "IF(COUNT('" + sheetName + "'!E:E)=0,\"\",IF(MIN('" + sheetName + "'!E:E)=0,0,MIN('" + sheetName + "'!E:E)))");
+    })].f=`IF(COUNT('${sheetName}'!E:E)=0,"",IF(MIN('${sheetName}'!E:E)=0,0,MIN('${sheetName}'!E:E)))`
     //Max
-    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    sheet[XLSX.utils.encode_cell({
       r: i + 2,
       c: 5
-    }), "IF(COUNT('" + sheetName + "'!E:E)=0,\"\",MAX('" + sheetName + "'!E:E))");
+    })].f=`IF(COUNT('${sheetName}'!E:E)=0,"",MAX('${sheetName}'!E:E))`
     //Anteil Anzahl
-    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    sheet[XLSX.utils.encode_cell({
       r: i + 2,
       c: 6
-    }), "IF(D" + (arraySerializableStatistik.length + 2) + "=0,0,D" + (i + 3) + "/D" + (arraySerializableStatistik.length + 2) + ")");
+    })].f=`IF(D${arraySerializableStatistik.length + 2}=0,0,D${i + 3}/D${arraySerializableStatistik.length + 2})`
     //Mittelwert
-    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    sheet[XLSX.utils.encode_cell({
       r: i + 2,
       c: 7
-    }), "IF(OR(J" + (i + 3) + "=0,J" + (i + 3) + "=\"\",B" + (i + 3) + "=0,B" + (i + 3) + "=\"\"),\"\",J" + (i + 3) + "/B" + (i + 3) + ")");
+    })].f = `IF(OR(J${(i + 3)}=0,J${(i + 3)}="",B${(i + 3)}=0,B${(i + 3)}=""),"",J${(i + 3)}/B${(i + 3)})`
     //Median
-    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    sheet[XLSX.utils.encode_cell({
       r: i + 2,
       c: 8
-    }), "IF(COUNT('" + sheetName + "'!E:E)=0,\"\",MEDIAN('" + sheetName + "'!E:E))");
+    })].f=`IF(COUNT('${sheetName}'!E:E)=0,"",MEDIAN('${sheetName}'!E:E))`
     //Summe Schätzungen PT
-    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    sheet[XLSX.utils.encode_cell({
       r: i + 2,
       c: 9
-    }), "IF(COUNT('" + sheetName + "'!E:E)=0,\"\",SUM('" + sheetName + "'!E:E))");
+    })].f=`IF(COUNT('${sheetName}'!E:E)=0,"",SUM('${sheetName}'!E:E))`
     //Summe Schätzungen Prozent
-    XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
+    sheet[XLSX.utils.encode_cell({
       r: i + 2,
       c: 10
-    }), "IF(OR(J" + (arraySerializableStatistik.length + 2) + "=0,J" + (arraySerializableStatistik.length + 2) + "=\"\",J" + (i + 3) + "=0,J" + (i + 3) + "=\"\"),\"\",J" + (i + 3) + "/J" + (arraySerializableStatistik.length + 2) + ")");
+    })].f=`IF(OR(J${arraySerializableStatistik.length + 2}=0,J${arraySerializableStatistik.length + 2}="",J${i + 3}=0,J${i + 3}=""),"",J${i + 3}/J${arraySerializableStatistik.length + 2})`
     //Summe Durchschnitt PT
     XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
       r: i + 2,
       c: 11
-    }), "IF(OR(D"+(i+3)+"=\"\",H"+(i+3)+"=\"\"),\"\",D"+(i+3)+"*H"+(i+3)+")");
-//Summe Durchschnitt Prozent
+    }), "IF(OR(D" + (i + 3) + "=\"\",H" + (i + 3) + "=\"\"),\"\",D" + (i + 3) + "*H" + (i + 3) + ")");
+    //Summe Durchschnitt Prozent
     XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
       r: i + 2,
       c: 12
@@ -456,8 +437,8 @@ function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statist
     XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
       r: i + 2,
       c: 13
-    }), "IF(OR(D"+(i+3)+"=\"\",I"+(i+3)+"=\"\"),\"\",D"+(i+3)+"*I"+(i+3)+")");
-//Summe Median Prozenz
+    }), "IF(OR(D" + (i + 3) + "=\"\",I" + (i + 3) + "=\"\"),\"\",D" + (i + 3) + "*I" + (i + 3) + ")");
+    //Summe Median Prozenz
     XLSX.utils.sheet_set_array_formula(sheet, XLSX.utils.encode_cell({
       r: i + 2,
       c: 14
@@ -536,8 +517,8 @@ function addStatistikenToSheetBucketlosermodus(sheet: WorkSheet) {
     anzahlGeschaetzt: number;
     anzahlUngeschaetzt: number;
     anzahlGesamt: number;
-    min: number;
-    max: number;
+    min: number |null;
+    max: number | null;
     anteilAnzahl: number;
     durchschnitt: number;
     median: number;
@@ -723,7 +704,7 @@ function testfunction(pakete: Paket[]) {
   const ws1 = XLSX.utils.json_to_sheet([{ id: 2, schaetzung: 500 }, { id: 3, schaetzung: 300 }]);
   const ws2 = XLSX.utils.json_to_sheet([{ id: 1, schaertzung: 600 }]);
   XLSX.utils.sheet_add_json(ws1, [{ id: "abc" }], { origin: "A4", skipHeader: true });
-  ws1["A4"].f="MAX(IF(B2:B3<>0, B2:B3))"
+  ws1["A4"].f = "MAX(IF(B2:B3<>0, B2:B3))";
   //XLSX.utils.sheet_set_array_formula(ws1, "A4", "MAX(IF(E3:E8<>0, E3:E8))");
   XLSX.utils.book_append_sheet(wb, ws, "Sheet");
   XLSX.utils.book_append_sheet(wb, ws1, "Sheet 1");
