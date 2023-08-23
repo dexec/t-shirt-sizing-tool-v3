@@ -5,17 +5,17 @@ export class Statistik {
     private _anzahlGeschaetzt: number
     private _anzahlUngeschaetzt: number
     private _anzahlGesamt: number
-    private _min: number
-    private _max: number
-    private _median: number
-    private _durchschnitt: number
-    private _anteilAnzahl: number
-    private _summeSchaetzungen:number
-    private _summeDurchschnitt:number
-    private _summeMedian: number
+    private _min: number | null
+    private _max: number | null
+    private _median: number | null
+    private _durchschnitt: number | null
+    private _anteilAnzahl: number | null
+    private _summeSchaetzungen:number |null
+    private _summeDurchschnitt:number |null
+    private _summeMedian: number|null
 
 
-    constructor(bucket: Bucket, anzahlGeschaetzt: number, anzahlUngeschaetzt: number, anzahlGesamt: number, min: number, max: number, median: number, durchschnitt: number, anteilAnzahl: number, summeSchaetzungen: number, summeDurchschnitt: number, summeMedian: number) {
+    constructor(bucket: Bucket, anzahlGeschaetzt: number, anzahlUngeschaetzt: number, anzahlGesamt: number, min: number | null, max: number | null, median: number | null, durchschnitt: number | null, anteilAnzahl: number | null, summeSchaetzungen: number | null, summeDurchschnitt: number | null, summeMedian: number | null) {
         this._bucket = bucket;
         this._anzahlGeschaetzt = anzahlGeschaetzt;
         this._anzahlUngeschaetzt = anzahlUngeschaetzt;
@@ -62,67 +62,67 @@ export class Statistik {
         this._anzahlGesamt = value;
     }
 
-    get min(): number {
+    get min(): number | null {
         return this._min;
     }
 
-    set min(value: number) {
+    set min(value: number | null) {
         this._min = value;
     }
 
-    get max(): number {
+    get max(): number | null {
         return this._max;
     }
 
-    set max(value: number) {
+    set max(value: number | null) {
         this._max = value;
     }
 
-    get median(): number {
+    get median(): number | null {
         return this._median;
     }
 
-    set median(value: number) {
+    set median(value: number | null) {
         this._median = value;
     }
 
-    get durchschnitt(): number {
+    get durchschnitt(): number | null {
         return this._durchschnitt;
     }
 
-    set durchschnitt(value: number) {
+    set durchschnitt(value: number | null) {
         this._durchschnitt = value;
     }
 
-    get anteilAnzahl(): number {
+    get anteilAnzahl(): number | null {
         return this._anteilAnzahl;
     }
 
-    set anteilAnzahl(value: number) {
+    set anteilAnzahl(value: number | null) {
         this._anteilAnzahl = value;
     }
 
-    get summeSchaetzungen(): number {
+    get summeSchaetzungen(): number | null {
         return this._summeSchaetzungen;
     }
 
-    set summeSchaetzungen(value: number) {
+    set summeSchaetzungen(value: number | null) {
         this._summeSchaetzungen = value;
     }
 
-    get summeDurchschnitt(): number {
+    get summeDurchschnitt(): number | null {
         return this._summeDurchschnitt;
     }
 
-    set summeDurchschnitt(value: number) {
+    set summeDurchschnitt(value: number | null) {
         this._summeDurchschnitt = value;
     }
 
-    get summeMedian(): number {
+    get summeMedian(): number | null {
         return this._summeMedian;
     }
 
-    set summeMedian(value: number) {
+    set summeMedian(value: number | null) {
         this._summeMedian = value;
     }
 }

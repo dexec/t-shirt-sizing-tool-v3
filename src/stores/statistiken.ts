@@ -48,7 +48,7 @@ export const useStatistikenStore = defineStore("statistiken", () => {
     return result;
   }
 
-  function min(bucket: Bucket): number {
+  function min(bucket: Bucket): number | null {
     let result: number | null = null;
     pakete.paketeChildren().forEach(paket => {
       if (paket.bucket === bucket && paket.zurRechnungFreigegeben()) {
@@ -61,15 +61,14 @@ export const useStatistikenStore = defineStore("statistiken", () => {
         }
       }
     });
-    return result !== null ? result : 0;
+    return result;
   }
 
 
-
-  function max(bucket: Bucket): number {
-    let result = 0;
+  function max(bucket: Bucket): number | null {
+    let result: number | null = null;
     pakete.paketeChildren().forEach(paket => {
-      if (paket.bucket == bucket && paket.zurRechnungFreigegeben() && paket.schaetzung! > result) result = paket.schaetzung!;
+      if (paket.bucket == bucket && paket.zurRechnungFreigegeben() && (result == null || paket.schaetzung! > result)) result = paket.schaetzung!;
     });
     return result;
   }
@@ -78,16 +77,17 @@ export const useStatistikenStore = defineStore("statistiken", () => {
     return anzahlGesamt(bucket as Bucket) / summeAlleBucketsGesamt() || 0;
   }
 
-  function durchschnitt(bucket: Bucket): number {
+  function durchschnitt(bucket: Bucket): number | null {
+    if (anzahlGeschaetzt(bucket) == 0) return null;
     const paketeBucket: Paket[] = [];
     pakete.paketeChildren().forEach(paket => {
       if (paket.bucket == bucket) paketeBucket.push(paket);
     });
     const sum = paketeBucket.filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0) as number;
-    return (sum / anzahlGeschaetzt(bucket)) || 0;
+    return (sum / anzahlGeschaetzt(bucket));
   }
 
-  function median(bucket: Bucket): number {
+  function median(bucket: Bucket): number | null {
     const paketeBucket: Paket[] = [];
     pakete.paketeChildren().forEach(paket => {
       if (paket.bucket == bucket && paket.zurRechnungFreigegeben()) paketeBucket.push(paket);
@@ -96,10 +96,11 @@ export const useStatistikenStore = defineStore("statistiken", () => {
       const mid = Math.floor(paketeBucket.length / 2),
         nums = [...paketeBucket.map(paket => paket.schaetzung)].sort((a, b) => a! - b!);
       return paketeBucket.length % 2 != 0 ? nums[mid]! : (nums[mid - 1]! + nums[mid]!) / 2;
-    } else return 0;
+    } else return null;
   }
 
-  function summeSchaetzungen(bucket: Bucket): number {
+  function summeSchaetzungen(bucket: Bucket): number | null {
+    if (anzahlGeschaetzt(bucket) == 0) return null;
     let result = 0;
     pakete.paketeChildren().forEach(paket => {
       if (paket.bucket == bucket && paket.zurRechnungFreigegeben()) {
@@ -109,12 +110,18 @@ export const useStatistikenStore = defineStore("statistiken", () => {
     return result;
   }
 
-  function summeDurchschnitt(bucket: Bucket): number {
-    return durchschnitt(bucket) * pakete.paketeOfBucket(bucket).length;
+  function summeDurchschnitt(bucket: Bucket): number | null {
+    if (anzahlGeschaetzt(bucket) == 0) return null;
+    const durchschnittBucket = durchschnitt(bucket);
+    if (durchschnittBucket) return durchschnittBucket * pakete.paketeOfBucket(bucket).length;
+    else return 0;
   }
 
-  function summeMedian(bucket: Bucket): number {
-    return median(bucket) * pakete.paketeOfBucket(bucket).length;
+  function summeMedian(bucket: Bucket): number | null {
+    if (anzahlGeschaetzt(bucket) == 0) return null;
+    const medianBucket = median(bucket);
+    if (medianBucket) return medianBucket * pakete.paketeOfBucket(bucket).length;
+    else return 0;
   }
 
   function summeAlleBucketsGeschaetzt(): number {
@@ -153,66 +160,67 @@ export const useStatistikenStore = defineStore("statistiken", () => {
     return result;
   }
 
-  function summeAlleBucketsMin(): number {
-    let result = 0;
+  function summeAlleBucketsMin(): number | null {
+    let result: number | null = null;
     pakete.paketeChildren().filter(paket => paket.zurRechnungFreigegeben()).forEach(paket => {
-      if ((projekt.bucketmodus && paket.bucket || !projekt.bucketmodus) && (result == 0 || paket.schaetzung! < result)) {
+      if ((projekt.bucketmodus && paket.bucket || !projekt.bucketmodus) && (result == null || paket.schaetzung! < result)) {
         result = paket.schaetzung!;
       }
     });
     return result;
   }
 
-  function summeAlleBucketsMax(): number {
-    let result = 0;
+  function summeAlleBucketsMax(): number | null {
+    let result: number | null = null;
     pakete.paketeChildren().filter(paket => paket.zurRechnungFreigegeben()).forEach(paket => {
-      if ((projekt.bucketmodus && paket.bucket || !projekt.bucketmodus) && paket.schaetzung! > result) result = paket.schaetzung!;
+      if ((projekt.bucketmodus && paket.bucket || !projekt.bucketmodus) && (result == null || paket.schaetzung! > result)) result = paket.schaetzung!;
     });
     return result;
   }
 
-  function summeAlleBucketsDurchschnitt(): number {
+  function summeAlleBucketsDurchschnitt(): number | null {
+    if(summeAlleBucketsGeschaetzt()==null) return null;
     const sum = pakete.paketeChildren().filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0) as number;
-    return (sum / summeAlleBucketsGeschaetzt()) || 0;
+    return (sum / summeAlleBucketsGeschaetzt());
   }
 
-  function summeAlleBucketsMedian(): number {
+  function summeAlleBucketsMedian(): number | null {
     const filteredPaketeChildren = pakete.paketeChildren().filter(paket => paket.zurRechnungFreigegeben());
     const mid = Math.floor(filteredPaketeChildren.length / 2),
       nums = [...filteredPaketeChildren.map(paket => paket.schaetzung)].sort((a, b) => a! - b!);
     return filteredPaketeChildren.length % 2 != 0 ? nums[mid]! : (nums[mid - 1]! + nums[mid]!) / 2;
   }
 
-  function summeAlleBucketsSchaetzungenSumme(): number {
+  function summeAlleBucketsSchaetzungenSumme(): number | null {
     let result = 0;
     if (projekt.bucketmodus) {
-      buckets.bucketsAsMap.forEach(bucket => result += summeSchaetzungen(bucket));
+      buckets.bucketsAsMap.forEach(bucket => result += summeSchaetzungen(bucket) ?? 0);
     } else {
       pakete.paketeChildren().forEach(paket => {
         if (paket.zurRechnungFreigegeben()) result += paket.schaetzung!;
       });
     }
-    return result;
+    return result == 0 ? null : result;
   }
 
-  function summeAlleBucketsDurchschnittSumme(): number {
+  function summeAlleBucketsDurchschnittSumme(): number | null {
     let result = 0;
     if (projekt.bucketmodus) {
-      buckets.bucketsAsMap.forEach(bucket => result += summeDurchschnitt(bucket));
+      buckets.bucketsAsMap.forEach(bucket => result += summeDurchschnitt(bucket) ?? 0);
     } else {
-      return summeAlleBucketsDurchschnitt() * summeAlleBucketsGeschaetzt();
+      return (summeAlleBucketsDurchschnitt() ?? 0) * summeAlleBucketsGesamt();
     }
-    return result;
+    return result == 0 ? null : result;
   }
 
-  function summeAlleBucketsMedianSumme(): number {
+  function summeAlleBucketsMedianSumme(): number | null {
     let result = 0;
     if (projekt.bucketmodus) {
-      buckets.bucketsAsMap.forEach(bucket => result += summeMedian(bucket));
+      buckets.bucketsAsMap.forEach(bucket => result += summeMedian(bucket) ?? 0);
     } else {
-      return summeAlleBucketsMedian() * summeAlleBucketsGeschaetzt();
+      return (summeAlleBucketsMedian() ?? 0) * summeAlleBucketsGesamt();
     }
-    return result;
+    return result == 0 ? null : result;
   }
 
   return {

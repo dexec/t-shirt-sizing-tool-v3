@@ -34,30 +34,30 @@
           <td>{{ statistik.anzahlGesamt }}</td>
           <td>{{ statistik.min }}</td>
           <td>{{ statistik.max }}</td>
-          <td>{{ statistik.anteilAnzahl !== 0 ? Math.round(statistik.anteilAnzahl * 100) + "%" : '' }}</td>
-          <td>{{ statistik.durchschnitt !== 0 ? Math.round(statistik.durchschnitt) : '' }}</td>
-          <td>{{ statistik.median !== 0 ? Math.round(statistik.median) : '' }}</td>
-          <td>{{ statistik.summeSchaetzungen !== 0 ? statistik.summeSchaetzungen : '' }}</td>
+          <td>{{ statistik.anteilAnzahl * 100 + "%" }}</td>
+          <td>{{ statistik.durchschnitt }}</td>
+          <td>{{ statistik.median }}</td>
+          <td>{{ statistik.summeSchaetzungen }}</td>
           <td>
             {{
-              statistik.summeSchaetzungen !== 0 ? Math.round((statistik.summeSchaetzungen / statistiken.summeAlleBucketsSchaetzungenSumme() || 0) * 100) + '%' : ''
+              statistiken.summeAlleBucketsSchaetzungenSumme() == null || statistik.anzahlGeschaetzt==0 ? "" : Math.round(statistik.summeSchaetzungen / statistiken.summeAlleBucketsSchaetzungenSumme()*100) + "%"
             }}
           </td>
-          <td>{{ statistik.summeDurchschnitt !== 0 ? Math.round(statistik.summeDurchschnitt) : '' }}</td>
+          <td>{{ statistik.summeDurchschnitt }}</td>
           <td>
             {{
-              statistik.summeDurchschnitt !== 0 ? Math.round((statistik.summeDurchschnitt / statistiken.summeAlleBucketsDurchschnittSumme() || 0) * 100) + '%' : ''
+              statistiken.summeAlleBucketsDurchschnittSumme() == null ||statistik.anzahlGeschaetzt==0 ? "" : Math.round(statistik.summeDurchschnitt / statistiken.summeAlleBucketsDurchschnittSumme()*100) + "%"
             }}
           </td>
-          <td>{{ statistik.summeMedian !== 0 ? Math.round(statistik.summeMedian) : '' }}</td>
+          <td>{{ statistik.summeMedian }}</td>
           <td>
             {{
-              statistik.summeMedian !== 0 ? Math.round((statistik.summeMedian / statistiken.summeAlleBucketsMedianSumme() || 0) * 100) + '%' : ''
+              statistiken.summeAlleBucketsMedianSumme() == null || statistik.anzahlGeschaetzt ==0? "" : Math.round(statistik.summeMedian / statistiken.summeAlleBucketsMedianSumme()*100) + "%"
             }}
           </td>
         </tr>
-<!--        TODO Keine Summenreihe, wenn bucketmodus aber keine Buckets definiert sind.
-        Dann lieber Nachricht, dass man Buckets definieren sollte-->
+        <!--        TODO Keine Summenreihe, wenn bucketmodus aber keine Buckets definiert sind.
+                Dann lieber Nachricht, dass man Buckets definieren sollte-->
         <tr class="font-weight-bold">
           <td v-if="projektStore.bucketmodus">Summe</td>
           <td>{{ statistiken.summeAlleBucketsGeschaetzt() }}</td>
@@ -66,11 +66,11 @@
           <td>{{ statistiken.summeAlleBucketsMin() }}</td>
           <td>{{ statistiken.summeAlleBucketsMax() }}</td>
           <td>100%</td>
-          <td>{{ projektStore.bucketmodus ? '' : statistiken.summeAlleBucketsDurchschnitt() }}</td>
-          <td>{{ projektStore.bucketmodus ? '' : statistiken.summeAlleBucketsMedian() }}</td>
-          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsSchaetzungenSumme()) }}</td>
-          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsDurchschnittSumme()) }}</td>
-          <td colspan="2">{{ Math.round(statistiken.summeAlleBucketsMedianSumme()) }}</td>
+          <td>{{ projektStore.bucketmodus ? "" : statistiken.summeAlleBucketsDurchschnitt() }}</td>
+          <td>{{ projektStore.bucketmodus ? "" : statistiken.summeAlleBucketsMedian() }}</td>
+          <td colspan="2">{{ statistiken.summeAlleBucketsSchaetzungenSumme() }}</td>
+          <td colspan="2">{{ statistiken.summeAlleBucketsDurchschnittSumme() }}</td>
+          <td colspan="2">{{ statistiken.summeAlleBucketsMedianSumme() }}</td>
         </tr>
         </tbody>
       </template>
@@ -79,8 +79,8 @@
 </template>
 
 <script lang="ts" setup>
-import {useStatistikenStore} from "@/stores/statistiken";
-import {useProjektStore} from "@/stores/projekt";
+import { useStatistikenStore } from "@/stores/statistiken";
+import { useProjektStore } from "@/stores/projekt";
 
 const statistiken = useStatistikenStore();
 const projektStore = useProjektStore();
