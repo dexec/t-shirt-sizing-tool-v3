@@ -13,10 +13,11 @@ export const useEintraegeStore = defineStore("eintraege", () => {
       const statistiken = useStatistikenStore();
       //Startsumme ist Ergebnis der Bucketübersicht
       const startsumme = eintraege.value[0] as Zwischensumme;
-      startsumme.zwischensummeAufwand = statistiken.summeAlleBucketsDurchschnittSumme();
+      startsumme.zwischensummeAufwand = statistiken.summeAlleBucketsDurchschnittSumme() ?? 0;
       const endsumme = eintraege.value[eintraege.value.length - 1] as Zwischensumme;
       let zwischensumme = startsumme;
       let vorigerAbschnittAufwand = 0;
+      let vorigerAbschnittAufschlag = 0
       for (let i = eintraege.value.length - 2; i > 0; i--) {
         const eintrag = eintraege.value[i];
         if (eintrag instanceof Zwischensumme && eintrag.bezeichnung != "STARTSUMME" && eintrag.bezeichnung != "ENDSUMME") {
@@ -34,14 +35,15 @@ export const useEintraegeStore = defineStore("eintraege", () => {
             else aktuellerEintrag.aufschlagWert = aktuellerEintrag.aufwandWert / aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand * 100;
           }
           vorigerAbschnittAufwand += aktuellerEintrag.aufwandWert;
+          vorigerAbschnittAufschlag += aktuellerEintrag.aufschlagWert;
         } else {
           const aktuelleZwischensumme = eintraege.value[i] as Zwischensumme;
           aktuelleZwischensumme.vorigerAbschnittAufwand = vorigerAbschnittAufwand;
-          if (zwischensumme.zwischensummeAufwand == 0) aktuelleZwischensumme.vorigerAbschnittAufschlag = 0;
-          else aktuelleZwischensumme.vorigerAbschnittAufschlag = vorigerAbschnittAufwand / zwischensumme.zwischensummeAufwand * 100;
+          aktuelleZwischensumme.vorigerAbschnittAufschlag = vorigerAbschnittAufschlag;
           aktuelleZwischensumme.zwischensummeAufwand = zwischensumme.zwischensummeAufwand + aktuelleZwischensumme.vorigerAbschnittAufwand;
           zwischensumme = aktuelleZwischensumme;
           vorigerAbschnittAufwand = 0;
+          vorigerAbschnittAufschlag = 0;
         }
       }
       for (let i = eintraege.value.length - 2; i >= 1; i--) {
