@@ -1,7 +1,7 @@
 <template>
   <div v-if="params.data instanceof Zwischensumme">
     <div
-        v-if="vorigerAbschnittAufschlag === null || vorigerAbschnittAufschlag === 0 || vorigerAbschnittAufschlag === '' || vorigerAbschnittAufschlag=== 'undefined' || params.data.bezeichnung==='STARTSUMME' || params.data.bezeichnung==='ENDSUMME'">
+        v-if="vorigerAbschnittAufschlag === null || vorigerAbschnittAufschlag === '' || vorigerAbschnittAufschlag=== 'undefined' || params.data.bezeichnung==='STARTSUMME' || params.data.bezeichnung==='ENDSUMME'">
       <p></p>
     </div>
     <div v-else>
