@@ -113,9 +113,13 @@ const columnDefs = ref([
   {
     field: 'schaetzung',
     headerName: 'Schätzung',
-    valueSetter: (params: any) => {
-      if (isNaN(params.newValue)) params.data.schaetzung = null
-      else params.data.schaetzung = Number(params.newValue)
+    valueSetter:(params:any) => {
+      if(isNaN(params.newValue)) params.data.schaetzung = params.oldValue;
+      else {
+        params.data.schaetzung = Number(params.newValue)
+        paketeStore.updateSchaetzung(params.data,params.oldValue)
+        gridApi.value!.refreshCells({force: true});
+      }
     },
     cellStyle: (params: any): any => {
       if (params.data.children.length > 0) return {backgroundColor: 'lightgrey'}
@@ -131,20 +135,19 @@ const columnDefs = ref([
   }
 ])
 const variablenAustauschStore = useVariablenAustauschStore();
+//TODO Die Suche so umsetzen, dass das gesuchte Ziel mit seinen Elternelementen steht
 watch(() => variablenAustauschStore.searchPaketString, (newValue) => {
-
   gridApi.value!.setQuickFilter(newValue);
   for (let paket of paketeStore.paketeAsMap.values()) {
     const paketStringIndexed: { [index: string]: any } = paket
     for (const key in paketStringIndexed) {
       if (typeof paketStringIndexed[key] === "string" && gridApi.value!.getQuickFilter() != "" && paketStringIndexed[key].includes(gridApi.value!.getQuickFilter())) {
+        if(!paketeStore.paketeAsTreeView.includes(paket))
         paketeStore.showPaket(paket as Paket)
       }
     }
   }
   refreshTable();
-
-
 });
 provide("addNewPaket", addNewPaket);
 provide("addNewKindPaket", addNewKindPaket);
@@ -196,10 +199,7 @@ function onCellDoubleClicked(e: any) {
 }
 
 function onCellValueChanged(params: any) {
-  if (params.column.colId === 'schaetzung' && params.oldValue !== params.newValue) {
-    paketeStore.updateSchaetzung(params.data, params.newValue - params.oldValue);
-    gridApi.value!.refreshCells({force: true});
-  }
+
 }
 
 function addNewPaket() {
@@ -354,8 +354,9 @@ function onCellKeyPress(e: any) {
           } else {
             if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
               if (colKey === 'schaetzung') {
-                paketeStore.updateSchaetzung(e.data, -e.value)
-                e.data[colKey] = null
+                const oldValue = e.data.schaetzung;
+                e.data.schaetzung=null
+                paketeStore.updateSchaetzung(e.data, oldValue)
               } else if (colKey === 'bucket') {
                 usePaketeStore().updateBucket(e.data, null)
               } else e.data[colKey] = null
