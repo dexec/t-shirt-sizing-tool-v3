@@ -9,13 +9,13 @@ export class Statistik {
     private _max: number | null
     private _median: number | null
     private _durchschnitt: number | null
-    private _anteilAnzahl: number | null
+    private _anteilAnzahl: number
     private _summeSchaetzungen:number |null
     private _summeDurchschnitt:number |null
-    private _summeMedian: number|null
+    private _summeMedian: number | null
 
 
-    constructor(bucket: Bucket, anzahlGeschaetzt: number, anzahlUngeschaetzt: number, anzahlGesamt: number, min: number | null, max: number | null, median: number | null, durchschnitt: number | null, anteilAnzahl: number | null, summeSchaetzungen: number | null, summeDurchschnitt: number | null, summeMedian: number | null) {
+    constructor(bucket: Bucket, anzahlGeschaetzt: number, anzahlUngeschaetzt: number, anzahlGesamt: number, min: number | null, max: number | null, median: number | null, durchschnitt: number | null, anteilAnzahl: number, summeSchaetzungen: number | null, summeDurchschnitt: number | null, summeMedian: number | null) {
         this._bucket = bucket;
         this._anzahlGeschaetzt = anzahlGeschaetzt;
         this._anzahlUngeschaetzt = anzahlUngeschaetzt;
@@ -94,11 +94,11 @@ export class Statistik {
         this._durchschnitt = value;
     }
 
-    get anteilAnzahl(): number | null {
+    get anteilAnzahl(): number {
         return this._anteilAnzahl;
     }
 
-    set anteilAnzahl(value: number | null) {
+    set anteilAnzahl(value: number) {
         this._anteilAnzahl = value;
     }
 
