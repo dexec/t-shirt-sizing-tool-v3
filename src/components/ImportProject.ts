@@ -70,7 +70,18 @@ export class ImportProject {
                 parent = parent.parent;
             }
             paketFromPakete.lvl = lvl;
-            if (paketFromPakete.children.length > 0) paketFromPakete.schaetzung = paketFromPakete.children.filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0);
+            if(paketFromPakete.children.length>0) {
+                let schaetzung: number | null = null;
+                for (const paket of paketFromPakete.children) {
+                    if (paket.zurRechnungFreigegeben() && paket.schaetzung != null) {
+                        schaetzung = (schaetzung ?? 0) + paket.schaetzung;
+                    }
+                }
+                paketFromPakete.schaetzung = schaetzung;
+            }
+            /*if (paketFromPakete.children.length > 0) {
+                paketFromPakete.schaetzung = paketFromPakete.children.filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0);
+            }*/
         });
     }
 
@@ -161,7 +172,7 @@ export class ImportProject {
 
     private writePaketeStoreUnsortedPaketeListsSortedByBucketsMap() {
         const paketeStore = usePaketeStore();
-        const unsortedPaketeListsSortedByBucketsMap=  new Map<Bucket, Paket[]>()
+        const unsortedPaketeListsSortedByBucketsMap = new Map<Bucket, Paket[]>()
         for (const bucket of this._buckets) {
             unsortedPaketeListsSortedByBucketsMap.set(bucket as Bucket, []);
         }
