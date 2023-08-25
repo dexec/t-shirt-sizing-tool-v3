@@ -56,10 +56,18 @@ export const usePaketeStore = defineStore("pakete", () => {
     return result;
   }
 
-  function updateSchaetzung(paket: Paket, diff: number) {
+  function updateSchaetzung(paket: Paket, oldValue: number | null) {
+    if(paket.schaetzung==null && oldValue==null) return;
+    let diff = 0;
+    if(paket.schaetzung==null) {
+      diff = -(oldValue ?? 0)
+    }
+    else {
+      diff = paket.schaetzung - (oldValue ?? 0)
+    }
     let parentOfPaket = paket.parent;
     while (parentOfPaket) {
-      if (parentOfPaket.children.length === 0) parentOfPaket.schaetzung = null;
+      if (parentOfPaket.children.filter(paketOfChildren => paketOfChildren.schaetzung!=null).length==0) parentOfPaket.schaetzung = null;
       else parentOfPaket.schaetzung = (parentOfPaket.schaetzung ?? 0) + diff;
       parentOfPaket = parentOfPaket.parent;
     }
@@ -112,6 +120,7 @@ export const usePaketeStore = defineStore("pakete", () => {
       if (!parentOfPaket.open) parents.unshift(parentOfPaket);
       parentOfPaket = parentOfPaket.parent;
     }
+    console.log(parents)
     for (const paketOfParents of parents) {
       paketOfParents.open = true;
       updateTreeViewAfterChangedOpenState(paketOfParents);
@@ -161,7 +170,7 @@ export const usePaketeStore = defineStore("pakete", () => {
       parentOfPaket.children.splice(parentOfPaket.children.indexOf(paketToDelete), 1);
     }
     if (paketToDelete.schaetzung != null)
-      updateSchaetzung(paketToDelete, -1 * paketToDelete.schaetzung);
+      updateSchaetzung(paketToDelete, null);
   }
 
   function addNew(id: number): number {
