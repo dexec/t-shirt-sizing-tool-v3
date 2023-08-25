@@ -251,8 +251,8 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
     }
     default : {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
-      erklaerungsText.value = "Der Aufwand errechnet sich durch das Dividieren des Aufschlags durch die Zwischensumme.";
-      erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand + " / " + aktuellerEintrag.aufschlagWert + "%" + " = " + aktuellerEintrag.aufwandWert;
+      erklaerungsText.value = "Der Aufwand errechnet sich durch das Multiplizieren des Aufschlags mit der Zwischensumme.";
+      erklaerungsRechnung.value = `Das ergibt ${aktuellerEintrag.aufschlagWert}% * ${aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand} = ${aktuellerEintrag.aufwandWert}`
       break;
     }
   }
@@ -327,6 +327,12 @@ function colorCells(bezeichnung: string, column: string, rowIndex: number) {
 function colorAufschlagUndAufwand(bezeichnung: string, rowIndex: number, column: string) {
   switch (bezeichnung) {
     case Summe.STARTSUMME:
+      if(column==Columns.AUFWAND) {
+        columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == Columns.AUFWAND)!.cellStyle = (params: any) => {
+          if (params.rowIndex == 0) return { "background-color": "blue", color: "white" };
+        };
+      }
+      break;
     case Summe.ENDSUMME: {
       if (column == Columns.AUFWAND) {
         const alleEintraege: number[] = [0];
