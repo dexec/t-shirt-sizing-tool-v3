@@ -6,6 +6,7 @@ import { Statistik } from "@/Statistik";
 import type { Paket } from "@/Paket";
 import { ref } from "vue";
 import { useProjektStore } from "@/stores/projekt";
+import {fi} from "vuetify/locale";
 
 export const useStatistikenStore = defineStore("statistiken", () => {
   const buckets = useBucketsStore();
@@ -78,13 +79,14 @@ export const useStatistikenStore = defineStore("statistiken", () => {
   }
 
   function durchschnitt(bucket: Bucket): number | null {
-    if (anzahlGeschaetzt(bucket) == 0) return null;
+    const anzahlGeschaetztePakete = anzahlGeschaetzt(bucket);
+    if (anzahlGeschaetztePakete == 0) return null;
     const paketeBucket: Paket[] = [];
     pakete.paketeChildren().forEach(paket => {
       if (paket.bucket == bucket) paketeBucket.push(paket);
     });
     const sum = paketeBucket.filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0) as number;
-    return (sum / anzahlGeschaetzt(bucket));
+    return (sum / anzahlGeschaetztePakete);
   }
 
   function median(bucket: Bucket): number | null {
@@ -179,13 +181,15 @@ export const useStatistikenStore = defineStore("statistiken", () => {
   }
 
   function summeAlleBucketsDurchschnitt(): number | null {
-    if(summeAlleBucketsGeschaetzt()==null) return null;
-    const sum = pakete.paketeChildren().filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0) as number;
-    return (sum / summeAlleBucketsGeschaetzt());
+    const summeGeschaetzt = summeAlleBucketsGeschaetzt()
+    if(summeGeschaetzt==0) return null;
+    const summeDurschnitt = pakete.paketeChildren().filter(paket => paket.zurRechnungFreigegeben()).map(paket => paket.schaetzung).reduce((acc, schaetzung) => acc! + (schaetzung ?? 0), 0) as number;
+    return (summeDurschnitt / summeGeschaetzt);
   }
 
   function summeAlleBucketsMedian(): number | null {
     const filteredPaketeChildren = pakete.paketeChildren().filter(paket => paket.zurRechnungFreigegeben());
+    if(filteredPaketeChildren.length==0) return null;
     const mid = Math.floor(filteredPaketeChildren.length / 2),
       nums = [...filteredPaketeChildren.map(paket => paket.schaetzung)].sort((a, b) => a! - b!);
     return filteredPaketeChildren.length % 2 != 0 ? nums[mid]! : (nums[mid - 1]! + nums[mid]!) / 2;
@@ -193,6 +197,7 @@ export const useStatistikenStore = defineStore("statistiken", () => {
 
   function summeAlleBucketsSchaetzungenSumme(): number | null {
     let result = 0;
+    if(summeAlleBucketsGeschaetzt()==0) return null
     if (projekt.bucketmodus) {
       buckets.bucketsAsMap.forEach(bucket => result += summeSchaetzungen(bucket) ?? 0);
     } else {
@@ -200,27 +205,34 @@ export const useStatistikenStore = defineStore("statistiken", () => {
         if (paket.zurRechnungFreigegeben()) result += paket.schaetzung!;
       });
     }
-    return result == 0 ? null : result;
+    return result;
   }
 
   function summeAlleBucketsDurchschnittSumme(): number | null {
     let result = 0;
+    if(summeAlleBucketsGeschaetzt()==0) return null;
     if (projekt.bucketmodus) {
       buckets.bucketsAsMap.forEach(bucket => result += summeDurchschnitt(bucket) ?? 0);
     } else {
-      return (summeAlleBucketsDurchschnitt() ?? 0) * summeAlleBucketsGesamt();
+      const duchschnittSumme = summeAlleBucketsDurchschnitt();
+      if(duchschnittSumme!=null)
+      return duchschnittSumme * summeAlleBucketsGesamt();
+      else return null;
     }
-    return result == 0 ? null : result;
+    return result;
   }
 
   function summeAlleBucketsMedianSumme(): number | null {
     let result = 0;
+    if(summeAlleBucketsGeschaetzt()==0) return null;
     if (projekt.bucketmodus) {
       buckets.bucketsAsMap.forEach(bucket => result += summeMedian(bucket) ?? 0);
     } else {
-      return (summeAlleBucketsMedian() ?? 0) * summeAlleBucketsGesamt();
+      const medianSumme = summeAlleBucketsMedian();
+      if(medianSumme!=null) return  medianSumme* summeAlleBucketsGesamt();
+      else return null;
     }
-    return result == 0 ? null : result;
+    return result;
   }
 
   return {
