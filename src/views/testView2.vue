@@ -5,6 +5,7 @@
   <div class="result-table">
     <button class="download-btn" type="button" v-on:click="testfunction(paketeStore.paketeFullTreeView())">Test</button>
   </div>
+  <v-btn @click="testFilterPakete">Test Filter</v-btn>
 </template>
 
 <style scoped>
@@ -43,6 +44,29 @@ import type {AbstrakterEintrag} from "@/AbstrakterEintrag";
 import {useEintraegeStore} from "@/stores/eintraege";
 import {Eintrag} from "@/Eintrag";
 import {Zwischensumme} from "@/Zwischensumme";
+import { runden } from "@/enums/RundungsartET";
+const testNumbers = [
+  12.345,    // Soll auf 12.35 gerundet werden (kaufmännisch)
+  67.891,    // Soll auf 67.89 gerundet werden (kaufmännisch)
+  23.456,    // Soll auf 23.46 gerundet werden (kaufmännisch)
+  5.555,     // Soll auf 5.56 gerundet werden (kaufmännisch)
+  0.005,     // Soll auf 0.01 gerundet werden (kaufmännisch)
+  123.499,   // Soll auf 123.50 gerundet werden (kaufmännisch)
+  0.444,     // Soll auf 0.44 gerundet werden (kaufmännisch)
+  -12.345,   // Soll auf -12.35 gerundet werden (kaufmännisch)
+  -67.891,   // Soll auf -67.89 gerundet werden (kaufmännisch)
+  -23.456,   // Soll auf -23.46 gerundet werden (kaufmännisch)
+  -5.555,    // Soll auf -5.56 gerundet werden (kaufmännisch)
+  -0.005,    // Soll auf -0.01 gerundet werden (kaufmännisch)
+  -123.499,  // Soll auf -123.50 gerundet werden (kaufmännisch)
+  -0.444,     // Soll auf -0.44 gerundet werden (kaufmännisch)
+  1.545
+];
+
+testNumbers.forEach(num => {
+  const roundedNum = runden(num);
+  console.log(`Original: ${num}, Gerundet: ${roundedNum}`);
+});
 
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
@@ -51,7 +75,9 @@ const projektStore = useProjektStore();
 const eintraegeStore = useEintraegeStore();
 statistikenStore.berechne();
 eintraegeStore.berechne();
-
+function testFilterPakete() {
+  paketeStore.filteredPaketeAsTreeView("a");
+}
 function download() {
   const wb = XLSX.utils.book_new();
   const sheetKalkulation = createSheetForKalkulation(statistikenStore.statistiken as Statistik[], eintraegeStore.eintraege as AbstrakterEintrag[], projektStore.bucketmodus);
