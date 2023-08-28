@@ -30,7 +30,7 @@ for (let providedFunctionProp of props.providedFunctionsProp) {
     icon: providedFunctionProp.icon
   })
 }
-function showMenu(e) {
+function showMenu(e:any) {
   e.preventDefault();
   const contextMenu = document.querySelector(".wrapper") as HTMLElement
   let x = e.clientX
