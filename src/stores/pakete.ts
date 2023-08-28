@@ -29,6 +29,30 @@ export const usePaketeStore = defineStore("pakete", () => {
     return Array.from(paketeAsMap.value.values()).filter(paket => paket.children.length == 0 && !paket.bucket);
   }
 
+  function filteredPaketeAsTreeView(filterString: string):Paket[] {
+    const filteredPakete: Paket[]=[];
+    const paketeMitFilter = searchPaketeWithFilter(filterString);
+    console.log(searchPaketeWithFilter(filterString))
+    return filteredPakete;
+  }
+
+  function searchPaketeWithFilter(filterString: string):Paket[] {
+    const paketeWithFilter :Paket[]=[]
+    for(const paket of paketeFullTreeView()) {
+      if(applyFilterOnPaket(paket, filterString)) paketeWithFilter.push(paket);
+    }
+    return paketeWithFilter
+  }
+
+  function applyFilterOnPaket(paket: Paket, filterString: string):boolean {
+    const paketStringIndexed: { [index: string]: any } = paket
+    for (const key in paketStringIndexed) {
+      if (typeof paketStringIndexed[key] === "string" && paketStringIndexed[key].includes(filterString)) {
+       return true;
+      }
+    }
+    return false;
+  }
   function paketeOfBucket(bucket: Bucket) {
     const result: Paket[] = [];
     for (const paket of paketeAsMap.value.values()) {
@@ -111,20 +135,6 @@ export const usePaketeStore = defineStore("pakete", () => {
       paketeAsTreeView.value.splice(indexOfChangedPaket + 1, counter);
     }
     return counter;
-  }
-
-  function showPaket(paket: Paket) {
-    let parentOfPaket = paket.parent;
-    const parents: Paket[] = [];
-    while (parentOfPaket) {
-      if (!parentOfPaket.open) parents.unshift(parentOfPaket);
-      parentOfPaket = parentOfPaket.parent;
-    }
-    console.log(parents)
-    for (const paketOfParents of parents) {
-      paketOfParents.open = true;
-      updateTreeViewAfterChangedOpenState(paketOfParents);
-    }
   }
 
   function updateLvl(addLvl: number, paket: Paket) {
@@ -319,6 +329,7 @@ export const usePaketeStore = defineStore("pakete", () => {
       const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove);
       paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
     }
+    //TODO BUG wenn bei allen Paketen Schätzungen vorhanden sind
     if (newParent.children.length == 0) {
       if (newParent.schaetzung != null && paketToMove.schaetzung == null) paketToMove.schaetzung = newParent.schaetzung;
       else newParent.schaetzung = paketToMove.schaetzung;
@@ -340,7 +351,7 @@ export const usePaketeStore = defineStore("pakete", () => {
     }
   }
 
-  function moveRightUp(id: number) {
+    function moveRightUp(id: number) {
     const paketToMove = paketeAsMap.value.get(id) as Paket;
     if (paketToMove.parent && paketToMove.parent.children.indexOf(paketToMove) == 0) return;
     const indexOfPaketToMove = paketeAsTreeView.value.indexOf(paketToMove);
@@ -366,6 +377,7 @@ export const usePaketeStore = defineStore("pakete", () => {
     // Paket wird dem neuen Elternteil als Kind zugewiesen
     const newParent = paketeAsTreeView.value[indexOfNewParent] as Paket;
     //Schätzung vom neuen Parent anpassen
+      //TODO BUG wenn bei allen Paketen Schätzungen vorhanden sind
     if (newParent.children.length == 0) {
       if (newParent.schaetzung != null && paketToMove.schaetzung == null) paketToMove.schaetzung = newParent.schaetzung;
       else newParent.schaetzung = paketToMove.schaetzung;
@@ -488,11 +500,11 @@ export const usePaketeStore = defineStore("pakete", () => {
     paketeFullTreeView,
     paketeChildren,
     paketeChildrenWithNoBucket,
+    filteredPaketeAsTreeView,
     paketeOfBucket,
     parentsOfPaket,
     rootParentOfPaket,
     updateTreeViewAfterChangedOpenState,
-    showPaket,
     updateSchaetzung,
     updateBucket,
     deletePaket,
