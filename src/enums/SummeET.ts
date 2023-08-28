@@ -1,0 +1,5 @@
+export const enum SummeET  {
+  STARTSUMME= "STARTSUMME",
+  ZWISCHENSUMME= "ZWISCHENSUMME",
+  ENDSUMME= "ENDSUMME"
+};
