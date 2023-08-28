@@ -59,20 +59,21 @@ const defaultColDef = reactive({
 })
 const columnDefs = ref([
   {
+    field: 'ticket_nr',
+    headerName: 'Ticket-NR',
+    cellRenderer: TreeDataCellRenderer,
+    editable: false
+  },
+  {
     field: 'thema',
     headerName: 'Thema',
     width: 300,
-    cellRenderer: TreeDataCellRenderer,
+
     editable: false
   },
   {
     field: 'lvl',
     headerName: 'LVL',
-    editable: false
-  },
-  {
-    field: 'ticket_nr',
-    headerName: 'Ticket-NR',
     editable: false
   },
   {
@@ -140,12 +141,12 @@ watch(() => variablenAustauschStore.searchPaketString, (newValue) => {
   gridApi.value!.setQuickFilter(newValue);
   for (let paket of paketeStore.paketeAsMap.values()) {
     const paketStringIndexed: { [index: string]: any } = paket
-    for (const key in paketStringIndexed) {
+    /*for (const key in paketStringIndexed) {
       if (typeof paketStringIndexed[key] === "string" && gridApi.value!.getQuickFilter() != "" && paketStringIndexed[key].includes(gridApi.value!.getQuickFilter())) {
         if(!paketeStore.paketeAsTreeView.includes(paket))
         paketeStore.showPaket(paket as Paket)
       }
-    }
+    }*/
   }
   refreshTable();
 });
