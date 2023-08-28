@@ -1,11 +1,13 @@
 <template>
-  <div class="d-flex flex-column" style="width: 50%">
+  <div class="d-flex flex-column justify-center">
     <v-btn @click="downloadProject">Projekt speichern</v-btn>
     <v-btn v-if="projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketmodus
     </v-btn>
     <v-btn v-else-if="!projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketloser
       Modus
     </v-btn>
+    <v-select v-model="projektStore.rundungsart" label="Rundungsart" :items="Object.values(RundungsartET)"></v-select>
+    <v-text-field v-model="projektStore.nachkommastellen" label="Nachkommastellen"></v-text-field>
     <h1>Projektinformationen</h1>
     <h3>Projektname</h3>
     <v-text-field v-model="projektStore.projektname" outlined solo></v-text-field>
@@ -20,7 +22,7 @@
               <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketBefore()">
                 <v-icon icon="mdi-plus"></v-icon>
               </v-btn>
-              <v-btn :disabled="( index==0 )" :style="showArrowLeft(bucket as Bucket, index)" class="button"
+              <v-btn :disabled="( index==0 )" :style="showArrowLeft(bucket as Bucket, index as number)" class="button"
                      @click="swapWithBucketBefore()">
                 <v-icon icon="mdi-arrow-left"></v-icon>
               </v-btn>
@@ -77,7 +79,7 @@ import {useProjektStore} from "@/stores/projekt";
 import {ref} from "vue";
 import type {Bucket} from "@/Bucket";
 import {ExportProject} from "@/components/ExportProject";
-
+import { RundungsartET } from "@/enums/RundungsartET";
 const newBucketName = ref('')
 const currentSelectedBucket = ref(-1)
 const currentEditBucket = ref(-1)
