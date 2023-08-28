@@ -6,7 +6,6 @@ import { Statistik } from "@/Statistik";
 import type { Paket } from "@/Paket";
 import { ref } from "vue";
 import { useProjektStore } from "@/stores/projekt";
-import {fi} from "vuetify/locale";
 
 export const useStatistikenStore = defineStore("statistiken", () => {
   const buckets = useBucketsStore();
