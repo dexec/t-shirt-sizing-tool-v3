@@ -726,8 +726,14 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
   //Array für die Endsumme
   const arrayEintraegeCells = [];
   for (let i = 1; i < arraySerializableEintraege.length; i++) {
-    //Aufschläge als Prozent
+    //Aufschläge in Prozent
     sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 1})].z = "0.00%";
+    //Aufwände als Zahl
+    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 2})].z = "0.00";
+    //Anteil an Zwischensumme in Prozent
+    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 3})].z = "0.00%";
+    //Anteil am Gesamtprojekt in Prozent
+    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 4})].z = "0.00%";
     if (["STARTSUMME", "ZWISCHENSUMME", "ENDSUMME"].includes(sheet[XLSX.utils.encode_cell({
       r: startzeilennummer + i,
       c: 0
@@ -765,6 +771,7 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
         r: startzeilennummer + i,
         c: 2
       }))
+      //TODO Anteil an Zwischensumme und Anteil am Gesamtprojekt haben keine Formeln!!
     }
   }
   //Styling für die Endsumme
@@ -784,6 +791,7 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
     endsummeCellsAsString+="+"+arrayEintraegeCells[i];
   }
   sheet[XLSX.utils.encode_cell({r:startzeilennummer+arraySerializableEintraege.length,c:2})].f= `${endsummeCellsAsString}`
+  sheet[XLSX.utils.encode_cell({r:startzeilennummer+arraySerializableEintraege.length,c:2})].z= "0.00"
 }
 
 function testfunction(pakete: Paket[]) {
