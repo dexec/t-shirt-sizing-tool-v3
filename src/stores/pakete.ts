@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { Paket } from "@/Paket";
 import { ref } from "vue";
 import type { Bucket } from "@/Bucket";
+import {useProjektStore} from "@/stores/projekt";
 
 export const usePaketeStore = defineStore("pakete", () => {
   const paketeAsTreeView = ref<Array<Paket>>([]);
@@ -92,7 +93,10 @@ export const usePaketeStore = defineStore("pakete", () => {
     let parentOfPaket = paket.parent;
     while (parentOfPaket) {
       if (parentOfPaket.children.filter(paketOfChildren => paketOfChildren.schaetzung!=null).length==0) parentOfPaket.schaetzung = null;
-      else parentOfPaket.schaetzung = (parentOfPaket.schaetzung ?? 0) + diff;
+      else {
+        parentOfPaket.schaetzung = (parentOfPaket.schaetzung ?? 0) + diff;
+        parentOfPaket.schaetzung = parseFloat(parentOfPaket.schaetzung.toFixed(useProjektStore().nachkommastellen))
+      }
       parentOfPaket = parentOfPaket.parent;
     }
   }
@@ -421,7 +425,10 @@ export const usePaketeStore = defineStore("pakete", () => {
       parentOfPaketToMove.children.splice(indexOfPaketToMoveAsChild, 1);
       if (parentOfPaketToMove.children.length == 0) {
         parentOfPaketToMove.schaetzung = null;
-      } else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
+      } else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) {
+        parentOfPaketToMove.schaetzung -= paketToMove.schaetzung
+        parentOfPaketToMove.schaetzung = parseFloat(parentOfPaketToMove.schaetzung.toFixed(useProjektStore().nachkommastellen))
+      }
       if (paketToMove.lvl >= 2 && parentOfPaketToMove.parent) {
         const indexOfParentAsChild = parentOfPaketToMove.parent.children.indexOf(parentOfPaketToMove);
         parentOfPaketToMove.parent.children.splice(indexOfParentAsChild, 0, paketToMove);
@@ -460,7 +467,10 @@ export const usePaketeStore = defineStore("pakete", () => {
       parentOfPaketToMove.children.splice(indexOfPaketToMoveAsChild, 1);
       if (parentOfPaketToMove.children.length == 0) {
         parentOfPaketToMove.schaetzung = null;
-      } else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
+      } else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) {
+        parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
+        parentOfPaketToMove.schaetzung = parseFloat(parentOfPaketToMove.schaetzung.toFixed(useProjektStore().nachkommastellen))
+      }
       if (paketToMove.lvl >= 2 && parentOfPaketToMove.parent) {
         const indexOfParentAsChild = parentOfPaketToMove.parent.children.indexOf(parentOfPaketToMove);
         parentOfPaketToMove.parent.children.splice(indexOfParentAsChild + 1, 0, paketToMove);
