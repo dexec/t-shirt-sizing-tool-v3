@@ -37,7 +37,7 @@ import {Column, ColumnApi, GridApi} from "ag-grid-community";
 import type {Bucket} from "@/Bucket";
 import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
 import type {Paket} from "@/Paket";
-
+const projectStore = useProjektStore();
 const gridApi = ref<GridApi>();
 let getRowId = (params: any): number => params.data._id;
 const paketeStore = usePaketeStore();
@@ -108,7 +108,7 @@ const columnDefs = ref([
       if (params.data.children.length > 0) return {backgroundColor: 'lightgrey'}
       else return {backgroundColor: 'transparent'}
     },
-    hide: !useProjektStore().bucketmodus,
+    hide: !projectStore.bucketmodus,
     editable: false
   },
   {
@@ -117,7 +117,7 @@ const columnDefs = ref([
     valueSetter:(params:any) => {
       if(isNaN(params.newValue)) params.data.schaetzung = params.oldValue;
       else {
-        params.data.schaetzung = Number(params.newValue)
+        params.data.schaetzung = parseFloat(Number(params.newValue).toFixed(projectStore.nachkommastellen))
         paketeStore.updateSchaetzung(params.data,params.oldValue)
         gridApi.value!.refreshCells({force: true});
       }
