@@ -23,7 +23,8 @@ function createNewProject() {
       '  "projekt": {\n' +
       '    "projektname": "",\n' +
       '    "projektbeschreibung": "",\n' +
-      '    "bucketmodus": true\n' +
+      '    "bucketmodus": true,\n' +
+      '    "nachkommastellen": 2\n' +
       '  },\n' +
       '  "eintraege": [],\n' +
       '  "buckets": [],\n' +

@@ -20,7 +20,7 @@ export class ExportProject {
     }[] = []
     private _paketeTree: { key: number, children: number[] }[] = []
     private _eintraege: { bezeichnung: string, aufschlagWert?: number, aufwandWert?: number }[] = []
-    private _projekt: { projektname: string, projektbeschreibung: string, bucketmodus: boolean }
+    private _projekt: { projektname: string, projektbeschreibung: string, bucketmodus: boolean, nachkommastellen: number }
 
 
 
@@ -62,7 +62,8 @@ export class ExportProject {
         this._projekt = {
             projektname: "",
             projektbeschreibung: "",
-            bucketmodus: false
+            bucketmodus: false,
+            nachkommastellen: 2
         }
         this.saveBuckets();
         this.saveEintraege();
@@ -123,7 +124,8 @@ export class ExportProject {
         this._projekt = {
             projektname: projektStore.projektname,
             projektbeschreibung: projektStore.projektbeschreibung,
-            bucketmodus: projektStore.bucketmodus
+            bucketmodus: projektStore.bucketmodus,
+            nachkommastellen: projektStore.nachkommastellen
         }
     }
 }

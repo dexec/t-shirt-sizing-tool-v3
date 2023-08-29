@@ -13,14 +13,14 @@ export class ImportProject {
     private readonly _buckets: Bucket[] = []
     private readonly _pakete: Paket[] = []
     private readonly _eintraege: AbstrakterEintrag[] = []
-    private _projekt: Projekt = new Projekt("", "", false)
+    private _projekt: Projekt = new Projekt("", "", false,2)
 
     constructor(fileContents: string) {
         const jsonfile = JSON.parse(fileContents);
+        this.fileToProjectData(jsonfile.projekt)
         this.fileToBucketArray(jsonfile.buckets);
         this.fileToPaketeArray(jsonfile.pakete, jsonfile.paketeTree);
         this.fileToEintrageArray(jsonfile.eintraege);
-        this.fileToProjectData(jsonfile.projekt)
         this.writeProjectStore();
         this.writeEintraegeStore();
         this.writeBucketStoreBucketArray();
@@ -77,6 +77,7 @@ export class ImportProject {
                         schaetzung = (schaetzung ?? 0) + paket.schaetzung;
                     }
                 }
+                if(schaetzung) schaetzung = parseFloat(schaetzung.toFixed(this._projekt.nachkommastellen))
                 paketFromPakete.schaetzung = schaetzung;
             }
             /*if (paketFromPakete.children.length > 0) {
@@ -110,7 +111,7 @@ export class ImportProject {
     }
 
     private fileToProjectData(projectData: any): void {
-        this._projekt = new Projekt(projectData.projektname, projectData.projektbeschreibung, projectData.bucketmodus)
+        this._projekt = new Projekt(projectData.projektname, projectData.projektbeschreibung, projectData.bucketmodus, projectData.nachkommastellen);
     }
 
     private writeProjectStore() {
@@ -118,6 +119,7 @@ export class ImportProject {
         projectStore.projektbeschreibung = this._projekt.projektbeschreibung;
         projectStore.projektname = this._projekt.projektname;
         projectStore.bucketmodus = this._projekt.bucketmodus;
+        projectStore.nachkommastellen = this._projekt.nachkommastellen;
     }
 
     private writeEintraegeStore() {
