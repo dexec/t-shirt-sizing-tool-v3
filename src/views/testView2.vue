@@ -63,11 +63,6 @@ const testNumbers = [
   1.545
 ];
 
-testNumbers.forEach(num => {
-  const roundedNum = runden(num);
-  console.log(`Original: ${num}, Gerundet: ${roundedNum}`);
-});
-
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
 const statistikenStore = useStatistikenStore();
@@ -189,7 +184,6 @@ function createSheetForPaketeBucketlosermodus(pakete: Paket[]) {
     }
     arraySerializablePaket.push(serializablePaket);
   }
-  console.log(arraySerializablePaket);
   const sheetPakete = XLSX.utils.json_to_sheet([], {
     skipHeader: true,
     cellStyles: true
@@ -398,13 +392,13 @@ function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statist
   //Für jedes Bucket
   for (let i = 0; i < arraySerializableStatistik.length - 1; i++) {
     //Anteil Anzahl in Prozent
-    sheet[XLSX.utils.encode_cell({r: i + 2, c: 6})].z = "0.00%";
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 6})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     //Summe Schätzungen in Prozent
-    sheet[XLSX.utils.encode_cell({r: i + 2, c: 10})].z = "0.00%";
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 10})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     //Durchschnittliche Summe in Prozent
-    sheet[XLSX.utils.encode_cell({r: i + 2, c: 12})].z = "0.00%";
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 12})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     //Mediane Summe in Prozent
-    sheet[XLSX.utils.encode_cell({r: i + 2, c: 14})].z = "0.00%";
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 14})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     const sheetName = "Bucket " + arraySerializableStatistik[i].bucket;
     //Anzahl geschätzt
     sheet[XLSX.utils.encode_cell({
@@ -721,19 +715,21 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
   if(projektStore.bucketmodus) startsummenzelle = XLSX.utils.encode_cell({r:startzeilennummer-3,c:11})
   else startsummenzelle = XLSX.utils.encode_cell({r:startzeilennummer-3,c:8})
   sheet[XLSX.utils.encode_cell({r:startzeilennummer+1,c:2})].f=startsummenzelle
+  //Endsummenzelle
+  const endsummenzelle = XLSX.utils.encode_cell({r:startzeilennummer+arraySerializableEintraege.length,c:2})
   //Zwischenzeile als Bezug für die Prozentangaben
   let aktuellezwischensummezelle = XLSX.utils.encode_cell({r: startzeilennummer + 1, c: 2});
   //Array für die Endsumme
   const arrayEintraegeCells = [];
   for (let i = 1; i < arraySerializableEintraege.length; i++) {
     //Aufschläge in Prozent
-    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 1})].z = "0.00%";
+    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 1})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     //Aufwände als Zahl
-    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 2})].z = "0.00";
+    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 2})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
     //Anteil an Zwischensumme in Prozent
-    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 3})].z = "0.00%";
+    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 3})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     //Anteil am Gesamtprojekt in Prozent
-    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 4})].z = "0.00%";
+    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 4})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     if (["STARTSUMME", "ZWISCHENSUMME", "ENDSUMME"].includes(sheet[XLSX.utils.encode_cell({
       r: startzeilennummer + i,
       c: 0
@@ -758,6 +754,12 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
           r: startzeilennummer + i,
           c: 2
         })].f=`SUM(${aktuellezwischensummezelle}:C${startzeilennummer+i})`
+        //Anteil an Zwischensumme für die Zwischensumme setzen
+        const aktuellezwischensummeReihe = XLSX.utils.decode_cell(aktuellezwischensummezelle).r;
+        sheet[XLSX.utils.encode_cell({
+          r: startzeilennummer + i,
+          c: 3
+        })].f=`SUM(D${aktuellezwischensummeReihe+2}:D${startzeilennummer+i})`
         //Referenz zur neuen Zwischensumme gesetzt
         aktuellezwischensummezelle = XLSX.utils.encode_cell({r: startzeilennummer + i, c: 2})
       }
@@ -771,7 +773,19 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
         r: startzeilennummer + i,
         c: 2
       }))
-      //TODO Anteil an Zwischensumme und Anteil am Gesamtprojekt haben keine Formeln!!
+    }
+  }
+  aktuellezwischensummezelle = endsummenzelle
+  for(let i = arraySerializableEintraege.length-1;i>=2;i--) {
+    sheet[XLSX.utils.encode_cell({r:startzeilennummer+i,c:4})].f=`C${startzeilennummer+i+1}/${endsummenzelle}`
+    if (["STARTSUMME", "ZWISCHENSUMME"].includes(sheet[XLSX.utils.encode_cell({
+      r: startzeilennummer + i,
+      c: 0
+    })].v)) {
+      aktuellezwischensummezelle = XLSX.utils.encode_cell({r:startzeilennummer+i,c:2})
+    }
+    else {
+      sheet[XLSX.utils.encode_cell({r:startzeilennummer+i,c:3})].f=`C${startzeilennummer+i+1}/${aktuellezwischensummezelle}`
     }
   }
   //Styling für die Endsumme
@@ -786,12 +800,12 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
     }
   };
   //Endsummenformel wird zusammengerechnet aus den Zellen der Einträge ohne der Zwischensummen
-  let endsummeCellsAsString = XLSX.utils.encode_cell({r:startzeilennummer+1,c:2})
+  let startsummeCellsAsString = XLSX.utils.encode_cell({r:startzeilennummer+1,c:2})
   for(let i = 0; i<arrayEintraegeCells.length;i++) {
-    endsummeCellsAsString+="+"+arrayEintraegeCells[i];
+    startsummeCellsAsString+="+"+arrayEintraegeCells[i];
   }
-  sheet[XLSX.utils.encode_cell({r:startzeilennummer+arraySerializableEintraege.length,c:2})].f= `${endsummeCellsAsString}`
-  sheet[XLSX.utils.encode_cell({r:startzeilennummer+arraySerializableEintraege.length,c:2})].z= "0.00"
+  sheet[endsummenzelle].f= `${startsummeCellsAsString}`
+  sheet[endsummenzelle].z= `0.${'0'.repeat(projektStore.nachkommastellen)}`;
 }
 
 function testfunction(pakete: Paket[]) {
