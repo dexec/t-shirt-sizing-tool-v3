@@ -44,8 +44,6 @@
         <td>{{ medianSummeBucketmodusPT(statistik as Statistik) }}</td>
         <td>{{ medianSummeBucketmodusProzent(statistik as Statistik) }}</td>
       </tr>
-      <!--        TODO Keine Summenreihe, wenn bucketmodus aber keine Buckets definiert sind.
-              Dann lieber Nachricht, dass man Buckets definieren sollte-->
       <tr class="font-weight-bold">
         <td>Summe</td>
         <td>{{ parseFloat(statistiken.summeAlleBucketsGeschaetzt().toFixed(projektStore.nachkommastellen)) }}</td>
@@ -171,7 +169,6 @@ function durchschnittSummeBucketmodusProzent(statistik: Statistik) {
       return parseFloat((statistik.summeDurchschnitt! / summeDurchschnittSumme * 100).toFixed(projektStore.nachkommastellen)) + "%";
     }
   }
-
 }
 
 function medianSummeBucketmodusPT(statistik: Statistik) {
@@ -183,7 +180,6 @@ function medianSummeBucketmodusPT(statistik: Statistik) {
 
 function medianSummeBucketmodusProzent(statistik: Statistik) {
   const summeMedianSumme = statistiken.summeAlleBucketsMedianSumme();
-  console.log(summeMedianSumme)
   if (summeMedianSumme == null || statistik.anzahlGeschaetzt == 0) {
     return ""
   } else {
