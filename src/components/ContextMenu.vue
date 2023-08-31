@@ -38,7 +38,6 @@ function showMenu(e:any) {
   contextMenu.style.left = `${x}px`;
   contextMenu.style.top = `${y}px`;
   contextMenu.style.display = "block";
-  //TODO Beim Klick soll der Fokus zurück auf Tabelle gehen
   document.addEventListener("click", () => contextMenu.style.display = "none");
 }
   defineExpose({showMenu})
