@@ -8,8 +8,8 @@
       class="ag-theme-alpine"
       rowSelection="single"
       style="width: 65%;height: 100%"
-      @cellValueChanged="onCellValueChanged"
       @contextmenu="rightClickOnCell"
+      @cell-value-changed="onCellValueChanged"
       @cell-clicked="onCellClicked"
       @cell-key-down="onCellKeyPress"
       @cell-double-clicked="onCellDoubleClicked"
@@ -55,11 +55,13 @@ const providedFunctions = ref([
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 
 function rightClickOnCell(e: any) {
-  contextMenuRef.value!.showMenu(e);
-  if (gridApi.value!.getFocusedCell()!) {
-    const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
+  const focusedCell = gridApi.value!.getFocusedCell();
+  if (focusedCell != null) {
+    const focusedRowIndex = focusedCell.rowIndex;
     gridApi.value!.getDisplayedRowAtIndex(focusedRowIndex)!.setSelected(true);
+    colorCellsAndExplain(focusedCell.column.getColId(), focusedRowIndex);
   }
+  contextMenuRef.value!.showMenu(e);
 }
 
 const gridApi = ref<GridApi>();
@@ -84,6 +86,11 @@ const columnDefs = ref([
     headerName: "Aufschlag",
     cellRenderer: AufschlagCellRenderer,
     cellStyle: {},
+    valueSetter: (params: any) => {
+      if (!isNaN(params.newValue)) eintraegeStore.updateAufschlag(params.node.rowIndex, +params.newValue);
+      else params.data.aufschlagWert = params.oldValue;
+      gridApi.value!.refreshCells({ force: true });
+    },
     editable: false
   },
   {
@@ -91,6 +98,11 @@ const columnDefs = ref([
     headerName: "Aufwand",
     cellRenderer: AufwandCellRenderer,
     cellStyle: {},
+    valueSetter: (params: any) => {
+      if (!isNaN(params.newValue)) eintraegeStore.updateAufwand(params.node.rowIndex, +params.newValue);
+      else params.data.aufwandWert = params.oldValue;
+      gridApi.value!.refreshCells({ force: true });
+    },
     editable: false
   },
   {
@@ -118,6 +130,7 @@ const defaultColDef = reactive(
 const eintraegeStore = useEintraegeStore();
 eintraegeStore.berechne();
 const rowData = eintraegeStore.eintraege;
+
 function onCellDoubleClicked(e: any) {
   Object.values(SummeET);
   if (gridApi.value!.getEditingCells().length === 0 && ([ColumnET.BEZEICHNUNG, ColumnET.AUFSCHLAG, ColumnET.AUFWAND].includes(e.colDef.field) && !Object.values(SummeET).includes(e.data.bezeichnung))) {
@@ -131,7 +144,7 @@ const erklaerungsRechnung = ref("");
 const erklaerungsRechnungZusatz = ref("");
 
 function onCellClicked(e: any) {
-  colorCellsAndExplain(e.data.bezeichnung, e.column.colId, e.rowIndex);
+  nextTick(() => colorCellsAndExplain(e.column.colId, e.rowIndex));
 }
 
 function clearColorsAndErklaerungen() {
@@ -145,14 +158,15 @@ function clearColorsAndErklaerungen() {
   erklaerungsRechnungZusatz.value = "";
 }
 
-function colorCellsAndExplain(bezeichnung: string, column: string, rowIndex: number) {
+function colorCellsAndExplain(column: string, rowIndex: number) {
   clearColorsAndErklaerungen();
-  colorCells(bezeichnung, column, rowIndex);
-  erklaerungenErstellen(bezeichnung, column, rowIndex);
+  colorCells(column, rowIndex);
+  erklaerungenErstellen(column, rowIndex);
   refreshTable(column, rowIndex);
 }
 
-function erklaerungenErstellen(bezeichnung: string, column: string, rowIndex: number) {
+function erklaerungenErstellen(column: string, rowIndex: number) {
+  const bezeichnung = gridApi.value!.getRowNode(rowIndex + "")?.data.bezeichnung;
   switch (column) {
     case ColumnET.AUFSCHLAG: {
       erklaereAufschlag(bezeichnung, rowIndex);
@@ -242,7 +256,7 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
     default : {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
       erklaerungsText.value = "Der Aufwand errechnet sich durch das Multiplizieren des Aufschlags mit der Zwischensumme.";
-      erklaerungsRechnung.value = `Das ergibt ${aktuellerEintrag.aufschlagWert}% * ${aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand} = ${aktuellerEintrag.aufwandWert}`
+      erklaerungsRechnung.value = `Das ergibt ${aktuellerEintrag.aufschlagWert}% * ${aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand} = ${aktuellerEintrag.aufwandWert}`;
       break;
     }
   }
@@ -296,28 +310,29 @@ function erklaereGesamtprojekt(bezeichnung: string, rowIndex: number) {
   }
 }
 
-function colorCells(bezeichnung: string, column: string, rowIndex: number) {
+function colorCells(column: string, rowIndex: number) {
   switch (column) {
     case ColumnET.AUFSCHLAG:
     case ColumnET.AUFWAND : {
-      colorAufschlagUndAufwand(bezeichnung, rowIndex, column);
+      colorAufschlagUndAufwand(rowIndex, column);
       break;
     }
     case ColumnET.ZWISCHENSUMME: {
-      colorZwischensumme(bezeichnung, rowIndex);
+      colorZwischensumme(rowIndex);
       break;
     }
     case ColumnET.GESAMTPROJEKT: {
-      colorGesamtprojekt(bezeichnung, rowIndex);
+      colorGesamtprojekt(rowIndex);
       break;
     }
   }
 }
 
-function colorAufschlagUndAufwand(bezeichnung: string, rowIndex: number, column: string) {
+function colorAufschlagUndAufwand(rowIndex: number, column: string) {
+  const bezeichnung = gridApi.value!.getRowNode(rowIndex + "")?.data.bezeichnung;
   switch (bezeichnung) {
     case SummeET.STARTSUMME:
-      if(column==ColumnET.AUFWAND) {
+      if (column == ColumnET.AUFWAND) {
         columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
           if (params.rowIndex == 0) return { "background-color": "blue", color: "white" };
         };
@@ -387,7 +402,8 @@ function colorAufschlagUndAufwand(bezeichnung: string, rowIndex: number, column:
   }
 }
 
-function colorZwischensumme(bezeichnung: string, rowIndex: number) {
+function colorZwischensumme(rowIndex: number) {
+  const bezeichnung = gridApi.value!.getRowNode(rowIndex + "")?.data.bezeichnung;
   switch (bezeichnung) {
     case SummeET.STARTSUMME:
     case SummeET.ENDSUMME: {
@@ -428,7 +444,8 @@ function colorZwischensumme(bezeichnung: string, rowIndex: number) {
   }
 }
 
-function colorGesamtprojekt(bezeichnung: string, rowIndex: number) {
+function colorGesamtprojekt(rowIndex: number) {
+  const bezeichnung = gridApi.value!.getRowNode(rowIndex + "")?.data.bezeichnung;
   switch (bezeichnung) {
     case SummeET.STARTSUMME:
     case SummeET.ENDSUMME: {
@@ -449,22 +466,12 @@ function colorGesamtprojekt(bezeichnung: string, rowIndex: number) {
   }
 }
 
-
 function onCellValueChanged(e: any) {
-  switch (e.colDef.field) {
-    case ColumnET.BEZEICHNUNG:
-      eintraegeStore.updateBezeichnung(e.rowIndex, e.newValue);
-      break;
-    case ColumnET.AUFSCHLAG:
-      if (!isNaN(e.newValue)) eintraegeStore.updateAufschlag(e.rowIndex, +e.newValue);
-      else e.data.aufschlagWert = e.oldValue;
-      break;
-    case ColumnET.AUFWAND:
-      if (!isNaN(e.newValue)) eintraegeStore.updateAufwand(e.rowIndex, +e.newValue);
-      else e.data.aufwandWert = e.oldValue;
-      break;
-  }
-  refreshTable(e.column.colId, e.rowIndex);
+  gridApi.value!.forEachNode(function(node) {
+    if (node.data.bezeichnung === SummeET.ZWISCHENSUMME) node.setRowHeight(80);
+  });
+  gridApi.value!.onRowHeightChanged();
+  nextTick(() => colorCellsAndExplain(e.column.getColId(),e.rowIndex))
 }
 
 function onCellKeyPress(e: any) {
@@ -486,7 +493,7 @@ function onCellKeyPress(e: any) {
             if (selectedPaket) {
               selectedPaket.setSelected(true);
             }
-            colorCellsAndExplain(selectedPaket!.data.bezeichnung, colKey, focusedCell.rowIndex);
+            colorCellsAndExplain(colKey, focusedCell.rowIndex);
           }
           break;
         }
@@ -501,7 +508,7 @@ function onCellKeyPress(e: any) {
             if (selectedPaket) {
               selectedPaket.setSelected(true);
             }
-            colorCellsAndExplain(selectedPaket!.data.bezeichnung, colKey, focusedCell.rowIndex);
+            colorCellsAndExplain(colKey, focusedCell.rowIndex);
           }
           break;
         }
@@ -512,7 +519,7 @@ function onCellKeyPress(e: any) {
           if (selectedPaket) {
             selectedPaket.setSelected(true);
           }
-          colorCellsAndExplain(selectedPaket!.data.bezeichnung, focusedCell.column.getId(), focusedCell.rowIndex);
+          colorCellsAndExplain(focusedCell.column.getId(), focusedCell.rowIndex);
           break;
         }
         case "_":
@@ -524,7 +531,7 @@ function onCellKeyPress(e: any) {
           if (shift || ctrl) {
             eintragEntfernen();
           } else {
-            if (![ColumnET.ZWISCHENSUMME, ColumnET.GESAMTPROJEKT].includes(colKey) && e.data.bezeichnung != SummeET.ZWISCHENSUMME) {
+            if (![ColumnET.ZWISCHENSUMME, ColumnET.GESAMTPROJEKT].includes(colKey) && ![SummeET.ZWISCHENSUMME, SummeET.STARTSUMME, SummeET.ENDSUMME].includes(e.data.bezeichnung)) {
               if (colKey == ColumnET.AUFWAND) {
                 eintraegeStore.updateAufwand(e.rowIndex, 0);
               } else if (colKey == ColumnET.AUFSCHLAG) {
@@ -564,12 +571,14 @@ function onCellKeyPress(e: any) {
     } else {
       switch (key) {
         case "Enter": {
-          colorCellsAndExplain(e.data.bezeichnung, colKey, e.rowIndex);
+          colorCellsAndExplain(colKey, e.rowIndex);
           stopEiditingAndSetFocus(false, e.rowIndex, colKey);
+          nextTick(() => colorCellsAndExplain(colKey,e.rowIndex))
           break;
         }
         case "Escape": {
           stopEiditingAndSetFocus(true, e.rowIndex, colKey);
+          nextTick(() => colorCellsAndExplain(colKey,e.rowIndex))
           break;
         }
       }
@@ -598,35 +607,43 @@ function eintragErstellen() {
   if (gridApi.value!.getSelectedRows()[0] && gridApi.value!.getSelectedRows()[0].bezeichnung !== SummeET.ENDSUMME) {
     const rowIndexSelectedRow = rowData.indexOf(gridApi.value!.getSelectedRows()[0]);
     eintraegeStore.addNewAufschlag(rowIndexSelectedRow);
-    refreshTable(columnApi.value!.getColumns()![0].getColId(), rowIndexSelectedRow + 1);
+    const focusedCell = gridApi.value!.getFocusedCell();
+    let colKey = "";
+    if (focusedCell != null) {
+      colKey = focusedCell.column.getColId();
+    } else colKey = columnApi.value!.getColumns()![0].getColId();
+    refreshTable(colKey, rowIndexSelectedRow + 1);
+    nextTick(() => colorCellsAndExplain(colKey, rowIndexSelectedRow + 1));
   }
 }
 
 function zwischensummeErstellen() {
-  if (gridApi.value!.getSelectedRows()[0]) {
-    const focusedCell = gridApi.value!.getFocusedCell();
+  const focusedCell = gridApi.value!.getFocusedCell();
+  if (gridApi.value!.getSelectedRows()[0] != null && focusedCell != null) {
     const bezeichnungSelectedRow = gridApi.value!.getSelectedRows()[0].bezeichnung;
-    const bezeichnungSelectedRowUnder = rowData[focusedCell!.rowIndex + 1].bezeichnung;
-    if (!Object.values(SummeET).includes(bezeichnungSelectedRow) && ![SummeET.ZWISCHENSUMME as string ,SummeET.STARTSUMME as string].includes(bezeichnungSelectedRowUnder)) {
-      eintraegeStore.addNewZwischensumme(focusedCell!.rowIndex);
-      refreshTable(focusedCell!.column, focusedCell!.rowIndex + 1);
+    const bezeichnungSelectedRowUnder = rowData[focusedCell.rowIndex + 1].bezeichnung;
+    if (!Object.values(SummeET).includes(bezeichnungSelectedRow) && ![SummeET.ZWISCHENSUMME as string, SummeET.STARTSUMME as string].includes(bezeichnungSelectedRowUnder)) {
+      eintraegeStore.addNewZwischensumme(focusedCell.rowIndex);
+      refreshTable(focusedCell.column, focusedCell.rowIndex + 1);
+      nextTick(() => colorCellsAndExplain(focusedCell.column.getColId(), focusedCell.rowIndex + 1));
     }
   }
 }
 
 function eintragEntfernen() {
-  if (gridApi.value!.getSelectedRows()[0]) {
-    const focusedCell = gridApi.value!.getFocusedCell();
-    const focusedRowIndex = focusedCell!.rowIndex;
-    const focusedRowColKey = focusedCell!.column;
+  const focusedCell = gridApi.value!.getFocusedCell();
+  if (gridApi.value!.getSelectedRows()[0] != null && focusedCell != null) {
+    const focusedRowIndex = focusedCell.rowIndex;
+    const focusedRowColKey = focusedCell.column;
     const bezeichnungSelectedRow = gridApi.value!.getSelectedRows()[0].bezeichnung;
     if (![SummeET.STARTSUMME, SummeET.ENDSUMME].includes(bezeichnungSelectedRow)) {
       eintraegeStore.deleteEintrag(focusedRowIndex);
-      if (rowData[focusedRowIndex]) refreshTable(focusedRowColKey, focusedRowIndex);
-      else if (rowData.length !== 0) {
-        refreshTable(focusedRowColKey, rowData.length - 1);
+      if (gridApi.value!.getRowNode(focusedRowIndex + 1 + "")?.data.bezeichnung == SummeET.ENDSUMME) {
+        refreshTable(focusedRowColKey, focusedRowIndex - 1);
+        nextTick(() => colorCellsAndExplain(focusedRowColKey.getColId(), focusedRowIndex - 1));
       } else {
-        refreshTable(focusedRowColKey);
+        refreshTable(focusedRowColKey, focusedRowIndex);
+        nextTick(() => colorCellsAndExplain(focusedRowColKey.getColId(), focusedRowIndex));
       }
     }
   }
@@ -641,6 +658,7 @@ function moveZeileUp() {
       const focusedRowColKey = focusedCell!.column;
       eintraegeStore.moveUp(gridApi.value!.getFocusedCell()!.rowIndex);
       refreshTable(focusedRowColKey, focusedRowIndex - 1);
+      nextTick(() => colorCellsAndExplain(focusedRowColKey.getColId(), focusedRowIndex - 1));
     }
   }
 }
@@ -655,6 +673,7 @@ function moveZeileDown() {
       const focusedRowColKey = focusedCell!.column;
       eintraegeStore.moveDown(focusedRowIndex);
       refreshTable(focusedRowColKey, focusedRowIndex + 1);
+      nextTick(() => colorCellsAndExplain(focusedRowColKey.getColId(), focusedRowIndex + 1));
     }
   }
 }
