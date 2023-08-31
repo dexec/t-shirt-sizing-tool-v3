@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { Paket } from "@/Paket";
 import { ref } from "vue";
 import type { Bucket } from "@/Bucket";
-import {useProjektStore} from "@/stores/projekt";
+import { useProjektStore } from "@/stores/projekt";
 
 export const usePaketeStore = defineStore("pakete", () => {
   const paketeAsTreeView = ref<Array<Paket>>([]);
@@ -30,30 +30,31 @@ export const usePaketeStore = defineStore("pakete", () => {
     return Array.from(paketeAsMap.value.values()).filter(paket => paket.children.length == 0 && !paket.bucket);
   }
 
-  function filteredPaketeAsTreeView(filterString: string):Paket[] {
-    const filteredPakete: Paket[]=[];
+  function filteredPaketeAsTreeView(filterString: string): Paket[] {
+    const filteredPakete: Paket[] = [];
     const paketeMitFilter = searchPaketeWithFilter(filterString);
-    console.log(searchPaketeWithFilter(filterString))
+    console.log(searchPaketeWithFilter(filterString));
     return filteredPakete;
   }
 
-  function searchPaketeWithFilter(filterString: string):Paket[] {
-    const paketeWithFilter :Paket[]=[]
-    for(const paket of paketeFullTreeView()) {
-      if(applyFilterOnPaket(paket, filterString)) paketeWithFilter.push(paket);
+  function searchPaketeWithFilter(filterString: string): Paket[] {
+    const paketeWithFilter: Paket[] = [];
+    for (const paket of paketeFullTreeView()) {
+      if (applyFilterOnPaket(paket, filterString)) paketeWithFilter.push(paket);
     }
-    return paketeWithFilter
+    return paketeWithFilter;
   }
 
-  function applyFilterOnPaket(paket: Paket, filterString: string):boolean {
-    const paketStringIndexed: { [index: string]: any } = paket
+  function applyFilterOnPaket(paket: Paket, filterString: string): boolean {
+    const paketStringIndexed: { [index: string]: any } = paket;
     for (const key in paketStringIndexed) {
       if (typeof paketStringIndexed[key] === "string" && paketStringIndexed[key].includes(filterString)) {
-       return true;
+        return true;
       }
     }
     return false;
   }
+
   function paketeOfBucket(bucket: Bucket) {
     const result: Paket[] = [];
     for (const paket of paketeAsMap.value.values()) {
@@ -82,20 +83,19 @@ export const usePaketeStore = defineStore("pakete", () => {
   }
 
   function updateSchaetzung(paket: Paket, oldValue: number | null) {
-    if(paket.schaetzung==null && oldValue==null) return;
+    if (paket.schaetzung == null && oldValue == null) return;
     let diff = 0;
-    if(paket.schaetzung==null) {
-      diff = -(oldValue ?? 0)
-    }
-    else {
-      diff = paket.schaetzung - (oldValue ?? 0)
+    if (paket.schaetzung == null) {
+      diff = -(oldValue ?? 0);
+    } else {
+      diff = paket.schaetzung - (oldValue ?? 0);
     }
     let parentOfPaket = paket.parent;
     while (parentOfPaket) {
-      if (parentOfPaket.children.filter(paketOfChildren => paketOfChildren.schaetzung!=null).length==0) parentOfPaket.schaetzung = null;
+      if (parentOfPaket.children.filter(paketOfChildren => paketOfChildren.schaetzung != null).length == 0) parentOfPaket.schaetzung = null;
       else {
         parentOfPaket.schaetzung = (parentOfPaket.schaetzung ?? 0) + diff;
-        parentOfPaket.schaetzung = parseFloat(parentOfPaket.schaetzung.toFixed(useProjektStore().nachkommastellen))
+        parentOfPaket.schaetzung = parseFloat(parentOfPaket.schaetzung.toFixed(useProjektStore().nachkommastellen));
       }
       parentOfPaket = parentOfPaket.parent;
     }
@@ -355,7 +355,7 @@ export const usePaketeStore = defineStore("pakete", () => {
     }
   }
 
-    function moveRightUp(id: number) {
+  function moveRightUp(id: number) {
     const paketToMove = paketeAsMap.value.get(id) as Paket;
     if (paketToMove.parent && paketToMove.parent.children.indexOf(paketToMove) == 0) return;
     const indexOfPaketToMove = paketeAsTreeView.value.indexOf(paketToMove);
@@ -381,10 +381,16 @@ export const usePaketeStore = defineStore("pakete", () => {
     // Paket wird dem neuen Elternteil als Kind zugewiesen
     const newParent = paketeAsTreeView.value[indexOfNewParent] as Paket;
     //Schätzung vom neuen Parent anpassen
-      //TODO BUG wenn bei allen Paketen Schätzungen vorhanden sind
+    //TODO BUG wenn bei allen Paketen Schätzungen vorhanden sind
     if (newParent.children.length == 0) {
       if (newParent.schaetzung != null && paketToMove.schaetzung == null) paketToMove.schaetzung = newParent.schaetzung;
-      else newParent.schaetzung = paketToMove.schaetzung;
+      else if (newParent.schaetzung != null && paketToMove.schaetzung != null) {
+        const oldSchaetzung = paketToMove.schaetzung;
+        paketToMove.schaetzung = newParent.schaetzung;
+        updateSchaetzung(paketToMove, oldSchaetzung);
+      } else {
+        newParent.schaetzung = paketToMove.schaetzung;
+      }
     } else newParent.schaetzung = (newParent.schaetzung ?? 0) + (paketToMove.schaetzung ?? 0);
     //Bucket von newParent zurücksetzen
     updateBucket(newParent, null);
@@ -426,8 +432,8 @@ export const usePaketeStore = defineStore("pakete", () => {
       if (parentOfPaketToMove.children.length == 0) {
         parentOfPaketToMove.schaetzung = null;
       } else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) {
-        parentOfPaketToMove.schaetzung -= paketToMove.schaetzung
-        parentOfPaketToMove.schaetzung = parseFloat(parentOfPaketToMove.schaetzung.toFixed(useProjektStore().nachkommastellen))
+        parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
+        parentOfPaketToMove.schaetzung = parseFloat(parentOfPaketToMove.schaetzung.toFixed(useProjektStore().nachkommastellen));
       }
       if (paketToMove.lvl >= 2 && parentOfPaketToMove.parent) {
         const indexOfParentAsChild = parentOfPaketToMove.parent.children.indexOf(parentOfPaketToMove);
@@ -469,7 +475,7 @@ export const usePaketeStore = defineStore("pakete", () => {
         parentOfPaketToMove.schaetzung = null;
       } else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) {
         parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
-        parentOfPaketToMove.schaetzung = parseFloat(parentOfPaketToMove.schaetzung.toFixed(useProjektStore().nachkommastellen))
+        parentOfPaketToMove.schaetzung = parseFloat(parentOfPaketToMove.schaetzung.toFixed(useProjektStore().nachkommastellen));
       }
       if (paketToMove.lvl >= 2 && parentOfPaketToMove.parent) {
         const indexOfParentAsChild = parentOfPaketToMove.parent.children.indexOf(parentOfPaketToMove);
