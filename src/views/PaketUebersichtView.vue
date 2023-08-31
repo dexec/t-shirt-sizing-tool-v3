@@ -183,13 +183,6 @@ function rightClickOnCell(e: any) {
 }
 
 function onCellClicked() {
-  //TODO Wenn editiert wird, klick aus dem edit dialog soll richtig behandelt werden
-  /*if(gridApi.value!.getEditingCells()[0]) console.log("editing" + gridApi.value!.getEditingCells()[0].rowIndex)
-  console.log("event" + e.rowIndex)
-  if(gridApi.value!.getEditingCells().length!==0 && gridApi.value!.getEditingCells()[0].rowIndex!==e.rowIndex) {
-    console.log("onCellClicked")
-    stopEiditingAndSetFocus(true,e.rowIndex,e.column.colId)
-  }*/
   columnDefs.value.forEach(column => column.editable = false)
 }
 
@@ -269,7 +262,6 @@ function movePaketLeftUp() {
   }
 }
 
-//TODO Da werden Pakete irgendwie gelöscht zwischendurch, wenn man auf der Ebene max-1 Pakete verschiebt
 function movePaketLeftDown() {
   if (gridApi.value!.getSelectedRows()[0]) {
     let paketID = gridApi.value!.getSelectedRows()[0].id;
@@ -379,7 +371,6 @@ function onCellKeyPress(e: any) {
         }
         case ' ':
           if (ctrl) {
-            //TODO TreeDataCellRenderer macht beim +-Button die gleiche Logik => eine gemeinsame Funktion nutzen
             if (e.data.children.length > 0) {
               const aktuellesPaket = e.data;
               aktuellesPaket.open = !aktuellesPaket.open;
