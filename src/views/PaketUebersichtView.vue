@@ -153,19 +153,19 @@ function toggleSuche() {
   showSuche.value = !showSuche.value
 }
 
-watch(() => variablenAustauschStore.searching, (newValue) => {
+/*watch(() => variablenAustauschStore.searching, (newValue) => {
   //gridApi.value!.setQuickFilter(newValue);
   for (let paket of paketeStore.paketeAsMap.values()) {
     const paketStringIndexed: { [index: string]: any } = paket
-    /*for (const key in paketStringIndexed) {
+    /!*for (const key in paketStringIndexed) {
       if (typeof paketStringIndexed[key] === "string" && gridApi.value!.getQuickFilter() != "" && paketStringIndexed[key].includes(gridApi.value!.getQuickFilter())) {
         if(!paketeStore.paketeAsTreeView.includes(paket))
         paketeStore.showPaket(paket as Paket)
       }
-    }*/
+    }*!/
   }
   refreshTable();
-});
+});*/
 provide("addNewPaket", addNewPaket);
 provide("addNewKindPaket", addNewKindPaket);
 provide("deletePaket", deletePaket);
