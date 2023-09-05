@@ -33,7 +33,6 @@ export const usePaketeStore = defineStore("pakete", () => {
   function filteredPaketeAsTreeView(filterString: string): Paket[] {
     const filteredPakete: Paket[] = [];
     const paketeMitFilter = searchPaketeWithFilter(filterString);
-    console.log(searchPaketeWithFilter(filterString));
     return filteredPakete;
   }
 
@@ -82,7 +81,7 @@ export const usePaketeStore = defineStore("pakete", () => {
     return result;
   }
 
-  function updateSchaetzung(paket: Paket, oldValue: number | null) {
+  function updateParentsAfterSchaetzungUpdated(paket: Paket, oldValue: number | null) {
     if (paket.schaetzung == null && oldValue == null) return;
     let diff = 0;
     if (paket.schaetzung == null) {
@@ -184,7 +183,7 @@ export const usePaketeStore = defineStore("pakete", () => {
       parentOfPaket.children.splice(parentOfPaket.children.indexOf(paketToDelete), 1);
     }
     if (paketToDelete.schaetzung != null)
-      updateSchaetzung(paketToDelete, null);
+      updateParentsAfterSchaetzungUpdated(paketToDelete, null);
   }
 
   function addNew(id: number): number {
@@ -387,7 +386,7 @@ export const usePaketeStore = defineStore("pakete", () => {
       else if (newParent.schaetzung != null && paketToMove.schaetzung != null) {
         const oldSchaetzung = paketToMove.schaetzung;
         paketToMove.schaetzung = newParent.schaetzung;
-        updateSchaetzung(paketToMove, oldSchaetzung);
+        updateParentsAfterSchaetzungUpdated(paketToMove, oldSchaetzung);
       } else {
         newParent.schaetzung = paketToMove.schaetzung;
       }
@@ -521,7 +520,7 @@ export const usePaketeStore = defineStore("pakete", () => {
     parentsOfPaket,
     rootParentOfPaket,
     updateTreeViewAfterChangedOpenState,
-    updateSchaetzung,
+    updateParentsAfterSchaetzungUpdated,
     updateBucket,
     deletePaket,
     addNew,
