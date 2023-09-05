@@ -28,12 +28,12 @@
       <tbody>
       <tr v-for="statistik of statistiken.statistiken" :key="statistik.bucket.id">
         <td>{{ statistik.bucket.name }}</td>
-        <td>{{ parseFloat(statistik.anzahlGeschaetzt.toFixed(projektStore.nachkommastellen)) }}</td>
-        <td>{{ parseFloat(statistik.anzahlUngeschaetzt.toFixed(projektStore.nachkommastellen)) }}</td>
-        <td>{{ parseFloat(statistik.anzahlGesamt.toFixed(projektStore.nachkommastellen)) }}</td>
+        <td>{{ statistik.anzahlGeschaetzt }}</td>
+        <td>{{ statistik.anzahlUngeschaetzt }}</td>
+        <td>{{ statistik.anzahlGesamt }}</td>
         <td>{{ minBucketmodus(statistik as Statistik) }}</td>
         <td>{{ maxBucketmodus(statistik as Statistik) }}</td>
-        <td>{{ parseFloat((statistik.anteilAnzahl * 100).toFixed(projektStore.nachkommastellen)) + "%" }}</td>
+        <td>{{ (statistik.anteilAnzahl * 100).toFixed(projektStore.nachkommastellen) + "%" }}</td>
         <td>{{ durchschnittBucketmodus(statistik as Statistik) }}</td>
         <td>{{ medianBucketmodus(statistik as Statistik) }}</td>
         <td>{{ schaetzungenSummeBucketmodusPT(statistik as Statistik) }}
@@ -46,9 +46,9 @@
       </tr>
       <tr class="font-weight-bold">
         <td>Summe</td>
-        <td>{{ parseFloat(statistiken.summeAlleBucketsGeschaetzt().toFixed(projektStore.nachkommastellen)) }}</td>
-        <td>{{ parseFloat(statistiken.summeAlleBucketsUngeschaetzt().toFixed(projektStore.nachkommastellen)) }}</td>
-        <td>{{ parseFloat(statistiken.summeAlleBucketsGesamt().toFixed(projektStore.nachkommastellen)) }}</td>
+        <td>{{ statistiken.summeAlleBucketsGeschaetzt() }}</td>
+        <td>{{ statistiken.summeAlleBucketsUngeschaetzt() }}</td>
+        <td>{{ statistiken.summeAlleBucketsGesamt() }}</td>
         <td>{{ minSumme() }}</td>
         <td>{{ maxSumme() }}</td>
         <td></td>
@@ -79,9 +79,9 @@
       </thead>
       <tbody>
       <tr class="font-weight-bold">
-        <td>{{ parseFloat(statistiken.summeAlleBucketsGeschaetzt().toFixed(projektStore.nachkommastellen)) }}</td>
-        <td>{{ parseFloat(statistiken.summeAlleBucketsUngeschaetzt().toFixed(projektStore.nachkommastellen)) }}</td>
-        <td>{{ parseFloat(statistiken.summeAlleBucketsGesamt().toFixed(projektStore.nachkommastellen)) }}</td>
+        <td>{{ statistiken.summeAlleBucketsGeschaetzt() }}</td>
+        <td>{{ statistiken.summeAlleBucketsUngeschaetzt() }}</td>
+        <td>{{ statistiken.summeAlleBucketsGesamt() }}</td>
         <td>{{ minSumme() }}</td>
         <td>{{ maxSumme() }}</td>
         <td>{{ durchschnittSumme() }}</td>
@@ -105,34 +105,34 @@ const projektStore = useProjektStore();
 statistiken.berechne();
 function minBucketmodus(statistik: Statistik) {
   if(statistik.min != null) {
-    return parseFloat(statistik.min.toFixed(projektStore.nachkommastellen));
+    return statistik.min.toFixed(projektStore.nachkommastellen);
   }
   return ""
 }
 
 function maxBucketmodus(statistik: Statistik) {
   if(statistik.max != null) {
-    return parseFloat(statistik.max.toFixed(projektStore.nachkommastellen));
+    return statistik.max.toFixed(projektStore.nachkommastellen);
   }
   return ""
 }
 
 function durchschnittBucketmodus(statistik: Statistik) {
   if(statistik.durchschnitt != null) {
-    return parseFloat(statistik.durchschnitt.toFixed(projektStore.nachkommastellen))
+    return statistik.durchschnitt.toFixed(projektStore.nachkommastellen)
   }
   return ""
 }
 
 function medianBucketmodus(statistik: Statistik) {
   if(statistik.median != null) {
-    return parseFloat(statistik.median.toFixed(projektStore.nachkommastellen))
+    return statistik.median.toFixed(projektStore.nachkommastellen)
   }
   return ""
 }
 function schaetzungenSummeBucketmodusPT(statistik: Statistik) {
   if (statistik.summeSchaetzungen != null) {
-    return parseFloat(statistik.summeSchaetzungen.toFixed(projektStore.nachkommastellen));
+    return statistik.summeSchaetzungen.toFixed(projektStore.nachkommastellen);
   }
   return "";
 }
@@ -145,7 +145,7 @@ function schaetzungenSummeBucketmodusProzent(statistik: Statistik) {
     if (summeSchaetzunSumme == 0) {
       return "0%";
     } else {
-      return parseFloat((statistik.summeSchaetzungen! / summeSchaetzunSumme * 100).toFixed(projektStore.nachkommastellen)) + "%"
+      return (statistik.summeSchaetzungen! / summeSchaetzunSumme * 100).toFixed(projektStore.nachkommastellen) + "%"
     }
   }
 
@@ -153,7 +153,7 @@ function schaetzungenSummeBucketmodusProzent(statistik: Statistik) {
 
 function durchschnittSummeBucketmodusPT(statistik: Statistik) {
   if (statistik.summeDurchschnitt != null) {
-    return parseFloat(statistik.summeDurchschnitt.toFixed(projektStore.nachkommastellen));
+    return statistik.summeDurchschnitt.toFixed(projektStore.nachkommastellen);
   }
   return "";
 }
@@ -166,14 +166,14 @@ function durchschnittSummeBucketmodusProzent(statistik: Statistik) {
     if (summeDurchschnittSumme == 0) {
       return "0%";
     } else {
-      return parseFloat((statistik.summeDurchschnitt! / summeDurchschnittSumme * 100).toFixed(projektStore.nachkommastellen)) + "%";
+      return (statistik.summeDurchschnitt! / summeDurchschnittSumme * 100).toFixed(projektStore.nachkommastellen) + "%";
     }
   }
 }
 
 function medianSummeBucketmodusPT(statistik: Statistik) {
   if (statistik.summeMedian != null) {
-    return parseFloat(statistik.summeMedian.toFixed(projektStore.nachkommastellen))
+    return statistik.summeMedian.toFixed(projektStore.nachkommastellen)
   }
   return ""
 }
@@ -186,7 +186,7 @@ function medianSummeBucketmodusProzent(statistik: Statistik) {
     if (summeMedianSumme == 0) {
       return "0%"
     } else {
-      return parseFloat((statistik.summeMedian! / summeMedianSumme * 100).toFixed(projektStore.nachkommastellen)) + "%"
+      return (statistik.summeMedian! / summeMedianSumme * 100).toFixed(projektStore.nachkommastellen) + "%"
     }
   }
 }
@@ -194,43 +194,43 @@ function medianSummeBucketmodusProzent(statistik: Statistik) {
 function minSumme() {
   const summeMin = statistiken.summeAlleBucketsMin();
   if (summeMin != null) {
-    return parseFloat(summeMin.toFixed(projektStore.nachkommastellen));
+    return summeMin.toFixed(projektStore.nachkommastellen);
   } else return ""
 }
 
 function maxSumme() {
   const summeMax = statistiken.summeAlleBucketsMax();
-  if (summeMax != null) return parseFloat(summeMax.toFixed(projektStore.nachkommastellen));
+  if (summeMax != null) return summeMax.toFixed(projektStore.nachkommastellen);
   else return ""
 }
 
 function durchschnittSumme() {
   const summeDurchschnitt = statistiken.summeAlleBucketsDurchschnitt();
-  if (summeDurchschnitt != null) return parseFloat(summeDurchschnitt.toFixed(projektStore.nachkommastellen))
+  if (summeDurchschnitt != null) return summeDurchschnitt.toFixed(projektStore.nachkommastellen)
   else return ""
 }
 
 function medianSumme() {
   const summeMedian = statistiken.summeAlleBucketsMedian();
-  if (summeMedian != null) return parseFloat(summeMedian.toFixed(projektStore.nachkommastellen))
+  if (summeMedian != null) return summeMedian.toFixed(projektStore.nachkommastellen)
   else return ""
 }
 
 function summeSchaetzungenSumme() {
   const summeSchaetzungen = statistiken.summeAlleBucketsSchaetzungenSumme()
-  if (summeSchaetzungen != null) return parseFloat(summeSchaetzungen.toFixed(projektStore.nachkommastellen))
+  if (summeSchaetzungen != null) return summeSchaetzungen.toFixed(projektStore.nachkommastellen)
   else return ""
 }
 
 function summeDurchschnittSumme() {
   const summeDurchschnitt = statistiken.summeAlleBucketsDurchschnittSumme()
-  if (summeDurchschnitt != null) return parseFloat(summeDurchschnitt.toFixed(projektStore.nachkommastellen));
+  if (summeDurchschnitt != null) return summeDurchschnitt.toFixed(projektStore.nachkommastellen);
   else return ""
 }
 
 function summeMedianSumme() {
   const summeMedian = statistiken.summeAlleBucketsMedianSumme()
-  if (summeMedian != null) return parseFloat(summeMedian.toFixed(projektStore.nachkommastellen))
+  if (summeMedian != null) return summeMedian.toFixed(projektStore.nachkommastellen)
   else return ""
 }
 
