@@ -77,7 +77,6 @@ export class ImportProject {
                         schaetzung = (schaetzung ?? 0) + paket.schaetzung;
                     }
                 }
-                if(schaetzung) schaetzung = parseFloat(schaetzung.toFixed(this._projekt.nachkommastellen))
                 paketFromPakete.schaetzung = schaetzung;
             }
             /*if (paketFromPakete.children.length > 0) {
