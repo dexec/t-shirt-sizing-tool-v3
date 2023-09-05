@@ -2,7 +2,7 @@
   <!--  <v-autocomplete v-model="searchedPaket" :items="this.paketeChildren" item-title="ticket_nr" item-value="id"
                     label="Paket suchen" style="position: absolute;left:100px;top:200px; width: 200px"
                     @blur="this.searchedPaket=null"></v-autocomplete>-->
-  <!--  <context-menu :provided-functions-prop="[...this.providedFunctions]"></context-menu>-->
+  <!--  <context-menu :provided-functions-prop="[...this.providedFunctionsContextMenu]"></context-menu>-->
   <v-container>
     <v-row class="mb-6">
       <v-col class="d-flex flex-nowrap justify-center">
@@ -152,22 +152,12 @@ const paketeTabelleFilter = ref("");
 const paketeListeFilter = ref("");
 
 function applyFilter(paket: Paket, filterString: string): boolean {
-  const variablenAustauschStore = useVariablenAustauschStore();
   const paketStringIndexed: { [index: string]: any } = paket
-  let searchStringFound = false;
-  for (const key in paketStringIndexed) {
-    if (typeof paketStringIndexed[key] === "string" &&  paketStringIndexed[key].includes(variablenAustauschStore.searchPaketString)) {
-      searchStringFound =  true;
-      break;
-    }
-  }
-  if(searchStringFound) {
     for (const key in paketStringIndexed) {
       if (typeof paketStringIndexed[key] === "string" && paketStringIndexed[key].includes(filterString)) {
         return true
       }
     }
-  }
   return false
 }
 
