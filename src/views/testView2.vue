@@ -8,6 +8,7 @@
   <v-btn @click="testFilterPakete">Test Filter</v-btn>
 </template>
 
+
 <style scoped>
 .result-table {
   width: 50%;
@@ -44,7 +45,7 @@ import type {AbstrakterEintrag} from "@/AbstrakterEintrag";
 import {useEintraegeStore} from "@/stores/eintraege";
 import {Eintrag} from "@/Eintrag";
 import {Zwischensumme} from "@/Zwischensumme";
-import { runden } from "@/enums/RundungsartET";
+
 const testNumbers = [
   12.345,    // Soll auf 12.35 gerundet werden (kaufmännisch)
   67.891,    // Soll auf 67.89 gerundet werden (kaufmännisch)
@@ -70,9 +71,11 @@ const projektStore = useProjektStore();
 const eintraegeStore = useEintraegeStore();
 statistikenStore.berechne();
 eintraegeStore.berechne();
+
 function testFilterPakete() {
   paketeStore.filteredPaketeAsTreeView("a");
 }
+
 function download() {
   const wb = XLSX.utils.book_new();
   const sheetKalkulation = createSheetForKalkulation(statistikenStore.statistiken as Statistik[], eintraegeStore.eintraege as AbstrakterEintrag[], projektStore.bucketmodus);
@@ -391,12 +394,26 @@ function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statist
   };
   //Für jedes Bucket
   for (let i = 0; i < arraySerializableStatistik.length - 1; i++) {
+    //Min
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 4})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+    //Max
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 5})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
     //Anteil Anzahl in Prozent
     sheet[XLSX.utils.encode_cell({r: i + 2, c: 6})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
+    //Durschnitt
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 7})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+    //Median
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 8})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+    //Summe Schätzungen PT
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 9})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
     //Summe Schätzungen in Prozent
     sheet[XLSX.utils.encode_cell({r: i + 2, c: 10})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
+    //Durchschnittliche Summe PT
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 11})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
     //Durchschnittliche Summe in Prozent
     sheet[XLSX.utils.encode_cell({r: i + 2, c: 12})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
+    //Mediane Summe PT
+    sheet[XLSX.utils.encode_cell({r: i + 2, c: 13})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
     //Mediane Summe in Prozent
     sheet[XLSX.utils.encode_cell({r: i + 2, c: 14})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     const sheetName = "Bucket " + arraySerializableStatistik[i].bucket;
@@ -471,7 +488,7 @@ function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statist
       c: 14
     })].f = `IF(OR(N${arraySerializableStatistik.length + 2}=0,N${arraySerializableStatistik.length + 2}="",N${i + 3}=""),"",N${i + 3}/N${arraySerializableStatistik.length + 2})`
   }
-//Summenzeile Anzahl geschätzt
+  //Summenzeile Anzahl geschätzt
   sheet[XLSX.utils.encode_cell({
     r: arraySerializableStatistik.length + 1,
     c: 1
@@ -490,18 +507,25 @@ function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statist
   sheet[XLSX.utils.encode_cell({
     r: arraySerializableStatistik.length + 1,
     c: 4
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+  sheet[XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 4
   })].f = `IF(COUNT(E3:E${arraySerializableStatistik.length + 1})=0,"",IF(MIN(E3:E${arraySerializableStatistik.length + 1})=0,0,MIN(E3:E${arraySerializableStatistik.length + 1})))`
   //Summenzeile Max
   sheet[XLSX.utils.encode_cell({
     r: arraySerializableStatistik.length + 1,
     c: 5
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+  sheet[XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 5
   })].f = `IF(COUNT(F3:F${arraySerializableStatistik.length + 1})=0,"",MAX(F3:F${arraySerializableStatistik.length + 1}))`
-  /*  //Summenzeile Anteil Anzahl
-    sheet[ XLSX.utils.encode_cell({
-      r: arraySerializableStatistik.length + 1,
-      c: 6
-    })].f=`SUM(G3:G${arraySerializableStatistik.length + 1})`*/
   //Summenzeile Summe Schätzungen
+  sheet[XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 9
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
   sheet[XLSX.utils.encode_cell({
     r: arraySerializableStatistik.length + 1,
     c: 9
@@ -510,8 +534,16 @@ function addStatistikenToSheetBucketmodus(sheet: WorkSheet, statistiken: Statist
   sheet[XLSX.utils.encode_cell({
     r: arraySerializableStatistik.length + 1,
     c: 11
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+  sheet[XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 11
   })].f = `SUM(L3:L${arraySerializableStatistik.length + 1})`
   //Summenzeile Summe Median
+  sheet[XLSX.utils.encode_cell({
+    r: arraySerializableStatistik.length + 1,
+    c: 13
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
   sheet[XLSX.utils.encode_cell({
     r: arraySerializableStatistik.length + 1,
     c: 13
@@ -611,8 +643,16 @@ function addStatistikenToSheetBucketlosermodus(sheet: WorkSheet) {
   sheet[XLSX.utils.encode_cell({
     r: 1,
     c: 3
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+  sheet[XLSX.utils.encode_cell({
+    r: 1,
+    c: 3
   })].f = `IF(COUNT('Alle Kind Pakete'!E:E)=0,"",IF(MIN('Alle Kind Pakete'!E:E)=0,0,MIN('Alle Kind Pakete'!E:E)))`
   //Max
+  sheet[XLSX.utils.encode_cell({
+    r: 1,
+    c: 4
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
   sheet[XLSX.utils.encode_cell({
     r: 1,
     c: 4
@@ -621,8 +661,16 @@ function addStatistikenToSheetBucketlosermodus(sheet: WorkSheet) {
   sheet[XLSX.utils.encode_cell({
     r: 1,
     c: 5
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+  sheet[XLSX.utils.encode_cell({
+    r: 1,
+    c: 5
   })].f = `IF(OR(H2="",A2=0,A2=""),"",H2/A2)`
   //Median
+  sheet[XLSX.utils.encode_cell({
+    r: 1,
+    c: 6
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
   sheet[XLSX.utils.encode_cell({
     r: 1,
     c: 6
@@ -631,8 +679,16 @@ function addStatistikenToSheetBucketlosermodus(sheet: WorkSheet) {
   sheet[XLSX.utils.encode_cell({
     r: 1,
     c: 7
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+  sheet[XLSX.utils.encode_cell({
+    r: 1,
+    c: 7
   })].f = `IF(COUNT('Alle Kind Pakete'!E:E)=0,"",SUM('Alle Kind Pakete'!E:E))`
   //Durchschnittliche Summe
+  sheet[XLSX.utils.encode_cell({
+    r: 1,
+    c: 8
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
   sheet[XLSX.utils.encode_cell({
     r: 1,
     c: 8
@@ -641,8 +697,12 @@ function addStatistikenToSheetBucketlosermodus(sheet: WorkSheet) {
   sheet[XLSX.utils.encode_cell({
     r: 1,
     c: 9
+  })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+  sheet[XLSX.utils.encode_cell({
+    r: 1,
+    c: 9
   })].f = `IF(OR(C2="",G2=""),"",C2*G2)`
-  return arraySerializableStatistik.length-1;
+  return arraySerializableStatistik.length - 1;
 }
 
 function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], startzeilennummer: number) {
@@ -712,24 +772,37 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
   }
   //Startsummenzelle in Abhängigkeit des Bucketmodus
   let startsummenzelle = "";
-  if(projektStore.bucketmodus) startsummenzelle = XLSX.utils.encode_cell({r:startzeilennummer-3,c:11})
-  else startsummenzelle = XLSX.utils.encode_cell({r:startzeilennummer-3,c:8})
-  sheet[XLSX.utils.encode_cell({r:startzeilennummer+1,c:2})].f=startsummenzelle
+  if (projektStore.bucketmodus) startsummenzelle = XLSX.utils.encode_cell({r: startzeilennummer - 3, c: 11})
+  else startsummenzelle = XLSX.utils.encode_cell({r: startzeilennummer - 3, c: 8})
+  sheet[XLSX.utils.encode_cell({r: startzeilennummer + 1, c: 2})].f = startsummenzelle
   //Endsummenzelle
-  const endsummenzelle = XLSX.utils.encode_cell({r:startzeilennummer+arraySerializableEintraege.length,c:2})
+  const endsummenzelle = XLSX.utils.encode_cell({r: startzeilennummer + arraySerializableEintraege.length, c: 2})
   //Zwischenzeile als Bezug für die Prozentangaben
   let aktuellezwischensummezelle = XLSX.utils.encode_cell({r: startzeilennummer + 1, c: 2});
   //Array für die Endsumme
   const arrayEintraegeCells = [];
+  console.log(arraySerializableEintraege)
   for (let i = 1; i < arraySerializableEintraege.length; i++) {
     //Aufschläge in Prozent
-    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 1})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
+    sheet[XLSX.utils.encode_cell({
+      r: startzeilennummer + i,
+      c: 1
+    })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     //Aufwände als Zahl
-    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 2})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+    sheet[XLSX.utils.encode_cell({
+      r: startzeilennummer + i,
+      c: 2
+    })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
     //Anteil an Zwischensumme in Prozent
-    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 3})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
+    sheet[XLSX.utils.encode_cell({
+      r: startzeilennummer + i,
+      c: 3
+    })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     //Anteil am Gesamtprojekt in Prozent
-    sheet[XLSX.utils.encode_cell({r: startzeilennummer + i, c: 4})].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
+    sheet[XLSX.utils.encode_cell({
+      r: startzeilennummer + i,
+      c: 4
+    })].z = `0.${'0'.repeat(projektStore.nachkommastellen)}%`;
     if (["STARTSUMME", "ZWISCHENSUMME", "ENDSUMME"].includes(sheet[XLSX.utils.encode_cell({
       r: startzeilennummer + i,
       c: 0
@@ -753,22 +826,34 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
         sheet[XLSX.utils.encode_cell({
           r: startzeilennummer + i,
           c: 2
-        })].f=`SUM(${aktuellezwischensummezelle}:C${startzeilennummer+i})`
+        })].f = `SUM(${aktuellezwischensummezelle}:C${startzeilennummer + i})`
         //Anteil an Zwischensumme für die Zwischensumme setzen
         const aktuellezwischensummeReihe = XLSX.utils.decode_cell(aktuellezwischensummezelle).r;
         sheet[XLSX.utils.encode_cell({
           r: startzeilennummer + i,
           c: 3
-        })].f=`SUM(D${aktuellezwischensummeReihe+2}:D${startzeilennummer+i})`
+        })].f = `SUM(D${aktuellezwischensummeReihe + 2}:D${startzeilennummer + i})`
         //Referenz zur neuen Zwischensumme gesetzt
         aktuellezwischensummezelle = XLSX.utils.encode_cell({r: startzeilennummer + i, c: 2})
       }
     } else {
-      //Bei normalen Einträgen ist die Formel für den Aufwand: Aufschlag * aktuellen Zwischensumme
-      sheet[XLSX.utils.encode_cell({
-        r: startzeilennummer + i,
-        c: 2
-      })].f = `B${startzeilennummer + i + 1}*${aktuellezwischensummezelle}`
+      //Wenn die Basis Aufschlag ist, bekommt Aufwand die Formel und umgekehrt
+      if (eintraege[i - 1] instanceof Eintrag) {
+        //Bei normalen Einträgen ist die Formel für den Aufwand: Aufschlag * aktuelle Zwischensumme
+        if ((eintraege[i - 1] as Eintrag).isAufschlagBase) {
+          sheet[XLSX.utils.encode_cell({
+            r: startzeilennummer + i,
+            c: 2
+          })].f = `B${startzeilennummer + i + 1}*${aktuellezwischensummezelle}`
+        }
+        // Bei normalen Einträgen ist die Formel für den Aufschlag: Aufwand / aktuelle Zwischensumme
+        else {
+          sheet[XLSX.utils.encode_cell({
+            r: startzeilennummer + i,
+            c: 1
+          })].f = `C${startzeilennummer + i + 1}/${aktuellezwischensummezelle}`
+        }
+      }
       arrayEintraegeCells.push(XLSX.utils.encode_cell({
         r: startzeilennummer + i,
         c: 2
@@ -776,16 +861,21 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
     }
   }
   aktuellezwischensummezelle = endsummenzelle
-  for(let i = arraySerializableEintraege.length-1;i>=2;i--) {
-    sheet[XLSX.utils.encode_cell({r:startzeilennummer+i,c:4})].f=`C${startzeilennummer+i+1}/${endsummenzelle}`
+  for (let i = arraySerializableEintraege.length - 1; i >= 2; i--) {
+    sheet[XLSX.utils.encode_cell({
+      r: startzeilennummer + i,
+      c: 4
+    })].f = `C${startzeilennummer + i + 1}/${endsummenzelle}`
     if (["STARTSUMME", "ZWISCHENSUMME"].includes(sheet[XLSX.utils.encode_cell({
       r: startzeilennummer + i,
       c: 0
     })].v)) {
-      aktuellezwischensummezelle = XLSX.utils.encode_cell({r:startzeilennummer+i,c:2})
-    }
-    else {
-      sheet[XLSX.utils.encode_cell({r:startzeilennummer+i,c:3})].f=`C${startzeilennummer+i+1}/${aktuellezwischensummezelle}`
+      aktuellezwischensummezelle = XLSX.utils.encode_cell({r: startzeilennummer + i, c: 2})
+    } else {
+      sheet[XLSX.utils.encode_cell({
+        r: startzeilennummer + i,
+        c: 3
+      })].f = `C${startzeilennummer + i + 1}/${aktuellezwischensummezelle}`
     }
   }
   //Styling für die Endsumme
@@ -800,12 +890,12 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
     }
   };
   //Endsummenformel wird zusammengerechnet aus den Zellen der Einträge ohne der Zwischensummen
-  let startsummeCellsAsString = XLSX.utils.encode_cell({r:startzeilennummer+1,c:2})
-  for(let i = 0; i<arrayEintraegeCells.length;i++) {
-    startsummeCellsAsString+="+"+arrayEintraegeCells[i];
+  let startsummeCellsAsString = XLSX.utils.encode_cell({r: startzeilennummer + 1, c: 2})
+  for (let i = 0; i < arrayEintraegeCells.length; i++) {
+    startsummeCellsAsString += "+" + arrayEintraegeCells[i];
   }
-  sheet[endsummenzelle].f= `${startsummeCellsAsString}`
-  sheet[endsummenzelle].z= `0.${'0'.repeat(projektStore.nachkommastellen)}`;
+  sheet[endsummenzelle].f = `${startsummeCellsAsString}`
+  sheet[endsummenzelle].z = `0.${'0'.repeat(projektStore.nachkommastellen)}`;
 }
 
 function testfunction(pakete: Paket[]) {
