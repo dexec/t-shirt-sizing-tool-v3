@@ -1,6 +1,5 @@
 <template>
-
-  <div style='width: 100%;height: 100%'>
+  <div class="d-flex flex-row" style='width: 100%;height: 100%'>
     <ag-grid-vue
         :cacheQuickFilter="true"
         :columnDefs='columnDefs'
@@ -19,7 +18,10 @@
         @grid-ready='onGridReady'>
     </ag-grid-vue>
   </div>
-  <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctions]"></context-menu>
+  <v-text-field bg-color="white" class="searchfield" label="Pakete filtern"
+                @click="toggleSuche()"></v-text-field>
+  <SuchComponent v-if="showSuche"></SuchComponent>
+  <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctionsContextMenu]"></context-menu>
 </template>
 <script lang="ts" setup>
 import 'ag-grid-community/styles/ag-grid.css';
@@ -36,7 +38,8 @@ import {useProjektStore} from "@/stores/projekt";
 import {Column, ColumnApi, GridApi} from "ag-grid-community";
 import type {Bucket} from "@/Bucket";
 import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
-import type {Paket} from "@/Paket";
+import SuchComponent from "@/components/SuchComponent.vue";
+
 const projectStore = useProjektStore();
 const gridApi = ref<GridApi>();
 let getRowId = (params: any): number => params.data._id;
@@ -114,12 +117,19 @@ const columnDefs = ref([
   {
     field: 'schaetzung',
     headerName: 'Schätzung',
-    valueSetter:(params:any) => {
-      if(isNaN(params.newValue)) params.data.schaetzung = params.oldValue;
+    valueSetter: (params: any) => {
+      if (isNaN(params.newValue)) params.data.schaetzung = params.oldValue;
       else {
-        params.data.schaetzung = parseFloat(Number(params.newValue).toFixed(projectStore.nachkommastellen))
-        paketeStore.updateSchaetzung(params.data,params.oldValue)
+        params.data.schaetzung = Number(params.newValue)
+        paketeStore.updateParentsAfterSchaetzungUpdated(params.data, params.oldValue)
         gridApi.value!.refreshCells({force: true});
+      }
+    },
+    valueGetter: (params: any) => {
+      if (params.data.schaetzung) {
+        if (params.data.children.length > 0) {
+          return params.data.schaetzung.toFixed(projectStore.nachkommastellen);
+        } else return params.data.schaetzung;
       }
     },
     cellStyle: (params: any): any => {
@@ -137,8 +147,14 @@ const columnDefs = ref([
 ])
 const variablenAustauschStore = useVariablenAustauschStore();
 //TODO Die Suche so umsetzen, dass das gesuchte Ziel mit seinen Elternelementen steht
-watch(() => variablenAustauschStore.searchPaketString, (newValue) => {
-  gridApi.value!.setQuickFilter(newValue);
+const showSuche = ref(false)
+
+function toggleSuche() {
+  showSuche.value = !showSuche.value
+}
+
+watch(() => variablenAustauschStore.searching, (newValue) => {
+  //gridApi.value!.setQuickFilter(newValue);
   for (let paket of paketeStore.paketeAsMap.values()) {
     const paketStringIndexed: { [index: string]: any } = paket
     /*for (const key in paketStringIndexed) {
@@ -160,7 +176,8 @@ provide("movePaketRightUp", movePaketRightUp);
 provide("movePaketRightDown", movePaketRightDown);
 provide("movePaketLeftDown", movePaketLeftDown);
 provide("movePaketLeftUp", movePaketLeftUp);
-const providedFunctions = ref([
+provide("toggleSuche",toggleSuche);
+const providedFunctionsContextMenu = ref([
   {functionName: 'addNewPaket', functionLabel: "Neues Arbeitspaket anlegen"},
   {functionName: 'addNewKindPaket', functionLabel: "Neues Arbeitspaket als Kind anlegen"},
   {functionName: 'deletePaket', functionLabel: "Paket löschen"},
@@ -172,6 +189,7 @@ const providedFunctions = ref([
   {functionName: 'movePaketLeftDown', functionLabel: "Pfeil runter links", icon: "mdi-arrow-bottom-left"},
   {functionName: 'movePaketLeftUp', functionLabel: "Pfeil hoch links", icon: "mdi-arrow-left-up"},
 ])
+const providedFunctionsSuche = ref([{functionName: ''}])
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 
 function rightClickOnCell(e: any) {
@@ -348,8 +366,8 @@ function onCellKeyPress(e: any) {
             if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
               if (colKey === 'schaetzung') {
                 const oldValue = e.data.schaetzung;
-                e.data.schaetzung=null
-                paketeStore.updateSchaetzung(e.data, oldValue)
+                e.data.schaetzung = null
+                paketeStore.updateParentsAfterSchaetzungUpdated(e.data, oldValue)
               } else if (colKey === 'bucket') {
                 usePaketeStore().updateBucket(e.data, null)
               } else e.data[colKey] = null
@@ -416,3 +434,14 @@ function startEditingCell(e: any, colKey: string) {
 }
 
 </script>
+
+<style scoped>
+.searchfield {
+  width: 200px;
+  height: 20px;
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  z-index: 2000;
+}
+</style>
