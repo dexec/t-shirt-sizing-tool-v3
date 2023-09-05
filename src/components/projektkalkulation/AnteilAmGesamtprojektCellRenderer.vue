@@ -1,7 +1,7 @@
 <template>
-  <div v-if="params.data instanceof Zwischensumme">
+  <div v-if="props.params.data instanceof Zwischensumme">
     <div
-      v-if="params.data.bezeichnung==='STARTSUMME' || params.data.bezeichnung==='ENDSUMME'">
+        v-if="props.params.data.bezeichnung==='STARTSUMME' || props.params.data.bezeichnung==='ENDSUMME'">
       <p></p>
     </div>
     <div v-else><p class="text-caption pt-2">{{ anteilGesamtprojekt }}%</p>
@@ -12,23 +12,13 @@
   </div>
 </template>
 
-<script>
-import { Zwischensumme } from "@/Zwischensumme";
+<script lang="ts" setup>
+import {Zwischensumme} from "@/Zwischensumme";
+import {computed} from "vue";
+import {useProjektStore} from "@/stores/projekt";
 
-export default {
-  name: "AnteilAmGesamtprojektCellRenderer",
-  computed: {
-    Zwischensumme() {
-      return Zwischensumme;
-    },
-    anteilGesamtprojekt() {
-      return this.params.data.anteilGesamtprojekt;
-    }
-  },
-  setup(props) {
-    return {
-      params: props.params
-    };
-  }
-};
+const projectStore = useProjektStore();
+const props = defineProps(['params']);
+const anteilGesamtprojekt = computed(() => props.params.data.anteilGesamtprojekt.toFixed(projectStore.nachkommastellen));
+
 </script>

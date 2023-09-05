@@ -1,36 +1,28 @@
 <template>
-  <div v-if="params.data instanceof Zwischensumme">
+  <div v-if="props.params.data instanceof Zwischensumme">
     <div
-        v-if="vorigerAbschnittAufschlag === null || vorigerAbschnittAufschlag === '' || vorigerAbschnittAufschlag=== 'undefined' || params.data.bezeichnung==='STARTSUMME' || params.data.bezeichnung==='ENDSUMME'">
+        v-if="vorigerAbschnittAufschlag === null || vorigerAbschnittAufschlag === '' || vorigerAbschnittAufschlag=== 'undefined' || props.params.data.bezeichnung==='STARTSUMME' || props.params.data.bezeichnung==='ENDSUMME'">
       <p></p>
     </div>
     <div v-else>
-      <p class="text-caption pt-2">{{ params.data.vorigerAbschnittAufschlag }}%</p>
+      <p class="text-caption pt-2">{{ vorigerAbschnittAufschlag }}%</p>
       <p></p>
     </div>
   </div>
   <div v-else>{{ aufschlagWert }}%</div>
 </template>
-<script>
+<script lang="ts" setup>
 import {Zwischensumme} from "@/Zwischensumme";
+import {computed} from "vue";
+import {useProjektStore} from "@/stores/projekt";
 
-export default {
-  name: "AufschlagCellRenderer",
-  computed: {
-    Zwischensumme() {
-      return Zwischensumme;
-    },
-    aufschlagWert() {
-      return this.params.data.aufschlagWert
-    },
-    vorigerAbschnittAufschlag() {
-      return this.params.data.vorigerAbschnittAufschlag;
-    }
-  },
-  setup(props) {
-    return {
-      params: props.params
-    };
-  }
-};
+const projectStore = useProjektStore();
+const props = defineProps(['params']);
+const aufschlagWert = computed(() => {
+  if (props.params.data.isAufschlagBase)
+    return props.params.data.aufschlagWert
+  else return props.params.data.aufschlagWert.toFixed(projectStore.nachkommastellen)
+});
+const vorigerAbschnittAufschlag = computed(() => props.params.data.vorigerAbschnittAufschlag.toFixed(projectStore.nachkommastellen));
+
 </script>

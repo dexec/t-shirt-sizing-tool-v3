@@ -1,6 +1,6 @@
 <template>
-  <div v-if="params.data instanceof Zwischensumme">
-    <div v-if="params.data.bezeichnung==='STARTSUMME' || params.data.bezeichnung==='ENDSUMME'">
+  <div v-if="props.params.data instanceof Zwischensumme">
+    <div v-if="props.params.data.bezeichnung==='STARTSUMME' || props.params.data.bezeichnung==='ENDSUMME'">
       <p class="font-weight-bold">{{ zwischensummeAufwand }}</p>
     </div>
     <div v-else>
@@ -10,29 +10,19 @@
   </div>
   <div v-else>{{ aufwandWert }}</div>
 </template>
-<script>
-import { Zwischensumme } from "@/Zwischensumme";
+<script lang="ts" setup>
+import {Zwischensumme} from "@/Zwischensumme";
+import {computed} from "vue";
+import {useProjektStore} from "@/stores/projekt";
 
-export default {
-  name: "AufwandCellRenderer",
-  computed: {
-    Zwischensumme() {
-      return Zwischensumme;
-    },
-    aufwandWert() {
-      return this.params.data.aufwandWert
-    },
-    vorigerAbschnittAufwand() {
-      return this.params.data.vorigerAbschnittAufwand
-    },
-    zwischensummeAufwand() {
-      return this.params.data.zwischensummeAufwand
-    }
-  },
-  setup(props) {
-    return {
-      params: props.params
-    };
-  }
-};
+const projectStore = useProjektStore();
+const props = defineProps(['params']);
+
+const aufwandWert = computed(() => {
+      if (props.params.data.isAufschlagBase)
+        return props.params.data.aufwandWert.toFixed(projectStore.nachkommastellen)
+      else return props.params.data.aufwandWert
+    });
+const vorigerAbschnittAufwand = computed(() => props.params.data.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen));
+const zwischensummeAufwand = computed(() => props.params.data.zwischensummeAufwand.toFixed(projectStore.nachkommastellen));
 </script>
