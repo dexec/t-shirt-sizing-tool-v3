@@ -207,7 +207,7 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
     }
     default : {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
-      erklaerungsText.value = "Der Aufschlag errechnet sich durch das Dividieren des Aufwands durch den Aufschlag.";
+      erklaerungsText.value = "Der Aufschlag errechnet sich durch das Dividieren des Aufwands durch die letzte Zwischensumme.";
       erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.aufwandWert + " / " + aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand + " = " + aktuellerEintrag.aufschlagWert + "%";
       break;
     }
@@ -536,8 +536,6 @@ function onCellKeyPress(e: any) {
                 eintraegeStore.updateAufwand(e.rowIndex, 0);
               } else if (colKey == ColumnET.AUFSCHLAG) {
                 eintraegeStore.updateAufschlag(e.rowIndex, 0);
-              } else if (colKey == ColumnET.BEZEICHNUNG) {
-                eintraegeStore.updateBezeichnung(e.rowIndex, "");
               }
               refreshTable(colKey, e.rowIndex);
             }
