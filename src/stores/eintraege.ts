@@ -16,7 +16,7 @@ export const useEintraegeStore = defineStore("eintraege", () => {
       //Startsumme ist Ergebnis der Bucketübersicht
       const startsumme = eintraege.value[0] as Zwischensumme;
       const bucketsDurchschnittSumme = statistikenStore.summeAlleBucketsDurchschnittSumme();
-      if(bucketsDurchschnittSumme != null) startsumme.zwischensummeAufwand =  parseFloat(bucketsDurchschnittSumme.toFixed(projectStore.nachkommastellen))
+      if(bucketsDurchschnittSumme != null) startsumme.zwischensummeAufwand =  bucketsDurchschnittSumme
       else startsumme.zwischensummeAufwand = 0
       const endsumme = eintraege.value[eintraege.value.length - 1] as Zwischensumme;
       let zwischensumme = startsumme;
@@ -33,18 +33,25 @@ export const useEintraegeStore = defineStore("eintraege", () => {
           const aktuellerEintrag = eintraege.value[i] as Eintrag;
           aktuellerEintrag.referenzierteZwischensumme = zwischensumme;
           if (aktuellerEintrag.isAufschlagBase) {
-            aktuellerEintrag.aufwandWert = parseFloat((aktuellerEintrag.aufschlagWert * aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand / 100).toFixed(projectStore.nachkommastellen));
+            aktuellerEintrag.aufwandWert = aktuellerEintrag.aufschlagWert * aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand / 100
+            //aktuellerEintrag.aufwandWert = parseFloat((aktuellerEintrag.aufschlagWert * aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand / 100).toFixed(projectStore.nachkommastellen));
           } else {
-            if (aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand == 0) aktuellerEintrag.aufschlagWert = 0;
-            else aktuellerEintrag.aufschlagWert = parseFloat((aktuellerEintrag.aufwandWert / aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand * 100).toFixed(projectStore.nachkommastellen));
+            if (aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand == 0) aktuellerEintrag.aufschlagWert = parseFloat(Number(0).toFixed(projectStore.nachkommastellen));
+            else {
+              //aktuellerEintrag.aufschlagWert = parseFloat((aktuellerEintrag.aufwandWert / aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand * 100).toFixed(projectStore.nachkommastellen));
+              aktuellerEintrag.aufschlagWert = aktuellerEintrag.aufwandWert / aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand * 100
+            }
           }
           vorigerAbschnittAufwand += aktuellerEintrag.aufwandWert;
           vorigerAbschnittAufschlag += aktuellerEintrag.aufschlagWert;
         } else {
           const aktuelleZwischensumme = eintraege.value[i] as Zwischensumme;
-          aktuelleZwischensumme.vorigerAbschnittAufwand = parseFloat(vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen));
-          aktuelleZwischensumme.vorigerAbschnittAufschlag = parseFloat(vorigerAbschnittAufschlag.toFixed(projectStore.nachkommastellen));
-          aktuelleZwischensumme.zwischensummeAufwand = parseFloat((zwischensumme.zwischensummeAufwand + aktuelleZwischensumme.vorigerAbschnittAufwand).toFixed(projectStore.nachkommastellen));
+          console.log("vorigerabschnitt aufwand " + vorigerAbschnittAufwand)
+          console.log("voriger abschnitt aufschlag " + vorigerAbschnittAufschlag)
+          console.log("zwischensumme " + zwischensumme.zwischensummeAufwand)
+          aktuelleZwischensumme.vorigerAbschnittAufwand = vorigerAbschnittAufwand
+          aktuelleZwischensumme.vorigerAbschnittAufschlag =vorigerAbschnittAufschlag
+          aktuelleZwischensumme.zwischensummeAufwand = zwischensumme.zwischensummeAufwand + aktuelleZwischensumme.vorigerAbschnittAufwand;
           zwischensumme = aktuelleZwischensumme;
           vorigerAbschnittAufwand = 0;
           vorigerAbschnittAufschlag = 0;
@@ -66,32 +73,24 @@ export const useEintraegeStore = defineStore("eintraege", () => {
           else aktuelleZwischensumme.anteilGesamtprojekt = parseFloat((aktuelleZwischensumme.vorigerAbschnittAufwand / endsumme.zwischensummeAufwand * 100).toFixed(projectStore.nachkommastellen));
         }
       }
-
-    }
-
-    function updateBezeichnung(rowDataIndex: number, newBezeichnung: string) {
-      const eintrag = eintraege.value[rowDataIndex] as Eintrag;
-      if (eintrag) {
-        eintrag.bezeichnung = newBezeichnung;
-      }
     }
 
     function updateAufschlag(rowDataIndex: number, newAufschlag: number) {
       const projectStore = useProjektStore();
       const eintrag = eintraege.value[rowDataIndex] as Eintrag;
       if (eintrag) {
-        eintrag.aufschlagWert = parseFloat(newAufschlag.toFixed(projectStore.nachkommastellen));
+        eintrag.aufschlagWert = newAufschlag;
         eintrag.aufwandWert = parseFloat((eintrag.aufschlagWert * eintrag.referenzierteZwischensumme.zwischensummeAufwand / 100).toFixed(projectStore.nachkommastellen));
         eintrag.isAufschlagBase = true;
         berechne();
       }
     }
 
-    function updateAufwand(rowDataIndex: number, newAufschlag: number) {
+    function updateAufwand(rowDataIndex: number, newAufwand: number) {
       const projectStore = useProjektStore();
       const eintrag = eintraege.value[rowDataIndex] as Eintrag;
       if (eintrag) {
-        eintrag.aufwandWert = parseFloat(newAufschlag.toFixed(projectStore.nachkommastellen));
+        eintrag.aufwandWert = newAufwand;
         eintrag.aufschlagWert = parseFloat((eintrag.aufwandWert / eintrag.referenzierteZwischensumme.zwischensummeAufwand * 100).toFixed(projectStore.nachkommastellen));
         eintrag.isAufschlagBase = false;
         berechne();
@@ -151,7 +150,6 @@ export const useEintraegeStore = defineStore("eintraege", () => {
     return {
       eintraege,
       berechne,
-      updateBezeichnung,
       updateAufschlag,
       updateAufwand,
       addNewAufschlag,
