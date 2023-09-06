@@ -5,7 +5,7 @@
       <v-btn @click="log()"></v-btn>
     </div>
 
-    <button @click="createBlurredDiv">Create Blurred Div</button>
+    <button class="clickable-element" @click="createBlurredDiv">Create Blurred Div</button>
 
     <!-- Render the blurred div when the blurredDivVisible is true -->
     <div v-if="blurredDivVisible" class="blurred-div d-flex flex-column justify-center">
@@ -34,6 +34,7 @@ function log() {
 </script>
 
 <style>
+@import "@/styles/hoveLink.css";
 .original-div {
   /* Your styles for the original div */
   width: 300px;
