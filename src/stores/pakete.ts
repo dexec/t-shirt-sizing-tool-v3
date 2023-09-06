@@ -47,7 +47,7 @@ export const usePaketeStore = defineStore("pakete", () => {
   function applyFilterOnPaket(paket: Paket, filterString: string): boolean {
     const paketStringIndexed: { [index: string]: any } = paket;
     for (const key in paketStringIndexed) {
-      if (typeof paketStringIndexed[key] === "string" && paketStringIndexed[key].includes(filterString)) {
+      if (typeof paketStringIndexed[key] === "string" && paketStringIndexed[key].toLowerCase().includes(filterString.toLowerCase())) {
         return true;
       }
     }
@@ -151,7 +151,18 @@ export const usePaketeStore = defineStore("pakete", () => {
 
     }
   }
-
+  function showPaket(paket: Paket) {
+    let parentOfPaket = paket.parent;
+    const parents:Paket[]=[]
+    while(parentOfPaket) {
+      if(!parentOfPaket.open) parents.unshift(parentOfPaket);
+      parentOfPaket = parentOfPaket.parent;
+    }
+    for(const paketOfParents of parents) {
+      paketOfParents.open = true;
+      updateTreeViewAfterChangedOpenState(paketOfParents);
+    }
+  }
   function deletePaket(id: number) {
     const paketToDelete = paketeAsMap.value.get(id) as Paket;
     const stack = [paketToDelete];
@@ -516,6 +527,8 @@ export const usePaketeStore = defineStore("pakete", () => {
     paketeChildren,
     paketeChildrenWithNoBucket,
     filteredPaketeAsTreeView,
+    applyFilterOnPaket,
+    showPaket,
     paketeOfBucket,
     parentsOfPaket,
     rootParentOfPaket,
