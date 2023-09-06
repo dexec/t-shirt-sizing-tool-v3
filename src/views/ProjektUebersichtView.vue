@@ -81,7 +81,6 @@ import {useProjektStore} from "@/stores/projekt";
 import {ref} from "vue";
 import type {Bucket} from "@/Bucket";
 import {ExportProject} from "@/components/ExportProject";
-import { RundungsartET } from "@/enums/RundungsartET";
 const newBucketName = ref('')
 const currentSelectedBucket = ref(-1)
 const currentEditBucket = ref(-1)
