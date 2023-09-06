@@ -1,17 +1,13 @@
 <template>
-  <!--  <v-autocomplete v-model="searchedPaket" :items="this.paketeChildren" item-title="ticket_nr" item-value="id"
-                    label="Paket suchen" style="position: absolute;left:100px;top:200px; width: 200px"
-                    @blur="this.searchedPaket=null"></v-autocomplete>-->
-  <!--  <context-menu :provided-functions-prop="[...this.providedFunctionsContextMenu]"></context-menu>-->
   <v-container>
     <v-row class="mb-6">
       <v-col class="d-flex flex-nowrap justify-center">
-        <v-btn class="bucketsButton" @click="showPaketeWithoutBucket=!showPaketeWithoutBucket"><span
+        <v-btn class="clickable-element bucketsButton" @click="showPaketeWithoutBucket=!showPaketeWithoutBucket"><span
             class="bucketsButtonText">Toggle
           Arbeitspakete</span></v-btn>
         <v-dialog v-model="dialog" width="auto">
           <template v-slot:activator="{props}">
-            <v-btn class="mx-6 bucketsButton" v-bind="props">
+            <v-btn class="mx-6 bucketsButton clickable-element" v-bind="props">
               <span class="bucketsButtonText">Buckets konfigurieren</span>
             </v-btn>
           </template>
@@ -253,6 +249,7 @@ function onEndDrag(e: any) {
 .bucketsButtonText {
   text-align: center;
   white-space: pre-wrap;
+  color: white
 }
 
 .paket {
