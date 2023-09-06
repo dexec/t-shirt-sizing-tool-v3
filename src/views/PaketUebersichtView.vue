@@ -18,9 +18,9 @@
         @grid-ready='onGridReady'>
     </ag-grid-vue>
   </div>
-  <v-text-field bg-color="white" class="searchfield" label="Pakete filtern"
+  <v-text-field bg-color="white" readonly class="searchfield" label="" placeholder="Paket suchen"
                 @click="toggleSuche()"></v-text-field>
-  <SuchComponent v-if="showSuche"></SuchComponent>
+  <SuchComponent style="height: 100%" v-if="showSuche" :providedFunctionsProp="[...providedFunctionsSuche]"></SuchComponent>
   <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctionsContextMenu]"></context-menu>
 </template>
 <script lang="ts" setup>
@@ -30,7 +30,7 @@ import {AgGridVue} from 'ag-grid-vue3';
 import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue';
 
 import {usePaketeStore} from '@/stores/pakete';
-import {nextTick, provide, reactive, ref, watch} from 'vue';
+import {nextTick, provide, reactive, ref} from 'vue';
 import {useBucketsStore} from "@/stores/buckets";
 import {useRouter} from "vue-router";
 import ContextMenu from "@/components/ContextMenu.vue";
@@ -39,6 +39,7 @@ import {Column, ColumnApi, GridApi} from "ag-grid-community";
 import type {Bucket} from "@/Bucket";
 import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
 import SuchComponent from "@/components/SuchComponent.vue";
+import type { Paket } from "@/Paket";
 
 const projectStore = useProjektStore();
 const gridApi = ref<GridApi>();
@@ -145,12 +146,16 @@ const columnDefs = ref([
     editable: false
   }
 ])
-const variablenAustauschStore = useVariablenAustauschStore();
-//TODO Die Suche so umsetzen, dass das gesuchte Ziel mit seinen Elternelementen steht
 const showSuche = ref(false)
 
 function toggleSuche() {
   showSuche.value = !showSuche.value
+}
+
+function showSearchedPaket(paket: Paket) {
+  showSuche.value=false;
+  paketeStore.showPaket(paket)
+  refreshTable(columnApi.value!.getColumns()![0].getColId(), paket.id);
 }
 
 /*watch(() => variablenAustauschStore.searching, (newValue) => {
@@ -177,6 +182,7 @@ provide("movePaketRightDown", movePaketRightDown);
 provide("movePaketLeftDown", movePaketLeftDown);
 provide("movePaketLeftUp", movePaketLeftUp);
 provide("toggleSuche",toggleSuche);
+provide("showSearchedPaket",showSearchedPaket);
 const providedFunctionsContextMenu = ref([
   {functionName: 'addNewPaket', functionLabel: "Neues Arbeitspaket anlegen"},
   {functionName: 'addNewKindPaket', functionLabel: "Neues Arbeitspaket als Kind anlegen"},
@@ -189,9 +195,8 @@ const providedFunctionsContextMenu = ref([
   {functionName: 'movePaketLeftDown', functionLabel: "Pfeil runter links", icon: "mdi-arrow-bottom-left"},
   {functionName: 'movePaketLeftUp', functionLabel: "Pfeil hoch links", icon: "mdi-arrow-left-up"},
 ])
-const providedFunctionsSuche = ref([{functionName: ''}])
+const providedFunctionsSuche = ref([{functionName: 'toggleSuche'},{functionName: 'showSearchedPaket'}])
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
-
 function rightClickOnCell(e: any) {
   contextMenuRef.value!.showMenu(e);
   if (gridApi.value!.getFocusedCell()!) {
