@@ -1,0 +1,13 @@
+.clickable-element {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.clickable-element:hover {
+    background-color: #2980b9;
+    transform: scale(1.05);
+}
