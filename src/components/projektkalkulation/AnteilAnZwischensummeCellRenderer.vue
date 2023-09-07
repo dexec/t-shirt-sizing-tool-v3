@@ -14,7 +14,7 @@
 
 <script lang="ts" setup>
 import {useProjektStore} from "@/stores/projekt";
-import {Zwischensumme} from "@/Zwischensumme";
+import {Zwischensumme} from "@/models/Zwischensumme";
 import {computed} from "vue";
 
 const projectStore = useProjektStore();

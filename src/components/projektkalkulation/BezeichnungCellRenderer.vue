@@ -9,7 +9,7 @@
   <div v-else>{{ params.value }}</div>
 </template>
 <script>
-import { Zwischensumme } from "@/Zwischensumme";
+import { Zwischensumme } from "@/models/Zwischensumme";
 
 export default {
   name: "BezeichnungCellRenderer",

@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import {Zwischensumme} from "@/Zwischensumme";
+import {Zwischensumme} from "@/models/Zwischensumme";
 import {computed} from "vue";
 import {useProjektStore} from "@/stores/projekt";
 
