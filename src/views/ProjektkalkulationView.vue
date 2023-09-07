@@ -2,18 +2,18 @@
 
   <div class="d-flex flex-row" style="width: 100%;height: 100%">
     <ag-grid-vue
-      :columnDefs="columnDefs"
-      :defaultColDef="defaultColDef"
-      :rowData="rowData"
-      class="ag-theme-alpine"
-      rowSelection="single"
-      style="width: 65%;height: 100%"
-      @contextmenu="rightClickOnCell"
-      @cell-value-changed="onCellValueChanged"
-      @cell-clicked="onCellClicked"
-      @cell-key-down="onCellKeyPress"
-      @cell-double-clicked="onCellDoubleClicked"
-      @grid-ready="onGridReady"
+        :columnDefs="columnDefs"
+        :defaultColDef="defaultColDef"
+        :rowData="rowData"
+        class="ag-theme-alpine"
+        rowSelection="single"
+        style="width: 65%;height: 100%"
+        @contextmenu="rightClickOnCell"
+        @cell-value-changed="onCellValueChanged"
+        @cell-clicked="onCellClicked"
+        @cell-key-down="onCellKeyPress"
+        @cell-double-clicked="onCellDoubleClicked"
+        @grid-ready="onGridReady"
     ></ag-grid-vue>
     <div style="width:35%; border: 1px solid black">
       <div>{{ erklaerungsText }}</div>
@@ -30,15 +30,16 @@ import AufschlagCellRenderer from "@/components/projektkalkulation/AufschlagCell
 import AufwandCellRenderer from "@/components/projektkalkulation/AufwandCellRenderer.vue";
 import AnteilAnZwischensummeCellRenderer from "@/components/projektkalkulation/AnteilAnZwischensummeCellRenderer.vue";
 import AnteilAmGesamtprojektCellRenderer from "@/components/projektkalkulation/AnteilAmGesamtprojektCellRenderer.vue";
-import { AgGridVue } from "ag-grid-vue3";
-import { nextTick, provide, reactive, ref } from "vue";
-import { Column, ColumnApi, GridApi } from "ag-grid-community";
-import { useEintraegeStore } from "@/stores/eintraege";
+import {AgGridVue} from "ag-grid-vue3";
+import {nextTick, provide, reactive, ref} from "vue";
+import {Column, ColumnApi, GridApi} from "ag-grid-community";
+import {useEintraegeStore} from "@/stores/eintraege";
 import ContextMenu from "@/components/ContextMenu.vue";
-import { Eintrag } from "@/Eintrag";
-import { Zwischensumme } from "@/Zwischensumme";
-import { SummeET } from "@/enums/SummeET";
-import { ColumnET } from "@/enums/ColumnET";
+import {Eintrag} from "@/models/Eintrag";
+import {Zwischensumme} from "@/models/Zwischensumme";
+import {SummeET} from "@/enums/SummeET";
+import {ColumnET} from "@/enums/ColumnET";
+import {useProjektStore} from "@/stores/projekt";
 
 provide("eintragErstellen", eintragErstellen);
 provide("eintragEntfernen", eintragEntfernen);
@@ -46,11 +47,11 @@ provide("zwischensummeErstellen", zwischensummeErstellen);
 provide("moveZeileUp", moveZeileUp);
 provide("moveZeileDown", moveZeileDown);
 const providedFunctions = ref([
-  { functionName: "eintragErstellen", functionLabel: "Neuen Eintrag erstellen" },
-  { functionName: "eintragEntfernen", functionLabel: "Eintrag entfernen" },
-  { functionName: "zwischensummeErstellen", functionLabel: "Neue Zwischensumme erstellen" },
-  { functionName: "moveZeileUp", functionLabel: "Eintrag eine Zeile nach oben verschieben", icon: "mdi-arrow-up" },
-  { functionName: "moveZeileDown", functionLabel: "Eintrag eine Zeile nach unten verschieben", icon: "mdi-arrow-down" }
+  {functionName: "eintragErstellen", functionLabel: "Neuen Eintrag erstellen"},
+  {functionName: "eintragEntfernen", functionLabel: "Eintrag entfernen"},
+  {functionName: "zwischensummeErstellen", functionLabel: "Neue Zwischensumme erstellen"},
+  {functionName: "moveZeileUp", functionLabel: "Eintrag eine Zeile nach oben verschieben", icon: "mdi-arrow-up"},
+  {functionName: "moveZeileDown", functionLabel: "Eintrag eine Zeile nach unten verschieben", icon: "mdi-arrow-down"}
 ]);
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 
@@ -89,7 +90,7 @@ const columnDefs = ref([
     valueSetter: (params: any) => {
       if (!isNaN(params.newValue)) eintraegeStore.updateAufschlag(params.node.rowIndex, +params.newValue);
       else params.data.aufschlagWert = params.oldValue;
-      gridApi.value!.refreshCells({ force: true });
+      gridApi.value!.refreshCells({force: true});
     },
     editable: false
   },
@@ -101,7 +102,7 @@ const columnDefs = ref([
     valueSetter: (params: any) => {
       if (!isNaN(params.newValue)) eintraegeStore.updateAufwand(params.node.rowIndex, +params.newValue);
       else params.data.aufwandWert = params.oldValue;
-      gridApi.value!.refreshCells({ force: true });
+      gridApi.value!.refreshCells({force: true});
     },
     editable: false
   },
@@ -120,13 +121,14 @@ const columnDefs = ref([
     editable: false
   }]);
 const defaultColDef = reactive(
-  {
-    suppressKeyboardEvent: (params: any) => {
-      let key = params.event.key;
-      return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key);
+    {
+      suppressKeyboardEvent: (params: any) => {
+        let key = params.event.key;
+        return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key);
+      }
     }
-  }
 );
+const projectStore = useProjektStore();
 const eintraegeStore = useEintraegeStore();
 eintraegeStore.berechne();
 const rowData = eintraegeStore.eintraege;
@@ -177,10 +179,10 @@ function erklaerungenErstellen(column: string, rowIndex: number) {
       break;
     }
     case ColumnET.ZWISCHENSUMME:
-      erklaereZwischensumme(bezeichnung, rowIndex);
+      erklaereAnteilAnZwischensumme(bezeichnung, rowIndex);
       break;
     case ColumnET.GESAMTPROJEKT:
-      erklaereGesamtprojekt(bezeichnung, rowIndex);
+      erklaereAnteilAnGesamtprojekt(bezeichnung, rowIndex);
       break;
   }
 }
@@ -197,18 +199,38 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
       for (let i = rowIndex - 1; ![SummeET.STARTSUMME as string, SummeET.ZWISCHENSUMME as string].includes(rowData[i].bezeichnung); i--) {
         vorigerAbschnittEintraege.push(rowData[i] as Eintrag);
       }
-      erklaerungsText.value = "Der Aufschlag der Zwischensumme ist die SummeET aller Aufschläge des vorigen Abschnitts.";
+      erklaerungsText.value = "Der Aufschlag der Zwischensumme ist die Summe aller Aufschläge des vorigen Abschnitts.";
       for (let i = vorigerAbschnittEintraege.length - 1; i >= 1; i--) {
-        erklaerungsRechnung.value += vorigerAbschnittEintraege[i].aufschlagWert + "% + ";
+        let aufschlag;
+        if(vorigerAbschnittEintraege[i].isAufschlagBase) {
+          aufschlag = vorigerAbschnittEintraege[i].aufschlagWert
+        }
+        else aufschlag =  vorigerAbschnittEintraege[i].aufschlagWert.toFixed(projectStore.nachkommastellen)
+        erklaerungsRechnung.value += aufschlag + "% + ";
       }
-      erklaerungsRechnung.value += vorigerAbschnittEintraege[0].aufschlagWert + "%";
-      erklaerungsRechnung.value = "Das ergibt " + erklaerungsRechnung.value + " = " + aktuellerEintrag.vorigerAbschnittAufschlag + "%";
+      let startaufschlag;
+      if(vorigerAbschnittEintraege[0].isAufschlagBase) {
+        startaufschlag = vorigerAbschnittEintraege[0].aufschlagWert;
+      }
+      else startaufschlag = vorigerAbschnittEintraege[0].aufschlagWert.toFixed(projectStore.nachkommastellen)
+      erklaerungsRechnung.value += startaufschlag + "%";
+      erklaerungsRechnung.value = "Das ergibt " + erklaerungsRechnung.value + " = " + aktuellerEintrag.vorigerAbschnittAufschlag.toFixed(projectStore.nachkommastellen) + "%";
       break;
     }
     default : {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
       erklaerungsText.value = "Der Aufschlag errechnet sich durch das Dividieren des Aufwands durch die letzte Zwischensumme.";
-      erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.aufwandWert + " / " + aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand + " = " + aktuellerEintrag.aufschlagWert + "%";
+      let aufwand;
+      let aufschlag;
+      const zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen);
+      if(aktuellerEintrag.isAufschlagBase) {
+        aufwand = aktuellerEintrag.aufwandWert.toFixed(projectStore.nachkommastellen);
+        aufschlag = aktuellerEintrag.aufschlagWert
+      }
+      else {aufwand = aktuellerEintrag.aufwandWert;
+        aufschlag =  aktuellerEintrag.aufschlagWert.toFixed(projectStore.nachkommastellen)
+      }
+      erklaerungsRechnung.value = `Das ergibt ${aufwand} / ${zwischensumme} = ${aufschlag}%`
       break;
     }
   }
@@ -217,8 +239,8 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
 function erklaereAufwand(bezeichnung: string, rowIndex: number) {
   switch (bezeichnung) {
     case SummeET.STARTSUMME: {
-      erklaerungsText.value = "Das ist die Startsumme, die sich aus der durschnittlichen SummeET aller Pakete ergibt.";
-      erklaerungsRechnung.value = "Das ergibt hier " + (rowData[0] as Zwischensumme).zwischensummeAufwand;
+      erklaerungsText.value = "Das ist die Startsumme, die sich aus der durschnittlichen Summe aller Pakete ergibt.";
+      erklaerungsRechnung.value = "Das ergibt hier " + (rowData[0] as Zwischensumme).zwischensummeAufwand.toFixed(projectStore.nachkommastellen);
       break;
     }
     case SummeET.ZWISCHENSUMME: {
@@ -228,13 +250,23 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
         vorigerAbschnittEintraege.push(rowData[i] as Eintrag);
       }
       erklaerungsText.value = "Der Aufwand der Zwischensumme ist zweigeteilt. Der obere Wert ergibt sich aus der SummeET aller Aufwände des vorigen Abschnitts. ";
-      erklaerungsTextZusatz.value = "Der untere Wert ergibt sich aus der SummeET des oberen Wertes und der Startsumme.";
+      erklaerungsTextZusatz.value = "Der untere Wert ergibt sich aus der Summe des oberen Wertes und der Startsumme.";
       for (let i = vorigerAbschnittEintraege.length - 1; i >= 1; i--) {
-        erklaerungsRechnung.value += vorigerAbschnittEintraege[i].aufwandWert + " + ";
+        let aufwand;
+        if(vorigerAbschnittEintraege[i].isAufschlagBase) {
+          aufwand = vorigerAbschnittEintraege[i].aufwandWert.toFixed(projectStore.nachkommastellen)
+        }
+        else aufwand = vorigerAbschnittEintraege[i].aufwandWert;
+        erklaerungsRechnung.value += aufwand + " + ";
       }
-      erklaerungsRechnung.value += vorigerAbschnittEintraege[0].aufwandWert;
-      erklaerungsRechnung.value = "Das ergibt für den oberen Wert " + erklaerungsRechnung.value + " = " + aktuellerEintrag.vorigerAbschnittAufwand;
-      erklaerungsRechnungZusatz.value = "Für den unteren Wert ergibt das " + aktuellerEintrag.vorigerAbschnittAufwand + " + " + vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand + " = " + aktuellerEintrag.zwischensummeAufwand;
+      let startaufwand;
+      if(vorigerAbschnittEintraege[0].isAufschlagBase) {
+        startaufwand = vorigerAbschnittEintraege[0].aufwandWert;
+      }
+      else startaufwand = vorigerAbschnittEintraege[0].aufwandWert.toFixed(projectStore.nachkommastellen)
+      erklaerungsRechnung.value += startaufwand;
+      erklaerungsRechnung.value = "Das ergibt für den oberen Wert " + erklaerungsRechnung.value + " = " + aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen);
+      erklaerungsRechnungZusatz.value = "Für den unteren Wert ergibt das " + aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen) + " + " + startaufwand + " = " + aktuellerEintrag.zwischensummeAufwand.toFixed(projectStore.nachkommastellen);
       break;
     }
     case SummeET.ENDSUMME: {
@@ -247,22 +279,32 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
       }
       erklaerungsRechnung.value += gridApi.value!.getRowNode("0")!.data.zwischensummeAufwand;
       for (let i = alleEintraege.length - 1; i >= 0; i--) {
-        erklaerungsRechnung.value += " + " + alleEintraege[i];
+        erklaerungsRechnung.value += " + " + alleEintraege[i].toFixed(projectStore.nachkommastellen);
       }
-      erklaerungsText.value = "Die Endsumme ergibt sich aus der SummeET aller voriger Aufwände und der Startsumme.";
-      erklaerungsRechnung.value = "Das ergibt " + erklaerungsRechnung.value + " = " + endsumme.zwischensummeAufwand;
+      erklaerungsText.value = "Die Endsumme ergibt sich aus der Summe aller voriger Aufwände und der Startsumme.";
+      erklaerungsRechnung.value = "Das ergibt " + erklaerungsRechnung.value + " = " + endsumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen);
       break;
     }
     default : {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
+      const zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)
       erklaerungsText.value = "Der Aufwand errechnet sich durch das Multiplizieren des Aufschlags mit der Zwischensumme.";
-      erklaerungsRechnung.value = `Das ergibt ${aktuellerEintrag.aufschlagWert}% * ${aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand} = ${aktuellerEintrag.aufwandWert}`;
+      let aufwand;
+      let aufschlag;
+      if(aktuellerEintrag.isAufschlagBase) {
+        aufwand = aktuellerEintrag.aufwandWert.toFixed(projectStore.nachkommastellen);
+        aufschlag = aktuellerEintrag.aufschlagWert
+      }
+      else {aufwand = aktuellerEintrag.aufwandWert;
+        aufschlag =  aktuellerEintrag.aufschlagWert.toFixed(projectStore.nachkommastellen)
+      }
+      erklaerungsRechnung.value = `Das ergibt ${aufschlag}% * ${zwischensumme} = ${aufwand}`;
       break;
     }
   }
 }
 
-function erklaereZwischensumme(bezeichnung: string, rowIndex: number) {
+function erklaereAnteilAnZwischensumme(bezeichnung: string, rowIndex: number) {
   switch (bezeichnung) {
     case SummeET.STARTSUMME:
     case SummeET.ENDSUMME : {
@@ -271,7 +313,7 @@ function erklaereZwischensumme(bezeichnung: string, rowIndex: number) {
     case SummeET.ZWISCHENSUMME: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Zwischensumme;
       erklaerungsText.value = "Der Anteil an nächster Zwischensumme bedeutet hier, wie viel Aufwand in Prozent der vorige Abschnitt für die aktuelle Zwischensumme ausmacht.";
-      erklaerungsRechnung.value = "Daraus ergibt sich " + aktuellerEintrag.vorigerAbschnittAufwand + " / " + aktuellerEintrag.zwischensummeAufwand + " = " + aktuellerEintrag.anteilZwischensumme + "%";
+      erklaerungsRechnung.value = "Daraus ergibt sich " + aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen) + " / " + aktuellerEintrag.zwischensummeAufwand.toFixed(projectStore.nachkommastellen) + " = " + aktuellerEintrag.anteilZwischensumme.toFixed(projectStore.nachkommastellen) + "%";
       break;
     }
     default: {
@@ -284,12 +326,12 @@ function erklaereZwischensumme(bezeichnung: string, rowIndex: number) {
         }
       }
       erklaerungsText.value = "Der Anteil an nächster Zwischensumme zeigt, wie viel Aufwand in Prozent der aktuelle Eintrag für die nächste Zwischensumme ausmacht.";
-      erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.aufwandWert + " / " + naechsteZwischensumme + " = " + aktuellerEintrag.anteilZwischensumme + "%";
+      erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.aufwandWert.toFixed(projectStore.nachkommastellen) + " / " + naechsteZwischensumme.toFixed(projectStore.nachkommastellen) + " = " + aktuellerEintrag.anteilZwischensumme.toFixed(projectStore.nachkommastellen) + "%";
     }
   }
 }
 
-function erklaereGesamtprojekt(bezeichnung: string, rowIndex: number) {
+function erklaereAnteilAnGesamtprojekt(bezeichnung: string, rowIndex: number) {
   const endsumme = gridApi.value!.getRowNode(rowData.length - 1 + "")!.data as Zwischensumme;
   switch (bezeichnung) {
     case SummeET.STARTSUMME:
@@ -299,13 +341,13 @@ function erklaereGesamtprojekt(bezeichnung: string, rowIndex: number) {
     case SummeET.ZWISCHENSUMME: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Zwischensumme;
       erklaerungsText.value = "Der Anteil am Gesamtporjekt zeigt, wie viel Aufwand in Prozent der vorige Abschnitt für die Endsumme ausmacht.";
-      erklaerungsRechnung.value = "Daraus ergibt sich " + aktuellerEintrag.zwischensummeAufwand + " / " + endsumme.zwischensummeAufwand + " = " + aktuellerEintrag.anteilGesamtprojekt + "%";
+      erklaerungsRechnung.value = "Daraus ergibt sich " + aktuellerEintrag.zwischensummeAufwand.toFixed(projectStore.nachkommastellen) + " / " + endsumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen) + " = " + aktuellerEintrag.anteilGesamtprojekt.toFixed(projectStore.nachkommastellen) + "%";
       break;
     }
     default: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
       erklaerungsText.value = "Der Anteil am Gesamtprojekt zeit, wie viel Aufwand in Prozent der aktuelle Eintrag für das Gesamtprojekt ausmacht.";
-      erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.aufwandWert + " / " + endsumme.zwischensummeAufwand + " = " + aktuellerEintrag.anteilGesamtprojekt + "%";
+      erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.aufwandWert.toFixed(projectStore.nachkommastellen) + " / " + endsumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen) + " = " + aktuellerEintrag.anteilGesamtprojekt.toFixed(projectStore.nachkommastellen) + "%";
     }
   }
 }
@@ -334,7 +376,7 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
     case SummeET.STARTSUMME:
       if (column == ColumnET.AUFWAND) {
         columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
-          if (params.rowIndex == 0) return { "background-color": "blue", color: "white" };
+          if (params.rowIndex == 0) return {"background-color": "blue", color: "white"};
         };
       }
       break;
@@ -350,7 +392,7 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
               "background-color": "green",
               color: "white"
             };
-            if (params.rowIndex == rowData.length - 1) return { "background-color": "red", color: "white" };
+            if (params.rowIndex == rowData.length - 1) return {"background-color": "red", color: "white"};
           };
         }
       }
@@ -362,7 +404,7 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
         vorigerAbschnittEintraege.push(i);
       }
       columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == column)!.cellStyle = (params: any) => {
-        if (params.rowIndex == rowIndex) return { "background-color": "red", color: "white" };
+        if (params.rowIndex == rowIndex) return {"background-color": "red", color: "white"};
         if (vorigerAbschnittEintraege.includes(params.rowIndex)) return {
           "background-color": "green",
           color: "white"
@@ -371,7 +413,7 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
           "background-color": "blue",
           color: "white"
         };
-        return { color: "black" };
+        return {color: "black"};
       };
       break;
     }
@@ -384,16 +426,16 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
               "background-color": "blue",
               color: "white"
             };
-            if (params.rowIndex == rowIndex) return { "background-color": "red", color: "white" };
-            return { color: "black" };
+            if (params.rowIndex == rowIndex) return {"background-color": "red", color: "white"};
+            return {color: "black"};
           };
           columnDefs.value.find(column => column.field == columnNeighbor)!.cellStyle = (params: any) => {
             if (params.rowIndex == i && column == ColumnET.AUFSCHLAG) return {
               "background-color": "blue",
               color: "white"
             };
-            if (params.rowIndex == rowIndex) return { "background-color": "green", color: "white" };
-            return { color: "black" };
+            if (params.rowIndex == rowIndex) return {"background-color": "green", color: "white"};
+            return {color: "black"};
           };
           break;
         }
@@ -415,13 +457,13 @@ function colorZwischensumme(rowIndex: number) {
         vorigerAbschnittEintraege.push(i);
       }
       columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
-        if (params.rowIndex == rowIndex) return { "background-color": "blue", color: "white" };
-        if (vorigerAbschnittEintraege.includes(params.rowIndex)) return { "background-color": "green", color: "white" };
-        return { color: "black" };
+        if (params.rowIndex == rowIndex) return {"background-color": "blue", color: "white"};
+        if (vorigerAbschnittEintraege.includes(params.rowIndex)) return {"background-color": "green", color: "white"};
+        return {color: "black"};
       };
       columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.ZWISCHENSUMME)!.cellStyle = (params: any) => {
-        if (params.rowIndex == rowIndex) return { "background-color": "red", color: "white" };
-        return { color: "black" };
+        if (params.rowIndex == rowIndex) return {"background-color": "red", color: "white"};
+        return {color: "black"};
       };
       break;
     }
@@ -429,13 +471,13 @@ function colorZwischensumme(rowIndex: number) {
       for (let i = rowIndex; i < rowData.length; i++) {
         if ([SummeET.ZWISCHENSUMME as string, SummeET.ENDSUMME as string].includes(rowData[i].bezeichnung)) {
           columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
-            if (params.rowIndex == i) return { "background-color": "blue", color: "white" };
-            if (params.rowIndex == rowIndex) return { "background-color": "green", color: "white" };
-            return { color: "black" };
+            if (params.rowIndex == i) return {"background-color": "blue", color: "white"};
+            if (params.rowIndex == rowIndex) return {"background-color": "green", color: "white"};
+            return {color: "black"};
           };
           columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.ZWISCHENSUMME)!.cellStyle = (params: any) => {
-            if (params.rowIndex == rowIndex) return { "background-color": "red", color: "white" };
-            return { color: "black" };
+            if (params.rowIndex == rowIndex) return {"background-color": "red", color: "white"};
+            return {color: "black"};
           };
           break;
         }
@@ -454,24 +496,24 @@ function colorGesamtprojekt(rowIndex: number) {
     case SummeET.ZWISCHENSUMME:
     default: {
       columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
-        if (params.rowIndex == rowIndex) return { "background-color": "green", color: "white" };
-        if (params.rowIndex == rowData.length - 1) return { "background-color": "blue", color: "white" };
-        return { color: "black" };
+        if (params.rowIndex == rowIndex) return {"background-color": "green", color: "white"};
+        if (params.rowIndex == rowData.length - 1) return {"background-color": "blue", color: "white"};
+        return {color: "black"};
       };
       columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.GESAMTPROJEKT)!.cellStyle = (params: any) => {
-        if (params.rowIndex == rowIndex) return { "background-color": "red", color: "white" };
-        return { color: "black" };
+        if (params.rowIndex == rowIndex) return {"background-color": "red", color: "white"};
+        return {color: "black"};
       };
     }
   }
 }
 
 function onCellValueChanged(e: any) {
-  gridApi.value!.forEachNode(function(node) {
+  gridApi.value!.forEachNode(function (node) {
     if (node.data.bezeichnung === SummeET.ZWISCHENSUMME) node.setRowHeight(80);
   });
   gridApi.value!.onRowHeightChanged();
-  nextTick(() => colorCellsAndExplain(e.column.getColId(),e.rowIndex))
+  nextTick(() => colorCellsAndExplain(e.column.getColId(), e.rowIndex))
 }
 
 function onCellKeyPress(e: any) {
@@ -486,14 +528,14 @@ function onCellKeyPress(e: any) {
           if (e.data.bezeichnung == SummeET.STARTSUMME && (shift || ctrl)) {
             refreshTable(e.column, 1);
           } else if (shift || ctrl) {
-            moveZeileDown();
+            nextTick(() => moveZeileDown());
           } else {
             const focusedCell = gridApi.value!.getFocusedCell()!;
             const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
             if (selectedPaket) {
               selectedPaket.setSelected(true);
             }
-            colorCellsAndExplain(colKey, focusedCell.rowIndex);
+            nextTick(() => colorCellsAndExplain(colKey, focusedCell.rowIndex));
           }
           break;
         }
@@ -501,14 +543,14 @@ function onCellKeyPress(e: any) {
           if (e.data.bezeichnung == SummeET.ENDSUMME && (shift || ctrl)) {
             refreshTable(e.column, rowData.length - 2);
           } else if (shift || ctrl) {
-            moveZeileUp();
+            nextTick(() => moveZeileUp());
           } else {
             const focusedCell = gridApi.value!.getFocusedCell()!;
             const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
             if (selectedPaket) {
               selectedPaket.setSelected(true);
             }
-            colorCellsAndExplain(colKey, focusedCell.rowIndex);
+            nextTick(() => colorCellsAndExplain(colKey, focusedCell.rowIndex));
           }
           break;
         }
@@ -519,17 +561,17 @@ function onCellKeyPress(e: any) {
           if (selectedPaket) {
             selectedPaket.setSelected(true);
           }
-          colorCellsAndExplain(focusedCell.column.getId(), focusedCell.rowIndex);
+          nextTick(() => colorCellsAndExplain(focusedCell.column.getId(), focusedCell.rowIndex));
           break;
         }
         case "_":
         case "-": {
-          if (!ctrl) eintragEntfernen();
+          if (!ctrl) nextTick(() => eintragEntfernen());
           break;
         }
         case "Delete": {
           if (shift || ctrl) {
-            eintragEntfernen();
+            nextTick(() => eintragEntfernen());
           } else {
             if (![ColumnET.ZWISCHENSUMME, ColumnET.GESAMTPROJEKT].includes(colKey) && ![SummeET.ZWISCHENSUMME, SummeET.STARTSUMME, SummeET.ENDSUMME].includes(e.data.bezeichnung)) {
               if (colKey == ColumnET.AUFWAND) {
@@ -544,39 +586,29 @@ function onCellKeyPress(e: any) {
         }
         case "+" : {
           if (!ctrl)
-            eintragErstellen();
+            nextTick(() => eintragErstellen());
           break;
         }
         case "*": {
           if (!ctrl)
-            zwischensummeErstellen();
+            nextTick(() => zwischensummeErstellen());
           break;
         }
         case "F2": {
-          if ([ColumnET.BEZEICHNUNG, ColumnET.AUFSCHLAG, ColumnET.AUFWAND].includes(colKey) && !Object.values(SummeET).includes(e.data.bezeichnung)) {
-            columnDefs.value!.find(column => column.field == colKey)!.editable = true;
-            nextTick(() => gridApi.value!.startEditingCell({
-              rowIndex: e.rowIndex,
-              colKey: e.column
-            }));
-            columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == colKey)!.cellStyle = (params: any) => {
-              if (params.rowIndex == e.rowIndex) return { color: "black" };
-            };
-          }
+          nextTick(() => startEditingCell(e, colKey));
           break;
         }
       }
     } else {
       switch (key) {
         case "Enter": {
-          colorCellsAndExplain(colKey, e.rowIndex);
           stopEiditingAndSetFocus(false, e.rowIndex, colKey);
-          nextTick(() => colorCellsAndExplain(colKey,e.rowIndex))
+          nextTick(() => colorCellsAndExplain(colKey, e.rowIndex))
           break;
         }
         case "Escape": {
           stopEiditingAndSetFocus(true, e.rowIndex, colKey);
-          nextTick(() => colorCellsAndExplain(colKey,e.rowIndex))
+          nextTick(() => colorCellsAndExplain(colKey, e.rowIndex))
           break;
         }
       }
@@ -584,21 +616,31 @@ function onCellKeyPress(e: any) {
   }
 }
 
-function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
-  gridApi.value!.stopEditing(cancel);
-  columnDefs.value!.forEach(column => column.editable = false);
-  gridApi.value!.setFocusedCell(rowIndex, colKey);
-  refreshTable(colKey, rowIndex);
-}
-
 function startEditingCell(e: any, colKey: string) {
-  if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
+  if ([ColumnET.BEZEICHNUNG, ColumnET.AUFSCHLAG, ColumnET.AUFWAND].includes(colKey as ColumnET) && !Object.values(SummeET).includes(e.data.bezeichnung)) {
+    if(colKey as ColumnET == ColumnET.AUFSCHLAG && !e.data.isAufschlagBase) {
+      e.data.aufschlagWert = parseFloat(e.data.aufschlagWert.toFixed(projectStore.nachkommastellen));
+    }
+    else if(colKey as ColumnET == ColumnET.AUFWAND && e.data.isAufschlagBase) {
+      e.data.aufwandWert = parseFloat(e.data.aufwandWert.toFixed(projectStore.nachkommastellen));
+    }
     columnDefs.value!.find(column => column.field === colKey)!.editable = true;
+    columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == colKey)!.cellStyle = (params: any) => {
+      if (params.rowIndex == e.rowIndex) return {color: "black"};
+    };
     nextTick(() => gridApi.value!.startEditingCell({
       rowIndex: e.rowIndex,
       colKey: e.column
     }));
   }
+}
+
+function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
+  gridApi.value!.stopEditing(cancel);
+  eintraegeStore.berechne();
+  columnDefs.value!.forEach(column => column.editable = false);
+  gridApi.value!.setFocusedCell(rowIndex, colKey);
+  refreshTable(colKey, rowIndex);
 }
 
 function eintragErstellen() {
@@ -678,9 +720,8 @@ function moveZeileDown() {
 
 function refreshTable(colKey?: Column | string, rowIndex?: number) {
   nextTick(() => {
-    //this.rowData = this.eintraegeStore.eintraege;
     gridApi.value!.setRowData(eintraegeStore.eintraege);
-    gridApi.value!.forEachNode(function(node) {
+    gridApi.value!.forEachNode(function (node) {
       if (node.data.bezeichnung === SummeET.ZWISCHENSUMME) node.setRowHeight(80);
     });
     gridApi.value!.onRowHeightChanged();
@@ -689,7 +730,7 @@ function refreshTable(colKey?: Column | string, rowIndex?: number) {
       gridApi.value!.getRowNode(rowIndex + "")!.setSelected(true);
       gridApi.value!.setFocusedCell(rowIndex, colKey);
     }
-    gridApi.value!.refreshCells({ force: true });
+    gridApi.value!.refreshCells({force: true});
   });
 }
 
