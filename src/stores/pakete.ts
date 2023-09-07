@@ -167,7 +167,7 @@ export const usePaketeStore = defineStore("pakete", () => {
     const paketToDelete = paketeAsMap.value.get(id) as Paket;
     const stack = [paketToDelete];
     let counter = 0;
-    while (stack.length > 0) {
+    while (stack.length > 0 && stack[0]!=null) {
       const aktuellesPaket = stack.shift() as Paket;
       if (aktuellesPaket.open) {
         for (const child of aktuellesPaket.children) {
