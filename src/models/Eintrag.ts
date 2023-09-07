@@ -1,5 +1,5 @@
-import {AbstrakterEintrag} from "@/AbstrakterEintrag";
-import type {Zwischensumme} from "@/Zwischensumme";
+import {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
+import type {Zwischensumme} from "@/models/Zwischensumme";
 
 export class Eintrag extends AbstrakterEintrag {
     private _aufschlagWert: number;

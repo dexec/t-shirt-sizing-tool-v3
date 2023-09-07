@@ -1,4 +1,4 @@
-import type {Bucket} from "@/Bucket";
+import type {Bucket} from "@/models/Bucket";
 
 export class Statistik {
     private _bucket: Bucket

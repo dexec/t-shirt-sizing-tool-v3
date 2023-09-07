@@ -1,4 +1,4 @@
-import {AbstrakterEintrag} from "@/AbstrakterEintrag";
+import {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
 
 export class Zwischensumme extends AbstrakterEintrag {
     private _vorigerAbschnittAufschlag: number;

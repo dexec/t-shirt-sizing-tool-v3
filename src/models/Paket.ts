@@ -1,4 +1,4 @@
-import type {Bucket} from "@/Bucket";
+import type {Bucket} from "@/models/Bucket";
 
 export class Paket {
     private static _idCounter: number = 0
