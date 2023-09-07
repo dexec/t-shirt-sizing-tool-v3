@@ -199,8 +199,9 @@ const providedFunctionsSuche = ref([{functionName: 'toggleSuche'},{functionName:
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 function rightClickOnCell(e: any) {
   contextMenuRef.value!.showMenu(e);
-  if (gridApi.value!.getFocusedCell()!) {
-    const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
+  const focusedCell = gridApi.value!.getFocusedCell();
+  if (focusedCell!=null && rowData.length>0) {
+    const focusedRowIndex = focusedCell.rowIndex;
     gridApi.value!.getDisplayedRowAtIndex(focusedRowIndex)!.setSelected(true);
   }
 }
@@ -332,7 +333,7 @@ function onCellKeyPress(e: any) {
       switch (key) {
         case 'ArrowUp':
           if (ctrl || shift) {
-            movePaketUp();
+            nextTick(() => movePaketUp());
           } else {
             const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
             const selectedPaket = rowData[focusedRowIndex];
@@ -343,7 +344,7 @@ function onCellKeyPress(e: any) {
           break;
         case 'ArrowDown':
           if (ctrl || shift) {
-            movePaketDown();
+            nextTick(() => movePaketDown());
           } else {
             const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
             const selectedPaket = rowData[focusedRowIndex];
@@ -353,28 +354,28 @@ function onCellKeyPress(e: any) {
           }
           break;
         case 'ArrowLeft':
-          if (ctrl) movePaketLeftDown();
-          else if (shift) movePaketLeftUp();
+          if (ctrl) nextTick(() => movePaketLeftDown());
+          else if (shift) nextTick(() => movePaketLeftUp());
           break;
         case 'ArrowRight':
-          if (ctrl) movePaketRightDown();
-          else if (shift) movePaketRightUp();
+          if (ctrl) nextTick(() => movePaketRightDown());
+          else if (shift) nextTick(() => movePaketRightUp());
           break;
         case '_':
         case '-':
-          if (!ctrl) deletePaket();
+          nextTick(() => deletePaket());
           break;
         case 'Delete':
           if (shift || ctrl) {
-            deletePaket();
+            nextTick(() => deletePaket());
           } else {
             if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
               if (colKey === 'schaetzung') {
                 const oldValue = e.data.schaetzung;
                 e.data.schaetzung = null
-                paketeStore.updateParentsAfterSchaetzungUpdated(e.data, oldValue)
+                nextTick(() => paketeStore.updateParentsAfterSchaetzungUpdated(e.data, oldValue));
               } else if (colKey === 'bucket') {
-                usePaketeStore().updateBucket(e.data, null)
+                nextTick(() => paketeStore.updateBucket(e.data, null));
               } else e.data[colKey] = null
               refreshTable(colKey, e.data.id)
             }
@@ -382,14 +383,14 @@ function onCellKeyPress(e: any) {
           break;
         case '+':
           if (!ctrl && !shift)
-            addNewPaket()
+            nextTick(() => addNewPaket());
           else if (shift) {
-            addNewKindPaket()
+            nextTick(() => addNewKindPaket());
           }
           break;
         case '*': {
           if (!ctrl)
-            addNewKindPaket();
+            nextTick(() => addNewKindPaket());
           break
         }
         case ' ':
@@ -398,24 +399,22 @@ function onCellKeyPress(e: any) {
               const aktuellesPaket = e.data;
               aktuellesPaket.open = !aktuellesPaket.open;
               e.node.setData(aktuellesPaket);
-              paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket);
+              nextTick(() => paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket));
               refreshTable(colKey, e.data.id)
             }
           }
           break;
         case 'F2':
-          startEditingCell(e, colKey)
+          nextTick(() => startEditingCell(e, colKey));
           break;
-
       }
     } else {
       switch (key) {
         case 'Enter':
-          stopEiditingAndSetFocus(false, e.rowIndex, colKey)
+          nextTick(() => stopEiditingAndSetFocus(false, e.rowIndex, colKey));
           break;
         case 'Escape':
-          stopEiditingAndSetFocus(true, e.rowIndex, colKey)
-
+          nextTick(() => stopEiditingAndSetFocus(true, e.rowIndex, colKey));
           break;
       }
     }
