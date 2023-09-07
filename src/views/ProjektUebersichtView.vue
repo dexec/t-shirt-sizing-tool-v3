@@ -79,7 +79,7 @@
 import {useBucketsStore} from "@/stores/buckets";
 import {useProjektStore} from "@/stores/projekt";
 import {ref} from "vue";
-import type {Bucket} from "@/Bucket";
+import type {Bucket} from "@/models/Bucket";
 import {ExportProject} from "@/components/ExportProject";
 const newBucketName = ref('')
 const currentSelectedBucket = ref(-1)

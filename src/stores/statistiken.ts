@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
 import { useBucketsStore } from "@/stores/buckets";
 import { usePaketeStore } from "@/stores/pakete";
-import type { Bucket } from "@/Bucket";
-import { Statistik } from "@/Statistik";
-import type { Paket } from "@/Paket";
+import type { Bucket } from "@/models/Bucket";
+import { Statistik } from "@/models/Statistik";
+import type { Paket } from "@/models/Paket";
 import { ref } from "vue";
 import { useProjektStore } from "@/stores/projekt";
 

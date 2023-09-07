@@ -17,7 +17,7 @@
 <script lang="ts" setup>
 import { inject, ref } from "vue";
 import { usePaketeStore } from "@/stores/pakete";
-import { Paket } from "@/Paket";
+import { Paket } from "@/models/Paket";
 
 const paketeStore = usePaketeStore();
 const suchString = ref("");

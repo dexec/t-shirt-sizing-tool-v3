@@ -1,7 +1,7 @@
 import {useBucketsStore} from "@/stores/buckets";
 import {useEintraegeStore} from "@/stores/eintraege";
-import {Eintrag} from "@/Eintrag";
-import {Zwischensumme} from "@/Zwischensumme";
+import {Eintrag} from "@/models/Eintrag";
+import {Zwischensumme} from "@/models/Zwischensumme";
 import {usePaketeStore} from "@/stores/pakete";
 import {useProjektStore} from "@/stores/projekt";
 

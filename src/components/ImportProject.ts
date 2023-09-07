@@ -1,9 +1,9 @@
-import {Bucket} from "@/Bucket";
-import {Paket} from "@/Paket";
-import type {AbstrakterEintrag} from "@/AbstrakterEintrag";
-import {Zwischensumme} from "@/Zwischensumme";
-import {Eintrag} from "@/Eintrag";
-import {Projekt} from "@/Projekt";
+import {Bucket} from "@/models/Bucket";
+import {Paket} from "@/models/Paket";
+import type {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
+import {Zwischensumme} from "@/models/Zwischensumme";
+import {Eintrag} from "@/models/Eintrag";
+import {Projekt} from "@/models/Projekt";
 import {useBucketsStore} from "@/stores/buckets";
 import {useProjektStore} from "@/stores/projekt";
 import {useEintraegeStore} from "@/stores/eintraege";

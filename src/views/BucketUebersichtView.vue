@@ -98,7 +98,7 @@
 <script lang="ts" setup>
 import {useStatistikenStore} from "@/stores/statistiken";
 import {useProjektStore} from "@/stores/projekt";
-import type {Statistik} from "@/Statistik";
+import type {Statistik} from "@/models/Statistik";
 
 const statistiken = useStatistikenStore();
 const projektStore = useProjektStore();

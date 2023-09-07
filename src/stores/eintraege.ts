@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
-import { Eintrag } from "@/Eintrag";
-import { Zwischensumme } from "@/Zwischensumme";
-import type { AbstrakterEintrag } from "@/AbstrakterEintrag";
+import { Eintrag } from "@/models/Eintrag";
+import { Zwischensumme } from "@/models/Zwischensumme";
+import type { AbstrakterEintrag } from "@/models/AbstrakterEintrag";
 import { useStatistikenStore } from "@/stores/statistiken";
 import { ref } from "vue";
 import {useProjektStore} from "@/stores/projekt";
@@ -46,9 +46,6 @@ export const useEintraegeStore = defineStore("eintraege", () => {
           vorigerAbschnittAufschlag += aktuellerEintrag.aufschlagWert;
         } else {
           const aktuelleZwischensumme = eintraege.value[i] as Zwischensumme;
-          console.log("vorigerabschnitt aufwand " + vorigerAbschnittAufwand)
-          console.log("voriger abschnitt aufschlag " + vorigerAbschnittAufschlag)
-          console.log("zwischensumme " + zwischensumme.zwischensummeAufwand)
           aktuelleZwischensumme.vorigerAbschnittAufwand = vorigerAbschnittAufwand
           aktuelleZwischensumme.vorigerAbschnittAufschlag =vorigerAbschnittAufschlag
           aktuelleZwischensumme.zwischensummeAufwand = zwischensumme.zwischensummeAufwand + aktuelleZwischensumme.vorigerAbschnittAufwand;

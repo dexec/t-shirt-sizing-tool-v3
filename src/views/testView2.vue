@@ -34,17 +34,17 @@
 <script lang="ts" setup>
 import {usePaketeStore} from "@/stores/pakete";
 import {useBucketsStore} from "@/stores/buckets";
-import type {Bucket} from "@/Bucket";
-import {Paket} from "@/Paket";
-import type {Statistik} from "@/Statistik";
+import type {Bucket} from "@/models/Bucket";
+import {Paket} from "@/models/Paket";
+import type {Statistik} from "@/models/Statistik";
 import {useStatistikenStore} from "@/stores/statistiken";
 import type {WorkBook, WorkSheet} from "xlsx-js-style";
 import * as XLSX from "xlsx-js-style";
 import {useProjektStore} from "@/stores/projekt";
-import type {AbstrakterEintrag} from "@/AbstrakterEintrag";
+import type {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
 import {useEintraegeStore} from "@/stores/eintraege";
-import {Eintrag} from "@/Eintrag";
-import {Zwischensumme} from "@/Zwischensumme";
+import {Eintrag} from "@/models/Eintrag";
+import {Zwischensumme} from "@/models/Zwischensumme";
 
 const testNumbers = [
   12.345,    // Soll auf 12.35 gerundet werden (kaufmännisch)

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { Bucket } from "@/Bucket";
+import { Bucket } from "@/models/Bucket";
 import { usePaketeStore } from "@/stores/pakete";
 import { ref } from "vue";
 

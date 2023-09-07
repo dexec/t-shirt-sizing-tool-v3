@@ -36,10 +36,10 @@ import {useRouter} from "vue-router";
 import ContextMenu from "@/components/ContextMenu.vue";
 import {useProjektStore} from "@/stores/projekt";
 import {Column, ColumnApi, GridApi} from "ag-grid-community";
-import type {Bucket} from "@/Bucket";
+import type {Bucket} from "@/models/Bucket";
 import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
 import SuchComponent from "@/components/SuchComponent.vue";
-import type { Paket } from "@/Paket";
+import type { Paket } from "@/models/Paket";
 
 const projectStore = useProjektStore();
 const gridApi = ref<GridApi>();
@@ -421,13 +421,6 @@ function onCellKeyPress(e: any) {
     }
   }
 }
-
-function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
-  gridApi.value!.stopEditing(cancel)
-  columnDefs.value!.forEach(column => column.editable = false)
-  gridApi.value!.setFocusedCell(rowIndex, colKey);
-}
-
 function startEditingCell(e: any, colKey: string) {
   if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
     columnDefs.value!.find(column => column.field === colKey)!.editable = true
@@ -437,7 +430,11 @@ function startEditingCell(e: any, colKey: string) {
     }))
   }
 }
-
+function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
+  gridApi.value!.stopEditing(cancel)
+  columnDefs.value!.forEach(column => column.editable = false)
+  gridApi.value!.setFocusedCell(rowIndex, colKey);
+}
 </script>
 
 <style scoped>

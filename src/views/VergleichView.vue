@@ -112,8 +112,8 @@
 import {usePaketeStore} from "@/stores/pakete";
 import {useBucketsStore} from "@/stores/buckets";
 import {computed, onActivated, ref} from "vue";
-import {Bucket} from "@/Bucket";
-import {Paket} from "@/Paket";
+import {Bucket} from "@/models/Bucket";
+import {Paket} from "@/models/Paket";
 import draggable from "vuedraggable";
 import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
 
@@ -203,7 +203,6 @@ function searchPaket(paket: Paket) {
 
 function bucketAreaHeight() {
   let scrollHeight = document.getElementById('abc')!.scrollHeight
-  console.log(scrollHeight)
   if (scrollHeight) return 'height: ' + scrollHeight
   else return 0;
 }

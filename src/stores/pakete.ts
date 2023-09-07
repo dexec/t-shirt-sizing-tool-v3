@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
-import { Paket } from "@/Paket";
+import { Paket } from "@/models/Paket";
 import { ref } from "vue";
-import type { Bucket } from "@/Bucket";
+import type { Bucket } from "@/models/Bucket";
 import { useProjektStore } from "@/stores/projekt";
 
 export const usePaketeStore = defineStore("pakete", () => {
