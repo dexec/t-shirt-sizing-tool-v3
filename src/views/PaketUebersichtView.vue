@@ -37,7 +37,6 @@ import ContextMenu from "@/components/ContextMenu.vue";
 import {useProjektStore} from "@/stores/projekt";
 import {Column, ColumnApi, GridApi} from "ag-grid-community";
 import type {Bucket} from "@/models/Bucket";
-import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
 import SuchComponent from "@/components/SuchComponent.vue";
 import type { Paket } from "@/models/Paket";
 
@@ -119,9 +118,10 @@ const columnDefs = ref([
     field: 'schaetzung',
     headerName: 'Schätzung',
     valueSetter: (params: any) => {
-      if (isNaN(params.newValue)) params.data.schaetzung = params.oldValue;
+      const newValue = params.newValue.replace(',','.')
+      if (isNaN(newValue)) params.data.schaetzung = params.oldValue;
       else {
-        params.data.schaetzung = Number(params.newValue)
+        params.data.schaetzung = Number(newValue)
         paketeStore.updateParentsAfterSchaetzungUpdated(params.data, params.oldValue)
         gridApi.value!.refreshCells({force: true});
       }
