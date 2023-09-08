@@ -74,7 +74,6 @@ function onGridReady(params: any) {
   refreshTable(columnApi.value!.getColumns()![0].getColId(), 0);
 }
 
-
 const columnDefs = ref([
   {
     field: "bezeichnung",
@@ -88,7 +87,10 @@ const columnDefs = ref([
     cellRenderer: AufschlagCellRenderer,
     cellStyle: {},
     valueSetter: (params: any) => {
-      if (!isNaN(params.newValue)) eintraegeStore.updateAufschlag(params.node.rowIndex, +params.newValue);
+      const newValue = params.newValue.replace(',','.')
+      if (!isNaN(newValue)) {
+        eintraegeStore.updateAufschlag(params.node.rowIndex, +newValue);
+      }
       else params.data.aufschlagWert = params.oldValue;
       gridApi.value!.refreshCells({force: true});
     },
@@ -100,7 +102,8 @@ const columnDefs = ref([
     cellRenderer: AufwandCellRenderer,
     cellStyle: {},
     valueSetter: (params: any) => {
-      if (!isNaN(params.newValue)) eintraegeStore.updateAufwand(params.node.rowIndex, +params.newValue);
+      const newValue = params.newValue.replace(',','.')
+      if (!isNaN(newValue)) eintraegeStore.updateAufwand(params.node.rowIndex, +newValue);
       else params.data.aufwandWert = params.oldValue;
       gridApi.value!.refreshCells({force: true});
     },
@@ -637,7 +640,7 @@ function startEditingCell(e: any, colKey: string) {
 
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
   gridApi.value!.stopEditing(cancel);
-  eintraegeStore.berechne();
+  nextTick(() => eintraegeStore.berechne());
   columnDefs.value!.forEach(column => column.editable = false);
   gridApi.value!.setFocusedCell(rowIndex, colKey);
   refreshTable(colKey, rowIndex);
