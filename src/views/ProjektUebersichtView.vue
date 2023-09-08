@@ -6,10 +6,8 @@
     <v-btn v-else-if="!projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketloser
       Modus
     </v-btn>
-<!--
-    <v-select v-model="projektStore.rundungsart" label="Rundungsart" :items="Object.values(RundungsartET)"></v-select>
--->
-    <v-text-field v-model="projektStore.nachkommastellen" label="Nachkommastellen"></v-text-field>
+<!--    TODO Nachkommastelle darf keine Nachkommastellen selbst haben-->
+    <v-text-field v-model.number="projektStore.nachkommastellen" label="Nachkommastellen"></v-text-field>
     <h1>Projektinformationen</h1>
     <h3>Projektname</h3>
     <v-text-field v-model="projektStore.projektname" outlined solo></v-text-field>
