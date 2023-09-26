@@ -1,9 +1,6 @@
 export class Bucket {
 
-    private static _idCounter: number = 0
     private readonly _id: number
-    private _name: string
-
 
     constructor(name: string, id?: number) {
         if (id != null) this._id = id;
@@ -11,17 +8,12 @@ export class Bucket {
         this._name = name;
     }
 
+    private static _idCounter: number = 0
+
+    private _name: string
 
     static get idCounter(): number {
         return this._idCounter;
-    }
-
-    static set idCounter(value: number) {
-        this._idCounter = value;
-    }
-
-    get id(): number {
-        return this._id;
     }
 
     get name(): string {
@@ -30,6 +22,10 @@ export class Bucket {
 
     set name(value: string) {
         this._name = value;
+    }
+
+    get id(): number {
+        return this._id;
     }
 }
 
