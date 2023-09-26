@@ -90,7 +90,7 @@
                 @change="changeBucketOfPaket($event,buckets.find(bucket => bucket.id == bucketId)!)"
             >
               <template #item="{ element }">
-                <div v-if="applyFilter(element,paketeTabelleFilter)" :title="getTitleForPaket(element)"
+                <div v-if="applyFilter(element, paketeTabelleFilter)" :title="getTitleForPaket(element)"
                      class="paket ma-2">
                   <span :style="searchPaket(element)" class="list-group-item paketContent">{{
                       (element as Paket).ticket_nr
@@ -115,7 +115,6 @@ import {computed, onActivated, ref} from "vue";
 import {Bucket} from "@/models/Bucket";
 import {Paket} from "@/models/Paket";
 import draggable from "vuedraggable";
-import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
 
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
@@ -201,11 +200,7 @@ function searchPaket(paket: Paket) {
   }
 }
 
-function bucketAreaHeight() {
-  let scrollHeight = document.getElementById('abc')!.scrollHeight
-  if (scrollHeight) return 'height: ' + scrollHeight
-  else return 0;
-}
+/*
 
 function rootParentThemaOfPaket(paket: Paket): string {
   const result = paketeStore.rootParentOfPaket(paket);
@@ -228,11 +223,11 @@ function onStartDrag(e: any) {
 function onEndDrag(e: any) {
   const tooltips = document.getElementsByClassName("tooltiptext");
   console.log(e);
-  /*for(const element of tooltips) {
+  /!*for(const element of tooltips) {
     const htmlElement = element as HTMLElement
     htmlElement.style.visibility="visible"
-  }*/
-}
+  }*!/
+}*/
 </script>
 
 <style scoped>
