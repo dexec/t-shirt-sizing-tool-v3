@@ -2,6 +2,8 @@ import { createApp} from 'vue'
 import App from './App.vue'
 import router from './router'
 import { createPinia } from 'pinia'
+import Toast from 'vue-toastification'
+import 'vue-toastification/dist/index.css'
 
 // Vuetify
 import 'vuetify/styles'
@@ -19,6 +21,7 @@ const vuetify = createVuetify({
 const pinia = createPinia()
 const app = createApp(App)
 app.use(pinia)
+app.use(Toast)
 app.use(router)
 app.use(vuetify)
 app.mount('#app')
