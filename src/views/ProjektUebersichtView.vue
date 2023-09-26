@@ -22,7 +22,7 @@
               <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketBefore()">
                 <v-icon icon="mdi-plus"></v-icon>
               </v-btn>
-              <v-btn :disabled="( index==0 )" :style="showArrowLeft(bucket as Bucket, index as number)" class="button"
+              <v-btn :disabled="( index==0 )" :style="showArrowLeft(bucket as Bucket)" class="button"
                      @click="swapWithBucketBefore()">
                 <v-icon icon="mdi-arrow-left"></v-icon>
               </v-btn>
@@ -40,7 +40,7 @@
               <v-hover v-else v-slot="{hover}">
                 <v-card :class="{'on-hover':hover}" class="bucket">
                   <v-text-field id="textfield" v-model="newBucketName" autofocus @blur="clearData"
-                                @keydown="editBucket"></v-text-field>
+                                @keydown="editBucket" @focus="$event.target.select()"></v-text-field>
                 </v-card>
               </v-hover>
             </v-col>
@@ -49,7 +49,7 @@
                 <v-icon icon="mdi-plus"></v-icon>
               </v-btn>
               <v-btn :disabled="!(index < bucketStore.bucketsAsSortedArray.length - 1)"
-                     :style="showArrowRight(bucket as Bucket, index)"
+                     :style="showArrowRight(bucket as Bucket)"
                      class="button" @click="swapWithBucketAfter()">
                 <v-icon icon="mdi-arrow-right"></v-icon>
               </v-btn>
@@ -57,7 +57,7 @@
           </v-row>
           <v-row>
             <v-col class="d-flex justify-center">
-              <v-btn :style="showButtons(bucket as Bucket)" class="button" @click="loeschenBucket">
+              <v-btn :style="showButtons(bucket as Bucket)" class="button" @click="attemptDeleteBucket">
                 <v-icon icon="mdi-minus"></v-icon>
               </v-btn>
             </v-col>
@@ -71,6 +71,7 @@
       </div>
     </div>
   </div>
+  <ConfirmDialog ref="confirmDialogRef" :text="'Sicher?'" :confirmFunction="deleteBucket" :cancelFunction="() => {}"></ConfirmDialog>
 </template>
 
 <script lang="ts" setup>
@@ -79,23 +80,32 @@ import {useProjektStore} from "@/stores/projekt";
 import {ref} from "vue";
 import type {Bucket} from "@/models/Bucket";
 import {ExportProject} from "@/components/ExportProject";
-const newBucketName = ref('')
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import {POSITION, useToast} from "vue-toastification";
+
+const newBucketName = ref("")
 const currentSelectedBucket = ref(-1)
 const currentEditBucket = ref(-1)
 const bucketStore = useBucketsStore();
 const projektStore = useProjektStore();
+const toast = useToast()
 
+const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null)
+
+function attemptDeleteBucket() {
+  confirmDialogRef.value!.showDialog()
+}
 function showButtons(bucket: Bucket): string {
   if (bucket.id == currentSelectedBucket.value && currentEditBucket.value == -1) return ""
   else return "visibility: hidden"
 }
 
-function showArrowLeft(bucket: Bucket, index: number): string {
+function showArrowLeft(bucket: Bucket): string {
   if (bucket.id == currentSelectedBucket.value && currentEditBucket.value === -1) return ""
   else return "display: none"
 }
 
-function showArrowRight(bucket: Bucket, index: number): string {
+function showArrowRight(bucket: Bucket): string {
   if (bucket.id == currentSelectedBucket.value && currentEditBucket.value === -1) return ""
   else {
     return "display: none"
@@ -104,44 +114,61 @@ function showArrowRight(bucket: Bucket, index: number): string {
 
 function swapWithBucketBefore() {
   bucketStore.swapWithBucket(currentSelectedBucket.value, true)
+  successToastBucketsSwapped()
 }
 
 function swapWithBucketAfter() {
   bucketStore.swapWithBucket(currentSelectedBucket.value, false)
+  successToastBucketsSwapped()
 }
 
 function addFirstBucket() {
-  bucketStore.addNewBucket(0, true);
-  currentEditBucket.value = 0
+  const newBucket = bucketStore.addNewBucket(0, true);
+  currentEditBucket.value = -1
+  newBucketName.value = newBucket.name
+  successToastBucketAdded()
 }
-
 function addNewBucketBefore() {
   const newBucket = bucketStore.addNewBucket(currentSelectedBucket.value, true);
   currentEditBucket.value = newBucket.id
+  newBucketName.value = newBucket.name
+  successToastBucketAdded()
 }
 
 function addNewBucketAfter() {
   const newBucket = bucketStore.addNewBucket(currentSelectedBucket.value, false);
   currentEditBucket.value = newBucket.id
+  newBucketName.value = newBucket.name
+  successToastBucketAdded()
 }
 
 function editBucket(e: KeyboardEvent) {
   if (e.key == 'Enter') {
-    bucketStore.updateBucketName(currentEditBucket.value, newBucketName.value);
-    document.getElementById("textfield")!.blur()
-    clearData();
+    if(newBucketName.value=="") {
+      errorToastBucketEmptyName()
+    }
+    else if(bucketStore.bucketsAsSortedArray.map(bucket => bucket.name).find(name => name == newBucketName.value)) {
+      errorToastBucketDuplicateName(newBucketName.value)
+    }
+    else {
+      bucketStore.updateBucketName(currentEditBucket.value, newBucketName.value);
+      document.getElementById("textfield")!.blur()
+      clearData();
+    }
   } else if (e.key == 'Escape') {
     document.getElementById("textfield")!.blur()
   }
 }
 
-function loeschenBucket() {
+function deleteBucket() {
+  const name = bucketStore.bucketsAsMap.get(currentSelectedBucket.value)?.name
   bucketStore.deleteBucket(currentSelectedBucket.value)
   clearData()
+  successToastBucketDeleted(name ?? "")
 }
 
 function clearData() {
-  newBucketName.value = ''
+  newBucketName.value = ""
   currentSelectedBucket.value = -1
   currentEditBucket.value = -1
 }
@@ -160,6 +187,92 @@ function downloadProject() {
   });
   link.dispatchEvent(clickEvent);
 }
+
+function successToastBucketAdded() {
+  toast.success("Neues Bucket hinzugefügt!", {
+    position: POSITION.TOP_RIGHT,
+    timeout: 5000,
+    closeOnClick: true,
+    pauseOnFocusLoss: true,
+    pauseOnHover: true,
+    draggable: true,
+    draggablePercent: 0.6,
+    showCloseButtonOnHover: false,
+    hideProgressBar: true,
+    closeButton: "button",
+    icon: true,
+    rtl: false
+  });
+}
+
+function successToastBucketsSwapped() {
+  toast.success("Buckets getauscht!", {
+    position: POSITION.TOP_RIGHT,
+    timeout: 5000,
+    closeOnClick: true,
+    pauseOnFocusLoss: true,
+    pauseOnHover: true,
+    draggable: true,
+    draggablePercent: 0.6,
+    showCloseButtonOnHover: false,
+    hideProgressBar: true,
+    closeButton: "button",
+    icon: true,
+    rtl: false
+  });
+}
+
+function successToastBucketDeleted(name: string) {
+  toast.success(`Bucket ${name} gelöscht!`, {
+    position: POSITION.TOP_RIGHT,
+    timeout: 5000,
+    closeOnClick: true,
+    pauseOnFocusLoss: true,
+    pauseOnHover: true,
+    draggable: true,
+    draggablePercent: 0.6,
+    showCloseButtonOnHover: false,
+    hideProgressBar: true,
+    closeButton: "button",
+    icon: true,
+    rtl: false
+  });
+}
+
+function errorToastBucketEmptyName() {
+  toast.error("Das Bucket darf keinen leeren String haben!", {
+    position: POSITION.TOP_RIGHT,
+    timeout: 5000,
+    closeOnClick: true,
+    pauseOnFocusLoss: true,
+    pauseOnHover: true,
+    draggable: true,
+    draggablePercent: 0.6,
+    showCloseButtonOnHover: false,
+    hideProgressBar: true,
+    closeButton: "button",
+    icon: true,
+    rtl: false
+  });
+}
+
+function errorToastBucketDuplicateName(name: String) {
+  toast.error(`Das Bucket ${name} gibt es schon!`, {
+    position: POSITION.TOP_RIGHT,
+    timeout: 5000,
+    closeOnClick: true,
+    pauseOnFocusLoss: true,
+    pauseOnHover: true,
+    draggable: true,
+    draggablePercent: 0.6,
+    showCloseButtonOnHover: false,
+    hideProgressBar: true,
+    closeButton: "button",
+    icon: true,
+    rtl: false
+  });
+}
+
 </script>
 
 <style scoped>
