@@ -30,20 +30,6 @@ export const usePaketeStore = defineStore("pakete", () => {
     return Array.from(paketeAsMap.value.values()).filter(paket => paket.children.length == 0 && !paket.bucket);
   }
 
-  function filteredPaketeAsTreeView(filterString: string): Paket[] {
-    const filteredPakete: Paket[] = [];
-    const paketeMitFilter = searchPaketeWithFilter(filterString);
-    return filteredPakete;
-  }
-
-  function searchPaketeWithFilter(filterString: string): Paket[] {
-    const paketeWithFilter: Paket[] = [];
-    for (const paket of paketeFullTreeView()) {
-      if (applyFilterOnPaket(paket, filterString)) paketeWithFilter.push(paket);
-    }
-    return paketeWithFilter;
-  }
-
   function applyFilterOnPaket(paket: Paket, filterString: string): boolean {
     const paketStringIndexed: { [index: string]: any } = paket;
     for (const key in paketStringIndexed) {
@@ -83,7 +69,7 @@ export const usePaketeStore = defineStore("pakete", () => {
 
   function updateParentsAfterSchaetzungUpdated(paket: Paket, oldValue: number | null) {
     if (paket.schaetzung == null && oldValue == null) return;
-    let diff = 0;
+    let diff;
     if (paket.schaetzung == null) {
       diff = -(oldValue ?? 0);
     } else {
@@ -198,7 +184,8 @@ export const usePaketeStore = defineStore("pakete", () => {
   }
 
   function addNew(id: number): number {
-    const newPaket = new Paket("beispiel", "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
+    const newPaket = new Paket("" , "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
+    newPaket.ticket_nr = "Ticket-Nr " + newPaket.id
     paketeAsMap.value.set(newPaket.id, newPaket);
     if (id == -1) {
       paketeAsTreeView.value.unshift(newPaket);
@@ -229,7 +216,8 @@ export const usePaketeStore = defineStore("pakete", () => {
 
   function addNewChild(id: number): number {
     const parentOfNewPaket = paketeAsMap.value.get(id) as Paket;
-    const newPaket = new Paket("beispiel", "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
+    const newPaket = new Paket("", "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
+    newPaket.ticket_nr = "Ticket-Nr " + newPaket.id
     newPaket.lvl = parentOfNewPaket.lvl + 1;
     newPaket.parent = parentOfNewPaket;
     if (parentOfNewPaket.children.length == 0) {
@@ -526,7 +514,6 @@ export const usePaketeStore = defineStore("pakete", () => {
     paketeFullTreeView,
     paketeChildren,
     paketeChildrenWithNoBucket,
-    filteredPaketeAsTreeView,
     applyFilterOnPaket,
     showPaket,
     paketeOfBucket,
