@@ -27,7 +27,15 @@ function createNewProject() {
       '    "nachkommastellen": 2\n' +
       '  },\n' +
       '  "eintraege": [],\n' +
-      '  "buckets": [],\n' +
+      '  "buckets": [{\n' +
+      '      "name": "S"\n' +
+      '    },\n' +
+      '    {\n' +
+      '      "name": "M"\n' +
+      '    },\n' +
+      '    {\n' +
+      '      "name": "L"\n' +
+      '    }],\n' +
       '  "pakete": [],\n' +
       '  "paketeTree": []\n' +
       '}'
