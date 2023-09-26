@@ -18,10 +18,13 @@
         @grid-ready='onGridReady'>
     </ag-grid-vue>
   </div>
-  <v-text-field bg-color="white" readonly class="searchfield" label="" placeholder="Paket suchen"
+  <v-text-field bg-color="white" class="searchfield" label="" placeholder="Paket suchen" readonly
                 @click="toggleSuche()"></v-text-field>
-  <SuchComponent style="height: 100%" v-if="showSuche" :providedFunctionsProp="[...providedFunctionsSuche]"></SuchComponent>
+  <SuchComponent v-if="showSuche" :providedFunctionsProp="[...providedFunctionsSuche]"
+                 style="height: 100%"></SuchComponent>
   <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctionsContextMenu]"></context-menu>
+  <ConfirmDialog ref="confirmDialogRef" :cancel-function="() => {}" :confirm-function="deletePaket"
+                 :text="'Sicher?'"></ConfirmDialog>
 </template>
 <script lang="ts" setup>
 import 'ag-grid-community/styles/ag-grid.css';
@@ -32,19 +35,22 @@ import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue';
 import {usePaketeStore} from '@/stores/pakete';
 import {nextTick, provide, reactive, ref} from 'vue';
 import {useBucketsStore} from "@/stores/buckets";
-import {useRouter} from "vue-router";
+import {POSITION, useToast} from "vue-toastification";
 import ContextMenu from "@/components/ContextMenu.vue";
 import {useProjektStore} from "@/stores/projekt";
 import {Column, ColumnApi, GridApi} from "ag-grid-community";
 import type {Bucket} from "@/models/Bucket";
 import SuchComponent from "@/components/SuchComponent.vue";
-import type { Paket } from "@/models/Paket";
+import type {Paket} from "@/models/Paket";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
 
+const toast = useToast();
 const projectStore = useProjektStore();
 const gridApi = ref<GridApi>();
 let getRowId = (params: any): number => params.data._id;
 const paketeStore = usePaketeStore();
 const rowData = paketeStore.paketeAsTreeView;
+let duplicateTicketNrFound = false;
 
 function onGridReady(params: any) {
   columnApi.value = params.columnApi;
@@ -64,6 +70,33 @@ const columnDefs = ref([
   {
     field: 'ticket_nr',
     headerName: 'Ticket-NR',
+    valueSetter: (params: any) => {
+      duplicateTicketNrFound = false;
+      const everyTicketNrArray = Array.from(paketeStore.paketeAsMap.values()).map(paket => paket.ticket_nr)
+      for (const ticketnr of everyTicketNrArray) {
+        if (params.newValue.toUpperCase() == ticketnr.toUpperCase()) {
+          duplicateTicketNrFound = true
+          break;
+        }
+      }
+      if (!duplicateTicketNrFound) params.data.ticket_nr = params.newValue
+      else {
+        toast.error("Die Ticket-Nr muss eindeutig sein!", {
+          position: POSITION.TOP_RIGHT,
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.6,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: "button",
+          icon: true,
+          rtl: false
+        });
+      }
+    },
     cellRenderer: TreeDataCellRenderer,
     editable: false
   },
@@ -71,7 +104,6 @@ const columnDefs = ref([
     field: 'thema',
     headerName: 'Thema',
     width: 300,
-
     editable: false
   },
   {
@@ -93,10 +125,10 @@ const columnDefs = ref([
     field: 'bucket',
     headerName: 'Bucket',
     valueSetter: (params: any) => {
-      if (params.newValue === "") usePaketeStore().updateBucket(params.data, null);
+      if (params.newValue === "") paketeStore.updateBucket(params.data, null);
       else {
         const bucket = useBucketsStore().bucketsAsSortedArray.find(bucket => bucket.name === params.newValue) as Bucket;
-        usePaketeStore().updateBucket(params.data, bucket);
+        paketeStore.updateBucket(params.data, bucket);
       }
     },
     valueGetter: (params: any) => {
@@ -118,7 +150,7 @@ const columnDefs = ref([
     field: 'schaetzung',
     headerName: 'Schätzung',
     valueSetter: (params: any) => {
-      const newValue = params.newValue.replace(',','.')
+      const newValue = params.newValue.replace(',', '.')
       if (isNaN(newValue)) params.data.schaetzung = params.oldValue;
       else {
         params.data.schaetzung = Number(newValue)
@@ -153,7 +185,7 @@ function toggleSuche() {
 }
 
 function showSearchedPaket(paket: Paket) {
-  showSuche.value=false;
+  showSuche.value = false;
   paketeStore.showPaket(paket)
   refreshTable(columnApi.value!.getColumns()![0].getColId(), paket.id);
 }
@@ -173,21 +205,19 @@ function showSearchedPaket(paket: Paket) {
 });*/
 provide("addNewPaket", addNewPaket);
 provide("addNewKindPaket", addNewKindPaket);
-provide("deletePaket", deletePaket);
-provide("comparePaket", comparePaket);
+provide("attemptDeletePaket", attemptDeletePaket);
 provide("movePaketUp", movePaketUp);
 provide("movePaketDown", movePaketDown);
 provide("movePaketRightUp", movePaketRightUp);
 provide("movePaketRightDown", movePaketRightDown);
 provide("movePaketLeftDown", movePaketLeftDown);
 provide("movePaketLeftUp", movePaketLeftUp);
-provide("toggleSuche",toggleSuche);
-provide("showSearchedPaket",showSearchedPaket);
+provide("toggleSuche", toggleSuche);
+provide("showSearchedPaket", showSearchedPaket);
 const providedFunctionsContextMenu = ref([
   {functionName: 'addNewPaket', functionLabel: "Neues Arbeitspaket anlegen"},
   {functionName: 'addNewKindPaket', functionLabel: "Neues Arbeitspaket als Kind anlegen"},
-  {functionName: 'deletePaket', functionLabel: "Paket löschen"},
-  {functionName: 'comparePaket', functionLabel: "Paket vergleichen"},
+  {functionName: 'attemptDeletePaket', functionLabel: "Paket löschen"},
   {functionName: 'movePaketUp', functionLabel: "Pfeil hoch", icon: "mdi-arrow-up"},
   {functionName: 'movePaketDown', functionLabel: "Pfeil runter", icon: "mdi-arrow-down"},
   {functionName: 'movePaketRightUp', functionLabel: "Pfeil hoch rechts", icon: "mdi-arrow-top-right"},
@@ -195,12 +225,13 @@ const providedFunctionsContextMenu = ref([
   {functionName: 'movePaketLeftDown', functionLabel: "Pfeil runter links", icon: "mdi-arrow-bottom-left"},
   {functionName: 'movePaketLeftUp', functionLabel: "Pfeil hoch links", icon: "mdi-arrow-left-up"},
 ])
-const providedFunctionsSuche = ref([{functionName: 'toggleSuche'},{functionName: 'showSearchedPaket'}])
+const providedFunctionsSuche = ref([{functionName: 'toggleSuche'}, {functionName: 'showSearchedPaket'}])
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
+
 function rightClickOnCell(e: any) {
   contextMenuRef.value!.showMenu(e);
   const focusedCell = gridApi.value!.getFocusedCell();
-  if (focusedCell!=null && rowData.length>0) {
+  if (focusedCell != null && rowData.length > 0) {
     const focusedRowIndex = focusedCell.rowIndex;
     gridApi.value!.getDisplayedRowAtIndex(focusedRowIndex)!.setSelected(true);
   }
@@ -217,11 +248,10 @@ function onCellDoubleClicked(e: any) {
 }
 
 function onCellValueChanged(params: any) {
-
 }
 
 function addNewPaket() {
-  let newPaketID = 0;
+  let newPaketID;
   if (gridApi.value!.getSelectedRows()[0]) {
     newPaketID = paketeStore.addNew(gridApi.value!.getSelectedRows()[0].id)
     refreshTable(gridApi.value!.getFocusedCell()!.column, newPaketID);
@@ -238,7 +268,12 @@ function addNewKindPaket() {
   }
 }
 
-//TODO Bugfix, wenn ich man zu schnell löscht, kommt irgendwas nicht hinterher
+const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null)
+
+function attemptDeletePaket() {
+  confirmDialogRef.value!.showDialog()
+}
+
 function deletePaket() {
   if (gridApi.value!.getSelectedRows()[0]) {
     const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
@@ -252,16 +287,6 @@ function deletePaket() {
     }
   }
 }
-
-function comparePaket() {
-  if (gridApi.value!.getSelectedRows()[0] && gridApi.value!.getSelectedRows()[0].children.length === 0) {
-    const router = useRouter();
-    const currentPaket = gridApi.value!.getSelectedRows()[0];
-    currentPaket.bucket = null;
-    router.push({name: 'vergleich'});
-  }
-}
-
 function movePaketUp() {
   if (gridApi.value!.getSelectedRows()[0]) {
     let paketID = gridApi.value!.getSelectedRows()[0].id;
@@ -327,7 +352,6 @@ function onCellKeyPress(e: any) {
     const key = e.event.key
     const ctrl = e.event.ctrlKey;
     const shift = e.event.shiftKey;
-    const alt = e.event.altKey;
     const colKey = e.column.colId;
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
@@ -363,11 +387,11 @@ function onCellKeyPress(e: any) {
           break;
         case '_':
         case '-':
-          nextTick(() => deletePaket());
+          nextTick(() => attemptDeletePaket());
           break;
         case 'Delete':
           if (shift || ctrl) {
-            nextTick(() => deletePaket());
+            nextTick(() => attemptDeletePaket());
           } else {
             if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
               if (colKey === 'schaetzung') {
@@ -410,16 +434,19 @@ function onCellKeyPress(e: any) {
       }
     } else {
       switch (key) {
-        case 'Enter':
+        case 'Enter': {
           nextTick(() => stopEiditingAndSetFocus(false, e.rowIndex, colKey));
           break;
-        case 'Escape':
+        }
+        case 'Escape': {
           nextTick(() => stopEiditingAndSetFocus(true, e.rowIndex, colKey));
           break;
+        }
       }
     }
   }
 }
+
 function startEditingCell(e: any, colKey: string) {
   if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
     columnDefs.value!.find(column => column.field === colKey)!.editable = true
@@ -429,10 +456,11 @@ function startEditingCell(e: any, colKey: string) {
     }))
   }
 }
+
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
-  gridApi.value!.stopEditing(cancel)
   columnDefs.value!.forEach(column => column.editable = false)
   gridApi.value!.setFocusedCell(rowIndex, colKey);
+  gridApi.value!.stopEditing(cancel)
 }
 </script>
 
