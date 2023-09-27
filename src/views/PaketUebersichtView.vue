@@ -18,9 +18,10 @@
         @grid-ready='onGridReady'>
     </ag-grid-vue>
   </div>
+  <v-btn v-if="rowData.length==0" class="centeredButton" @click="addNewPaket">Neues Paket erstellen</v-btn>
   <v-text-field bg-color="white" class="searchfield" label="" placeholder="Paket suchen" readonly
                 @click="toggleSuche()"></v-text-field>
-  <SuchComponent v-if="showSuche" :providedFunctionsProp="[...providedFunctionsSuche]"
+  <SuchComponent v-if="showSuche" :toggle-suche="toggleSuche" :show-searched-paket="showSearchedPaket"
                  style="height: 100%"></SuchComponent>
   <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctionsContextMenu]"></context-menu>
   <ConfirmDialog ref="confirmDialogRef" :cancel-function="() => {}" :confirm-function="deletePaket"
@@ -33,7 +34,7 @@ import {AgGridVue} from 'ag-grid-vue3';
 import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue';
 
 import {usePaketeStore} from '@/stores/pakete';
-import {nextTick, provide, reactive, ref} from 'vue';
+import { nextTick, onBeforeMount, provide, reactive, ref } from "vue";
 import {useBucketsStore} from "@/stores/buckets";
 import {POSITION, useToast} from "vue-toastification";
 import ContextMenu from "@/components/ContextMenu.vue";
@@ -51,7 +52,6 @@ let getRowId = (params: any): number => params.data._id;
 const paketeStore = usePaketeStore();
 const rowData = paketeStore.paketeAsTreeView;
 let duplicateTicketNrFound = false;
-
 function onGridReady(params: any) {
   columnApi.value = params.columnApi;
   gridApi.value = params.api;
@@ -212,8 +212,6 @@ provide("movePaketRightUp", movePaketRightUp);
 provide("movePaketRightDown", movePaketRightDown);
 provide("movePaketLeftDown", movePaketLeftDown);
 provide("movePaketLeftUp", movePaketLeftUp);
-provide("toggleSuche", toggleSuche);
-provide("showSearchedPaket", showSearchedPaket);
 const providedFunctionsContextMenu = ref([
   {functionName: 'addNewPaket', functionLabel: "Neues Arbeitspaket anlegen"},
   {functionName: 'addNewKindPaket', functionLabel: "Neues Arbeitspaket als Kind anlegen"},
@@ -225,7 +223,6 @@ const providedFunctionsContextMenu = ref([
   {functionName: 'movePaketLeftDown', functionLabel: "Pfeil runter links", icon: "mdi-arrow-bottom-left"},
   {functionName: 'movePaketLeftUp', functionLabel: "Pfeil hoch links", icon: "mdi-arrow-left-up"},
 ])
-const providedFunctionsSuche = ref([{functionName: 'toggleSuche'}, {functionName: 'showSearchedPaket'}])
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 
 function rightClickOnCell(e: any) {
@@ -472,5 +469,13 @@ function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: stri
   right: 10px;
   top: 5px;
   z-index: 2000;
+}
+.centeredButton {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
 }
 </style>
