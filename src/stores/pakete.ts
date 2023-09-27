@@ -134,7 +134,6 @@ export const usePaketeStore = defineStore("pakete", () => {
       for (const child of aktuellesPaket.children) {
         stack.push(child);
       }
-
     }
   }
   function showPaket(paket: Paket) {
@@ -185,7 +184,7 @@ export const usePaketeStore = defineStore("pakete", () => {
 
   function addNew(id: number): number {
     const newPaket = new Paket("" , "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
-    newPaket.ticket_nr = "Ticket-Nr " + newPaket.id
+    newPaket.ticket_nr = "Ticket-Nr " + (newPaket.id + 1)
     paketeAsMap.value.set(newPaket.id, newPaket);
     if (id == -1) {
       paketeAsTreeView.value.unshift(newPaket);
@@ -217,7 +216,7 @@ export const usePaketeStore = defineStore("pakete", () => {
   function addNewChild(id: number): number {
     const parentOfNewPaket = paketeAsMap.value.get(id) as Paket;
     const newPaket = new Paket("", "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
-    newPaket.ticket_nr = "Ticket-Nr " + newPaket.id
+    newPaket.ticket_nr = "Ticket-Nr " + (newPaket.id + 1)
     newPaket.lvl = parentOfNewPaket.lvl + 1;
     newPaket.parent = parentOfNewPaket;
     if (parentOfNewPaket.children.length == 0) {
