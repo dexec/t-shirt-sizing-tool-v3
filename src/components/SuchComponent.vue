@@ -8,24 +8,24 @@
         <div class="ticketnr">
           {{ foundPaket.ticket_nr }}
         </div>
-        <div class="paketContent">{{foundPaket.beschreibung}}</div>
+        <div class="paketContent">{{ foundPaket.beschreibung }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { inject, ref } from "vue";
+import { ref } from "vue";
 import { usePaketeStore } from "@/stores/pakete";
 import { Paket } from "@/models/Paket";
 
 const paketeStore = usePaketeStore();
 const suchString = ref("");
-const props = defineProps(["providedFunctionsProp"]);
-const toggleSuche = inject(props.providedFunctionsProp.find((func: any) => func.functionName == "toggleSuche").functionName);
-const showSearchedPaket = inject(props.providedFunctionsProp.find((func: any) => func.functionName == "showSearchedPaket").functionName);
+defineProps(['toggleSuche','showSearchedPaket']);
 const foundPakete = ref<Paket[]>([]);
 
+//TODO Über ESC-Taste schließen lassen
+//TODO Den gesuchten Text im gefundenen Ticket markieren, Größe der gefundenen Tickets anpassen an Text
 function searchPaket() {
   if (suchString.value != "") {
     foundPakete.value.length = 0;
@@ -34,6 +34,8 @@ function searchPaket() {
         foundPakete.value.push(paket);
       }
     }
+  } else {
+    foundPakete.value.length = 0;
   }
 }
 </script>
