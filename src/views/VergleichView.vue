@@ -149,7 +149,7 @@ const paketeListeFilter = ref("");
 function applyFilter(paket: Paket, filterString: string): boolean {
   const paketStringIndexed: { [index: string]: any } = paket
     for (const key in paketStringIndexed) {
-      if (typeof paketStringIndexed[key] === "string" && paketStringIndexed[key].includes(filterString)) {
+      if (typeof paketStringIndexed[key] === "string" && paketStringIndexed[key].toUpperCase().includes(filterString.toUpperCase())) {
         return true
       }
     }
