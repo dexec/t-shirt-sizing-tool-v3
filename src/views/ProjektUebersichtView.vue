@@ -7,7 +7,7 @@
       Modus
     </v-btn>
 <!--    TODO Nachkommastelle darf keine Nachkommastellen selbst haben-->
-    <v-text-field v-model.number="projektStore.nachkommastellen" label="Nachkommastellen"></v-text-field>
+    <v-text-field v-model.number="projektStore.nachkommastellen" label="Nachkommastellen" @blur="convertNachkommastelle"></v-text-field>
     <h1>Projektinformationen</h1>
     <h3>Projektname</h3>
     <v-text-field v-model="projektStore.projektname" outlined solo></v-text-field>
@@ -39,7 +39,8 @@
               </v-hover>
               <v-hover v-else v-slot="{hover}">
                 <v-card :class="{'on-hover':hover}" class="bucket">
-                  <v-text-field id="textfield" v-model="newBucketName" autofocus @blur="clearData"
+<!--                  TODO Richtiges Textfeld hinkriegen-->
+                  <v-text-field id="textfield" v-model="newBucketName" autofocus @blur="clearData()"
                                 @keydown="editBucket" @focus="$event.target.select()"></v-text-field>
                 </v-card>
               </v-hover>
@@ -57,7 +58,7 @@
           </v-row>
           <v-row>
             <v-col class="d-flex justify-center">
-              <v-btn :style="showButtons(bucket as Bucket)" class="button" @click="attemptDeleteBucket">
+              <v-btn :style="showButtons(bucket as Bucket)" class="button" @click="attemptDeleteBucket()">
                 <v-icon icon="mdi-minus"></v-icon>
               </v-btn>
             </v-col>
@@ -124,7 +125,7 @@ function swapWithBucketAfter() {
 
 function addFirstBucket() {
   const newBucket = bucketStore.addNewBucket(0, true);
-  currentEditBucket.value = -1
+  currentEditBucket.value = newBucket.id
   newBucketName.value = newBucket.name
   successToastBucketAdded()
 }
@@ -147,13 +148,15 @@ function editBucket(e: KeyboardEvent) {
     if(newBucketName.value=="") {
       errorToastBucketEmptyName()
     }
-    else if(bucketStore.bucketsAsSortedArray.map(bucket => bucket.name).find(name => name == newBucketName.value)) {
-      errorToastBucketDuplicateName(newBucketName.value)
-    }
     else {
-      bucketStore.updateBucketName(currentEditBucket.value, newBucketName.value);
-      document.getElementById("textfield")!.blur()
-      clearData();
+      const foundBucket = bucketStore.bucketsAsSortedArray.find(bucket => bucket.name == newBucketName.value)
+      if (foundBucket != undefined && foundBucket.id != currentEditBucket.value) {
+        errorToastBucketDuplicateName(newBucketName.value)
+      } else {
+        bucketStore.updateBucketName(currentEditBucket.value, newBucketName.value);
+        document.getElementById("textfield")!.blur()
+        clearData();
+      }
     }
   } else if (e.key == 'Escape') {
     document.getElementById("textfield")!.blur()
@@ -172,7 +175,6 @@ function clearData() {
   currentSelectedBucket.value = -1
   currentEditBucket.value = -1
 }
-
 function downloadProject() {
   const exportProject = ExportProject.getInstance();
   const link = document.createElement("a");
@@ -187,7 +189,13 @@ function downloadProject() {
   });
   link.dispatchEvent(clickEvent);
 }
-
+function convertNachkommastelle() {
+  let nachkommastelle = projektStore.nachkommastellen;
+  if (!isNaN(parseFloat(nachkommastelle.toString()))) {
+    projektStore.nachkommastellen = Math.floor(nachkommastelle);
+  }
+  else projektStore.nachkommastellen = 0
+}
 function successToastBucketAdded() {
   toast.success("Neues Bucket hinzugefügt!", {
     position: POSITION.TOP_RIGHT,
