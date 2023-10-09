@@ -182,9 +182,20 @@ export const usePaketeStore = defineStore("pakete", () => {
       updateParentsAfterSchaetzungUpdated(paketToDelete, null);
   }
 
+  function createNewUniqueTicketNr(): string {
+    if(paketeAsMap.value.size==0) return "Ticket-Nr 1"
+    const highestPaketId = Array.from(paketeAsMap.value.values()).reduce((a,b) => a.id > b.id ? a:b).id;
+    for(let i = 1; i++;) {
+      const newPaketTicketNr = "Ticket-Nr " + (highestPaketId + i);
+      if (!Array.from(paketeAsMap.value.values()).find(paket => paket.ticket_nr == newPaketTicketNr)) {
+        return newPaketTicketNr;
+      }
+    }
+    throw new Error("Unexpected code execution.");
+  }
   function addNew(id: number): number {
     const newPaket = new Paket("" , "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
-    newPaket.ticket_nr = "Ticket-Nr " + (newPaket.id + 1)
+    newPaket.ticket_nr = createNewUniqueTicketNr();
     paketeAsMap.value.set(newPaket.id, newPaket);
     if (id == -1) {
       paketeAsTreeView.value.unshift(newPaket);
@@ -216,7 +227,7 @@ export const usePaketeStore = defineStore("pakete", () => {
   function addNewChild(id: number): number {
     const parentOfNewPaket = paketeAsMap.value.get(id) as Paket;
     const newPaket = new Paket("", "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
-    newPaket.ticket_nr = "Ticket-Nr " + (newPaket.id + 1)
+    newPaket.ticket_nr = createNewUniqueTicketNr()
     newPaket.lvl = parentOfNewPaket.lvl + 1;
     newPaket.parent = parentOfNewPaket;
     if (parentOfNewPaket.children.length == 0) {
