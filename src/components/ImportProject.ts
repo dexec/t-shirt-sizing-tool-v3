@@ -102,8 +102,8 @@ export class ImportProject {
                 const newZwischsumme = new Zwischensumme(eintrag.bezeichnung, 0, 0, 0, 0)
                 aktuelleZwischensumme = newZwischsumme;
                 this._eintraege.push(newZwischsumme)
-            } else if (eintrag.aufschlagWert != undefined) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, eintrag.aufschlagWert, 0, true, aktuelleZwischensumme));
-            else if (eintrag.aufwandWert != undefined) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, 0, eintrag.aufwandWert, false, aktuelleZwischensumme));
+            } else if (eintrag.aufwandRelativ != undefined) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, eintrag.aufwandRelativ, 0, true, aktuelleZwischensumme));
+            else if (eintrag.aufwandAbsolut != undefined) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, 0, eintrag.aufwandAbsolut, false, aktuelleZwischensumme));
         }
         this._eintraege.push(new Zwischensumme("ENDSUMME", 0, 0, 0, 0))
 

@@ -19,7 +19,7 @@ export class ExportProject {
         open: boolean
     }[] = []
     private _paketeTree: { key: number, children: number[] }[] = []
-    private _eintraege: { bezeichnung: string, aufschlagWert?: number, aufwandWert?: number }[] = []
+    private _eintraege: { bezeichnung: string, aufwandRelativ?: number, aufwandAbsolut?: number }[] = []
     private _projekt: { projektname: string, projektbeschreibung: string, bucketmodus: boolean, nachkommastellen: number }
 
 
@@ -39,7 +39,7 @@ export class ExportProject {
                 open: boolean
             }[],
             paketeTree: { key: number, children: number[] }[],
-            eintraege: { bezeichnung: string, aufschlagWert?: number, aufwandWert?: number }[]
+            eintraege: { bezeichnung: string, aufwandRelativ?: number, aufwandAbsolut?: number }[]
         }
             = {
             projekt: this._projekt,
@@ -83,9 +83,9 @@ export class ExportProject {
         eintraegeStore.eintraege.forEach(eintrag => {
             if (!["STARTSUMME", "ENDSUMME"].includes(eintrag.bezeichnung)) {
                 if (eintrag instanceof Eintrag) {
-                    if (eintrag.isAufschlagBase)
-                        this._eintraege.push({bezeichnung: eintrag.bezeichnung, aufschlagWert: eintrag.aufschlagWert})
-                    else this._eintraege.push({bezeichnung: eintrag.bezeichnung, aufwandWert: eintrag.aufwandWert})
+                    if (eintrag.isAufwandRelativBase)
+                        this._eintraege.push({bezeichnung: eintrag.bezeichnung, aufwandRelativ: eintrag.aufwandRelativ})
+                    else this._eintraege.push({bezeichnung: eintrag.bezeichnung, aufwandAbsolut: eintrag.aufwandAbsolut})
                 }
                 if (eintrag instanceof Zwischensumme) {
                     this._eintraege.push({bezeichnung: eintrag.bezeichnung})

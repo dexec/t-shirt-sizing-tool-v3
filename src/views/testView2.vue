@@ -726,8 +726,8 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
     if (eintrag instanceof Eintrag) {
       const serializableEintrag: SerializableEintrag = {
         bezeichnung: eintrag.bezeichnung,
-        aufschlag: eintrag.aufschlagWert / 100,
-        aufwand: eintrag.aufwandWert,
+        aufschlag: eintrag.aufwandRelativ / 100,
+        aufwand: eintrag.aufwandAbsolut,
         anteilZwischensumme: eintrag.anteilZwischensumme / 100,
         anteilGesamtprojekt: eintrag.anteilGesamtprojekt / 100
       };
@@ -840,7 +840,7 @@ function addEintraegeToSheet(sheet: WorkSheet, eintraege: AbstrakterEintrag[], s
       //Wenn die Basis Aufschlag ist, bekommt Aufwand die Formel und umgekehrt
       if (eintraege[i - 1] instanceof Eintrag) {
         //Bei normalen Einträgen ist die Formel für den Aufwand: Aufschlag * aktuelle Zwischensumme
-        if ((eintraege[i - 1] as Eintrag).isAufschlagBase) {
+        if ((eintraege[i - 1] as Eintrag).isAufwandRelativBase) {
           sheet[XLSX.utils.encode_cell({
             r: startzeilennummer + i,
             c: 2

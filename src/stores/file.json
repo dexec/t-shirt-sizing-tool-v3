@@ -2,22 +2,22 @@
   "eintraege2": [
     {
       "bezeichnung": "A",
-      "aufschlagWert": 10
+      "aufwandRelativ": 10
     },
     {
       "bezeichnung": "B",
-      "aufschlagWert": 20
+      "aufwandRelativ": 20
     },
     {
       "bezeichnung": "C",
-      "aufschlagWert": 30
+      "aufwandRelativ": 30
     },
     {
       "bezeichnung": "ZWISCHENSUMME"
     },
     {
       "bezeichnung": "D",
-      "aufwandWert": 100
+      "aufwandAbsolut": 100
     }
   ],
   "projekt": {
@@ -29,68 +29,68 @@
   "eintraege": [
     {
       "bezeichnung": "And. analyse",
-      "aufschlagWert": 55
+      "aufwandRelativ": 55
     },
     {
       "bezeichnung": "Entwurf",
-      "aufschlagWert": 20
+      "aufwandRelativ": 20
     },
     {
       "bezeichnung": "QS",
-      "aufschlagWert": 40
+      "aufwandRelativ": 40
     },
     {
       "bezeichnung": "PM",
-      "aufschlagWert": 20
+      "aufwandRelativ": 20
     },
     {
       "bezeichnung": "Kommunikation",
-      "aufschlagWert": 10
+      "aufwandRelativ": 10
     },
     {
       "bezeichnung": "Techn. Doku",
-      "aufschlagWert": 4
+      "aufwandRelativ": 4
     },
     {
       "bezeichnung": "Puffer",
-      "aufschlagWert": 10
+      "aufwandRelativ": 10
     },
     {
       "bezeichnung": "Unit-Tests",
-      "aufschlagWert": 15
+      "aufwandRelativ": 15
     },
     {
       "bezeichnung": "E2E-Tests",
-      "aufschlagWert": 15
+      "aufwandRelativ": 15
     },
     {
       "bezeichnung": "Perf-Tests",
-      "aufschlagWert": 3
+      "aufwandRelativ": 3
     },
     {
       "bezeichnung": "Berechtigungen",
-      "aufschlagWert": 5
+      "aufwandRelativ": 5
     },
     {
       "bezeichnung": "ZWISCHENSUMME"
     },
     {
       "bezeichnung": "XGewerbeordnung Schnittstelle aus Bucket E",
-      "aufwandWert": 120
+      "aufwandAbsolut": 120
     },
     {
       "bezeichnung": "ZWISCHENSUMME"
     },
     {
       "bezeichnung": "Adressmodul aus Bucket E",
-      "aufschlagWert": 10
+      "aufwandRelativ": 10
     },
     {
       "bezeichnung": "ZWISCHENSUMME"
     },
     {
       "bezeichnung": "Risiken",
-      "aufwandWert": 62.5
+      "aufwandAbsolut": 62.5
     }
   ],
   "buckets": [

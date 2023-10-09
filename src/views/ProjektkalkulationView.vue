@@ -26,8 +26,8 @@
 </template>
 <script lang="ts" setup>
 import BezeichnungCellRenderer from "@/components/projektkalkulation/BezeichnungCellRenderer.vue";
-import AufschlagCellRenderer from "@/components/projektkalkulation/AufschlagCellRenderer.vue";
-import AufwandCellRenderer from "@/components/projektkalkulation/AufwandCellRenderer.vue";
+import AufschlagCellRenderer from "@/components/projektkalkulation/AufwandRelativCellRenderer.vue";
+import AufwandCellRenderer from "@/components/projektkalkulation/AufwandAbsolutCellRenderer.vue";
 import AnteilAnZwischensummeCellRenderer from "@/components/projektkalkulation/AnteilAnZwischensummeCellRenderer.vue";
 import AnteilAmGesamtprojektCellRenderer from "@/components/projektkalkulation/AnteilAmGesamtprojektCellRenderer.vue";
 import {AgGridVue} from "ag-grid-vue3";
@@ -82,7 +82,7 @@ const columnDefs = ref([
     editable: false
   },
   {
-    field: "aufschlagWert",
+    field: "aufwandRelativ",
     headerName: "Aufschlag",
     cellRenderer: AufschlagCellRenderer,
     cellStyle: {},
@@ -91,20 +91,20 @@ const columnDefs = ref([
       if (!isNaN(newValue)) {
         eintraegeStore.updateAufschlag(params.node.rowIndex, +newValue);
       }
-      else params.data.aufschlagWert = params.oldValue;
+      else params.data.aufwandRelativ = params.oldValue;
       gridApi.value!.refreshCells({force: true});
     },
     editable: false
   },
   {
-    field: "aufwandWert",
+    field: "aufwandAbsolut",
     headerName: "Aufwand",
     cellRenderer: AufwandCellRenderer,
     cellStyle: {},
     valueSetter: (params: any) => {
       const newValue = params.newValue.replace(',','.')
       if (!isNaN(newValue)) eintraegeStore.updateAufwand(params.node.rowIndex, +newValue);
-      else params.data.aufwandWert = params.oldValue;
+      else params.data.aufwandAbsolut = params.oldValue;
       gridApi.value!.refreshCells({force: true});
     },
     editable: false
@@ -205,17 +205,17 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
       erklaerungsText.value = "Der Aufschlag der Zwischensumme ist die Summe aller Aufschläge des vorigen Abschnitts.";
       for (let i = vorigerAbschnittEintraege.length - 1; i >= 1; i--) {
         let aufschlag;
-        if(vorigerAbschnittEintraege[i].isAufschlagBase) {
-          aufschlag = vorigerAbschnittEintraege[i].aufschlagWert
+        if(vorigerAbschnittEintraege[i].isAufwandRelativBase) {
+          aufschlag = vorigerAbschnittEintraege[i].aufwandRelativ
         }
-        else aufschlag =  vorigerAbschnittEintraege[i].aufschlagWert.toFixed(projectStore.nachkommastellen)
+        else aufschlag =  vorigerAbschnittEintraege[i].aufwandRelativ.toFixed(projectStore.nachkommastellen)
         erklaerungsRechnung.value += aufschlag + "% + ";
       }
       let startaufschlag;
-      if(vorigerAbschnittEintraege[0].isAufschlagBase) {
-        startaufschlag = vorigerAbschnittEintraege[0].aufschlagWert;
+      if(vorigerAbschnittEintraege[0].isAufwandRelativBase) {
+        startaufschlag = vorigerAbschnittEintraege[0].aufwandRelativ;
       }
-      else startaufschlag = vorigerAbschnittEintraege[0].aufschlagWert.toFixed(projectStore.nachkommastellen)
+      else startaufschlag = vorigerAbschnittEintraege[0].aufwandRelativ.toFixed(projectStore.nachkommastellen)
       erklaerungsRechnung.value += startaufschlag + "%";
       erklaerungsRechnung.value = "Das ergibt " + erklaerungsRechnung.value + " = " + aktuellerEintrag.vorigerAbschnittAufschlag.toFixed(projectStore.nachkommastellen) + "%";
       break;
@@ -226,12 +226,12 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
       let aufwand;
       let aufschlag;
       const zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen);
-      if(aktuellerEintrag.isAufschlagBase) {
-        aufwand = aktuellerEintrag.aufwandWert.toFixed(projectStore.nachkommastellen);
-        aufschlag = aktuellerEintrag.aufschlagWert
+      if(aktuellerEintrag.isAufwandRelativBase) {
+        aufwand = aktuellerEintrag.aufwandAbsolut.toFixed(projectStore.nachkommastellen);
+        aufschlag = aktuellerEintrag.aufwandRelativ
       }
-      else {aufwand = aktuellerEintrag.aufwandWert;
-        aufschlag =  aktuellerEintrag.aufschlagWert.toFixed(projectStore.nachkommastellen)
+      else {aufwand = aktuellerEintrag.aufwandAbsolut;
+        aufschlag =  aktuellerEintrag.aufwandRelativ.toFixed(projectStore.nachkommastellen)
       }
       erklaerungsRechnung.value = `Das ergibt ${aufwand} / ${zwischensumme} = ${aufschlag}%`
       break;
@@ -256,17 +256,17 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
       erklaerungsTextZusatz.value = "Der untere Wert ergibt sich aus der Summe des oberen Wertes und der Startsumme.";
       for (let i = vorigerAbschnittEintraege.length - 1; i >= 1; i--) {
         let aufwand;
-        if(vorigerAbschnittEintraege[i].isAufschlagBase) {
-          aufwand = vorigerAbschnittEintraege[i].aufwandWert.toFixed(projectStore.nachkommastellen)
+        if(vorigerAbschnittEintraege[i].isAufwandRelativBase) {
+          aufwand = vorigerAbschnittEintraege[i].aufwandAbsolut.toFixed(projectStore.nachkommastellen)
         }
-        else aufwand = vorigerAbschnittEintraege[i].aufwandWert;
+        else aufwand = vorigerAbschnittEintraege[i].aufwandAbsolut;
         erklaerungsRechnung.value += aufwand + " + ";
       }
       let startaufwand;
-      if(vorigerAbschnittEintraege[0].isAufschlagBase) {
-        startaufwand = vorigerAbschnittEintraege[0].aufwandWert;
+      if(vorigerAbschnittEintraege[0].isAufwandRelativBase) {
+        startaufwand = vorigerAbschnittEintraege[0].aufwandAbsolut;
       }
-      else startaufwand = vorigerAbschnittEintraege[0].aufwandWert.toFixed(projectStore.nachkommastellen)
+      else startaufwand = vorigerAbschnittEintraege[0].aufwandAbsolut.toFixed(projectStore.nachkommastellen)
       erklaerungsRechnung.value += startaufwand;
       erklaerungsRechnung.value = "Das ergibt für den oberen Wert " + erklaerungsRechnung.value + " = " + aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen);
       erklaerungsRechnungZusatz.value = "Für den unteren Wert ergibt das " + aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen) + " + " + startaufwand + " = " + aktuellerEintrag.zwischensummeAufwand.toFixed(projectStore.nachkommastellen);
@@ -277,7 +277,7 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
       const alleEintraege: number[] = [];
       for (let i = rowIndex - 1; i >= 1; i--) {
         if (rowData[i] instanceof Eintrag) {
-          alleEintraege.push((rowData[i] as Eintrag).aufwandWert);
+          alleEintraege.push((rowData[i] as Eintrag).aufwandAbsolut);
         }
       }
       erklaerungsRechnung.value += gridApi.value!.getRowNode("0")!.data.zwischensummeAufwand;
@@ -294,12 +294,12 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
       erklaerungsText.value = "Der Aufwand errechnet sich durch das Multiplizieren des Aufschlags mit der Zwischensumme.";
       let aufwand;
       let aufschlag;
-      if(aktuellerEintrag.isAufschlagBase) {
-        aufwand = aktuellerEintrag.aufwandWert.toFixed(projectStore.nachkommastellen);
-        aufschlag = aktuellerEintrag.aufschlagWert
+      if(aktuellerEintrag.isAufwandRelativBase) {
+        aufwand = aktuellerEintrag.aufwandAbsolut.toFixed(projectStore.nachkommastellen);
+        aufschlag = aktuellerEintrag.aufwandRelativ
       }
-      else {aufwand = aktuellerEintrag.aufwandWert;
-        aufschlag =  aktuellerEintrag.aufschlagWert.toFixed(projectStore.nachkommastellen)
+      else {aufwand = aktuellerEintrag.aufwandAbsolut;
+        aufschlag =  aktuellerEintrag.aufwandRelativ.toFixed(projectStore.nachkommastellen)
       }
       erklaerungsRechnung.value = `Das ergibt ${aufschlag}% * ${zwischensumme} = ${aufwand}`;
       break;
@@ -329,7 +329,7 @@ function erklaereAnteilAnZwischensumme(bezeichnung: string, rowIndex: number) {
         }
       }
       erklaerungsText.value = "Der Anteil an nächster Zwischensumme zeigt, wie viel Aufwand in Prozent der aktuelle Eintrag für die nächste Zwischensumme ausmacht.";
-      erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.aufwandWert.toFixed(projectStore.nachkommastellen) + " / " + naechsteZwischensumme.toFixed(projectStore.nachkommastellen) + " = " + aktuellerEintrag.anteilZwischensumme.toFixed(projectStore.nachkommastellen) + "%";
+      erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.aufwandAbsolut.toFixed(projectStore.nachkommastellen) + " / " + naechsteZwischensumme.toFixed(projectStore.nachkommastellen) + " = " + aktuellerEintrag.anteilZwischensumme.toFixed(projectStore.nachkommastellen) + "%";
     }
   }
 }
@@ -350,7 +350,7 @@ function erklaereAnteilAnGesamtprojekt(bezeichnung: string, rowIndex: number) {
     default: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
       erklaerungsText.value = "Der Anteil am Gesamtprojekt zeit, wie viel Aufwand in Prozent der aktuelle Eintrag für das Gesamtprojekt ausmacht.";
-      erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.aufwandWert.toFixed(projectStore.nachkommastellen) + " / " + endsumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen) + " = " + aktuellerEintrag.anteilGesamtprojekt.toFixed(projectStore.nachkommastellen) + "%";
+      erklaerungsRechnung.value = "Das ergibt " + aktuellerEintrag.aufwandAbsolut.toFixed(projectStore.nachkommastellen) + " / " + endsumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen) + " = " + aktuellerEintrag.anteilGesamtprojekt.toFixed(projectStore.nachkommastellen) + "%";
     }
   }
 }
@@ -621,11 +621,11 @@ function onCellKeyPress(e: any) {
 
 function startEditingCell(e: any, colKey: string) {
   if ([ColumnET.BEZEICHNUNG, ColumnET.AUFSCHLAG, ColumnET.AUFWAND].includes(colKey as ColumnET) && !Object.values(SummeET).includes(e.data.bezeichnung)) {
-    if(colKey as ColumnET == ColumnET.AUFSCHLAG && !e.data.isAufschlagBase) {
-      e.data.aufschlagWert = parseFloat(e.data.aufschlagWert.toFixed(projectStore.nachkommastellen));
+    if(colKey as ColumnET == ColumnET.AUFSCHLAG && !e.data.isAufwandRelativBase) {
+      e.data.aufwandRelativ = parseFloat(e.data.aufwandRelativ.toFixed(projectStore.nachkommastellen));
     }
-    else if(colKey as ColumnET == ColumnET.AUFWAND && e.data.isAufschlagBase) {
-      e.data.aufwandWert = parseFloat(e.data.aufwandWert.toFixed(projectStore.nachkommastellen));
+    else if(colKey as ColumnET == ColumnET.AUFWAND && e.data.isAufwandRelativBase) {
+      e.data.aufwandAbsolut = parseFloat(e.data.aufwandAbsolut.toFixed(projectStore.nachkommastellen));
     }
     columnDefs.value!.find(column => column.field === colKey)!.editable = true;
     columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == colKey)!.cellStyle = (params: any) => {

@@ -8,7 +8,7 @@
       <p class="font-weight-bold">{{ zwischensummeAufwand }}</p>
     </div>
   </div>
-  <div v-else>{{ aufwandWert }}</div>
+  <div v-else>{{ aufwandAbsolut }}</div>
 </template>
 <script lang="ts" setup>
 import {Zwischensumme} from "@/models/Zwischensumme";
@@ -18,10 +18,10 @@ import {useProjektStore} from "@/stores/projekt";
 const projectStore = useProjektStore();
 const props = defineProps(['params']);
 
-const aufwandWert = computed(() => {
-      if (props.params.data.isAufschlagBase)
-        return props.params.data.aufwandWert.toFixed(projectStore.nachkommastellen)
-      else return props.params.data.aufwandWert
+const aufwandAbsolut = computed(() => {
+      if (props.params.data.isAufwandRelativBase)
+        return props.params.data.aufwandAbsolut.toFixed(projectStore.nachkommastellen)
+      else return props.params.data.aufwandAbsolut
     });
 const vorigerAbschnittAufwand = computed(() => props.params.data.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen));
 const zwischensummeAufwand = computed(() => props.params.data.zwischensummeAufwand.toFixed(projectStore.nachkommastellen));

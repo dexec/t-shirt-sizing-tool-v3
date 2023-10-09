@@ -1,7 +1,7 @@
 export const enum ColumnET {
   BEZEICHNUNG= "bezeichnung",
-  AUFSCHLAG= "aufschlagWert",
-  AUFWAND= "aufwandWert",
+  AUFSCHLAG= "aufwandRelativ",
+  AUFWAND= "aufwandAbsolut",
   ZWISCHENSUMME= "anteilZwischensumme",
   GESAMTPROJEKT= "anteilGesamtprojekt"
 }

@@ -2,42 +2,42 @@ import {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
 import type {Zwischensumme} from "@/models/Zwischensumme";
 
 export class Eintrag extends AbstrakterEintrag {
-    private _aufschlagWert: number;
-    private _aufwandWert: number;
-    private _isAufschlagBase: boolean;
+    private _aufwandRelativ: number;
+    private _aufwandAbsolut: number;
+    private _isAufwandRelativBase: boolean;
     private _referenzierteZwischensumme: Zwischensumme;
 
 
-    constructor(bezeichnung: string, anteilZwischensumme: number, anteilGesamtprojekt: number, aufschlagWert: number, aufwandWert: number, isAufschlagBase: boolean, referenzierteZwischensumme: Zwischensumme) {
+    constructor(bezeichnung: string, anteilZwischensumme: number, anteilGesamtprojekt: number, aufwandRelativ: number, aufwandAbsolut: number, isAufwandRelativBase: boolean, referenzierteZwischensumme: Zwischensumme) {
         super(bezeichnung, anteilZwischensumme, anteilGesamtprojekt);
-        this._aufschlagWert = aufschlagWert;
-        this._aufwandWert = aufwandWert;
-        this._isAufschlagBase = isAufschlagBase;
+        this._aufwandRelativ = aufwandRelativ;
+        this._aufwandAbsolut = aufwandAbsolut;
+        this._isAufwandRelativBase = isAufwandRelativBase;
         this._referenzierteZwischensumme = referenzierteZwischensumme;
     }
 
-    get aufschlagWert(): number {
-        return this._aufschlagWert;
+    get aufwandRelativ(): number {
+        return this._aufwandRelativ;
     }
 
-    set aufschlagWert(value: number) {
-        this._aufschlagWert = value;
+    set aufwandRelativ(value: number) {
+        this._aufwandRelativ = value;
     }
 
-    get aufwandWert(): number {
-        return this._aufwandWert;
+    get aufwandAbsolut(): number {
+        return this._aufwandAbsolut;
     }
 
-    set aufwandWert(value: number) {
-        this._aufwandWert = value;
+    set aufwandAbsolut(value: number) {
+        this._aufwandAbsolut = value;
     }
 
-    get isAufschlagBase(): boolean {
-        return this._isAufschlagBase;
+    get isAufwandRelativBase(): boolean {
+        return this._isAufwandRelativBase;
     }
 
-    set isAufschlagBase(value: boolean) {
-        this._isAufschlagBase = value;
+    set isAufwandRelativBase(value: boolean) {
+        this._isAufwandRelativBase = value;
     }
 
     get referenzierteZwischensumme(): Zwischensumme {
