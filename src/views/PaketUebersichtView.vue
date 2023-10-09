@@ -1,21 +1,21 @@
 <template>
-  <div class="d-flex flex-row" style='width: 100%;height: 100%'>
+  <div class="d-flex flex-row" style="width: 100%;height: 100%">
     <ag-grid-vue
-        :cacheQuickFilter="true"
-        :columnDefs='columnDefs'
-        :defaultColDef='defaultColDef'
-        :getRowId='getRowId'
-        :rowData='rowData'
-        :stopEditingWhenCellsLoseFocus="false"
-        class='ag-theme-alpine'
-        rowSelection='single'
-        style='width: 100%;height: 100%'
-        @cellValueChanged="onCellValueChanged"
-        @contextmenu="rightClickOnCell"
-        @cell-key-down="onCellKeyPress"
-        @cell-clicked="onCellClicked"
-        @cell-double-clicked="onCellDoubleClicked"
-        @grid-ready='onGridReady'>
+      :cacheQuickFilter="true"
+      :columnDefs="columnDefs"
+      :defaultColDef="defaultColDef"
+      :getRowId="getRowId"
+      :rowData="rowData"
+      :stopEditingWhenCellsLoseFocus="false"
+      class="ag-theme-alpine"
+      rowSelection="single"
+      style="width: 100%;height: 100%"
+      @cellValueChanged="onCellValueChanged"
+      @contextmenu="rightClickOnCell"
+      @cell-key-down="onCellKeyPress"
+      @cell-clicked="onCellClicked"
+      @cell-double-clicked="onCellDoubleClicked"
+      @grid-ready="onGridReady">
     </ag-grid-vue>
   </div>
   <v-btn v-if="rowData.length==0" class="centeredButton" @click="addNewPaket">Neues Paket erstellen</v-btn>
@@ -28,22 +28,23 @@
                  :text="'Sicher?'"></ConfirmDialog>
 </template>
 <script lang="ts" setup>
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
-import {AgGridVue} from 'ag-grid-vue3';
-import TreeDataCellRenderer from '@/components/TreeDataCellRenderer.vue';
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import { AgGridVue } from "ag-grid-vue3";
+import TreeDataCellRenderer from "@/components/TreeDataCellRenderer.vue";
 
-import {usePaketeStore} from '@/stores/pakete';
+import { usePaketeStore } from "@/stores/pakete";
 import { nextTick, onBeforeMount, provide, reactive, ref } from "vue";
-import {useBucketsStore} from "@/stores/buckets";
-import {POSITION, useToast} from "vue-toastification";
+import { useBucketsStore } from "@/stores/buckets";
+import { POSITION, useToast } from "vue-toastification";
 import ContextMenu from "@/components/ContextMenu.vue";
-import {useProjektStore} from "@/stores/projekt";
-import {Column, ColumnApi, GridApi} from "ag-grid-community";
-import type {Bucket} from "@/models/Bucket";
+import { useProjektStore } from "@/stores/projekt";
+import { Column, ColumnApi, GridApi } from "ag-grid-community";
+import type { Bucket } from "@/models/Bucket";
 import SuchComponent from "@/components/SuchComponent.vue";
-import type {Paket} from "@/models/Paket";
+import type { Paket } from "@/models/Paket";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import { errorToastPaketNrEmpty, errorToastPaketNrNotUnique } from "@/models/Toasts";
 
 const toast = useToast();
 const projectStore = useProjektStore();
@@ -52,6 +53,7 @@ let getRowId = (params: any): number => params.data._id;
 const paketeStore = usePaketeStore();
 const rowData = paketeStore.paketeAsTreeView;
 let duplicateTicketNrFound = false;
+
 function onGridReady(params: any) {
   columnApi.value = params.columnApi;
   gridApi.value = params.api;
@@ -60,70 +62,62 @@ function onGridReady(params: any) {
 const columnApi = ref<ColumnApi>();
 
 const defaultColDef = reactive({
-  resizable: true, filter: 'agTextColumnFilter',
+  resizable: true, filter: "agTextColumnFilter",
   suppressKeyboardEvent: (params: any) => {
     let key = params.event.key;
-    return (params.event.ctrlKey || params.event.shiftKey) && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter', 'F2'].includes(key) || ['Delete', 'Enter', 'F2', 'Escape'].includes(key) /*|| suppressedKeysArray.includes(key)*/;
+    return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key) /*|| suppressedKeysArray.includes(key)*/;
   }
-})
+});
 const columnDefs = ref([
   {
-    field: 'ticket_nr',
-    headerName: 'Ticket-NR',
+    field: "ticket_nr",
+    headerName: "Ticket-NR",
     valueSetter: (params: any) => {
-      duplicateTicketNrFound = false;
-      const everyTicketNrArray = Array.from(paketeStore.paketeAsMap.values()).map(paket => paket.ticket_nr)
-      for (const ticketnr of everyTicketNrArray) {
-        if (params.newValue.toUpperCase() == ticketnr.toUpperCase()) {
-          duplicateTicketNrFound = true
-          break;
+      if (params.newValue == "") {
+        params.data.ticket_nr = params.oldValue;
+        errorToastPaketNrEmpty();
+      } else {
+        duplicateTicketNrFound = false;
+        const everyTicketNrArray = Array.from(paketeStore.paketeAsMap.values()).map(paket => paket.ticket_nr);
+        for (const ticketnr of everyTicketNrArray) {
+          if (params.newValue.toUpperCase() == ticketnr.toUpperCase()) {
+            duplicateTicketNrFound = true;
+            break;
+          }
         }
-      }
-      if (!duplicateTicketNrFound) params.data.ticket_nr = params.newValue
-      else {
-        toast.error("Die Ticket-Nr muss eindeutig sein!", {
-          position: POSITION.TOP_RIGHT,
-          timeout: 5000,
-          closeOnClick: true,
-          pauseOnFocusLoss: true,
-          pauseOnHover: true,
-          draggable: true,
-          draggablePercent: 0.6,
-          showCloseButtonOnHover: false,
-          hideProgressBar: true,
-          closeButton: "button",
-          icon: true,
-          rtl: false
-        });
+        if (!duplicateTicketNrFound) params.data.ticket_nr = params.newValue;
+        else {
+          errorToastPaketNrNotUnique();
+        }
       }
     },
     cellRenderer: TreeDataCellRenderer,
     editable: false
   },
   {
-    field: 'thema',
-    headerName: 'Thema',
+    field: "thema",
+    headerName: "Thema",
     width: 300,
     editable: false
   },
   {
-    field: 'lvl',
-    headerName: 'LVL',
+    field: "lvl",
+    headerName: "LVL",
     editable: false
   },
   {
-    field: 'beschreibung',
-    headerName: 'Beschreibung',
+    field: "beschreibung",
+    headerName: "Beschreibung",
     editable: false
   },
   {
-    field: 'komponente',
-    headerName: 'Komponente',
+    field: "komponente",
+    headerName: "Komponente",
     editable: false
   },
   {
-    field: 'bucket',
-    headerName: 'Bucket',
+    field: "bucket",
+    headerName: "Bucket",
     valueSetter: (params: any) => {
       if (params.newValue === "") paketeStore.updateBucket(params.data, null);
       else {
@@ -132,30 +126,30 @@ const columnDefs = ref([
       }
     },
     valueGetter: (params: any) => {
-      if (params.data.bucket) return params.data.bucket.name
-      else return ""
+      if (params.data.bucket) return params.data.bucket.name;
+      else return "";
     },
-    cellEditor: 'agSelectCellEditor',
+    cellEditor: "agSelectCellEditor",
     cellEditorParams: {
       values: ["", ...useBucketsStore().getBucketNamesSorted()]
     },
     cellStyle: (params: any): any => {
-      if (params.data.children.length > 0) return {backgroundColor: 'lightgrey'}
-      else return {backgroundColor: 'transparent'}
+      if (params.data.children.length > 0) return { backgroundColor: "lightgrey" };
+      else return { backgroundColor: "transparent" };
     },
     hide: !projectStore.bucketmodus,
     editable: false
   },
   {
-    field: 'schaetzung',
-    headerName: 'Schätzung',
+    field: "schaetzung",
+    headerName: "Schätzung",
     valueSetter: (params: any) => {
-      const newValue = params.newValue.replace(',', '.')
+      const newValue = params.newValue.replace(",", ".");
       if (isNaN(newValue)) params.data.schaetzung = params.oldValue;
       else {
-        params.data.schaetzung = Number(newValue)
-        paketeStore.updateParentsAfterSchaetzungUpdated(params.data, params.oldValue)
-        gridApi.value!.refreshCells({force: true});
+        params.data.schaetzung = Number(newValue);
+        paketeStore.updateParentsAfterSchaetzungUpdated(params.data, params.oldValue);
+        gridApi.value!.refreshCells({ force: true });
       }
     },
     valueGetter: (params: any) => {
@@ -166,27 +160,27 @@ const columnDefs = ref([
       }
     },
     cellStyle: (params: any): any => {
-      if (params.data.children.length > 0) return {backgroundColor: 'lightgrey'}
-      else return {backgroundColor: 'transparent'}
+      if (params.data.children.length > 0) return { backgroundColor: "lightgrey" };
+      else return { backgroundColor: "transparent" };
     },
-    filter: 'agNumberColumnFilter',
+    filter: "agNumberColumnFilter",
     editable: false
   },
   {
-    field: 'id',
-    headerName: 'ID',
+    field: "id",
+    headerName: "ID",
     editable: false
   }
-])
-const showSuche = ref(false)
+]);
+const showSuche = ref(false);
 
 function toggleSuche() {
-  showSuche.value = !showSuche.value
+  showSuche.value = !showSuche.value;
 }
 
 function showSearchedPaket(paket: Paket) {
   showSuche.value = false;
-  paketeStore.showPaket(paket)
+  paketeStore.showPaket(paket);
   refreshTable(columnApi.value!.getColumns()![0].getColId(), paket.id);
 }
 
@@ -213,16 +207,16 @@ provide("movePaketRightDown", movePaketRightDown);
 provide("movePaketLeftDown", movePaketLeftDown);
 provide("movePaketLeftUp", movePaketLeftUp);
 const providedFunctionsContextMenu = ref([
-  {functionName: 'addNewPaket', functionLabel: "Neues Arbeitspaket anlegen"},
-  {functionName: 'addNewKindPaket', functionLabel: "Neues Arbeitspaket als Kind anlegen"},
-  {functionName: 'attemptDeletePaket', functionLabel: "Paket löschen"},
-  {functionName: 'movePaketUp', functionLabel: "Pfeil hoch", icon: "mdi-arrow-up"},
-  {functionName: 'movePaketDown', functionLabel: "Pfeil runter", icon: "mdi-arrow-down"},
-  {functionName: 'movePaketRightUp', functionLabel: "Pfeil hoch rechts", icon: "mdi-arrow-top-right"},
-  {functionName: 'movePaketRightDown', functionLabel: "Pfeil runter rechts", icon: "mdi-arrow-bottom-right"},
-  {functionName: 'movePaketLeftDown', functionLabel: "Pfeil runter links", icon: "mdi-arrow-bottom-left"},
-  {functionName: 'movePaketLeftUp', functionLabel: "Pfeil hoch links", icon: "mdi-arrow-left-up"},
-])
+  { functionName: "addNewPaket", functionLabel: "Neues Arbeitspaket anlegen" },
+  { functionName: "addNewKindPaket", functionLabel: "Neues Arbeitspaket als Kind anlegen" },
+  { functionName: "attemptDeletePaket", functionLabel: "Paket löschen" },
+  { functionName: "movePaketUp", functionLabel: "Pfeil hoch", icon: "mdi-arrow-up" },
+  { functionName: "movePaketDown", functionLabel: "Pfeil runter", icon: "mdi-arrow-down" },
+  { functionName: "movePaketRightUp", functionLabel: "Pfeil hoch rechts", icon: "mdi-arrow-top-right" },
+  { functionName: "movePaketRightDown", functionLabel: "Pfeil runter rechts", icon: "mdi-arrow-bottom-right" },
+  { functionName: "movePaketLeftDown", functionLabel: "Pfeil runter links", icon: "mdi-arrow-bottom-left" },
+  { functionName: "movePaketLeftUp", functionLabel: "Pfeil hoch links", icon: "mdi-arrow-left-up" }
+]);
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 
 function rightClickOnCell(e: any) {
@@ -235,12 +229,12 @@ function rightClickOnCell(e: any) {
 }
 
 function onCellClicked() {
-  columnDefs.value.forEach(column => column.editable = false)
+  columnDefs.value.forEach(column => column.editable = false);
 }
 
 function onCellDoubleClicked(e: any) {
   if (gridApi.value!.getEditingCells().length === 0) {
-    startEditingCell(e, e.column.colId)
+    startEditingCell(e, e.column.colId);
   }
 }
 
@@ -250,10 +244,10 @@ function onCellValueChanged(params: any) {
 function addNewPaket() {
   let newPaketID;
   if (gridApi.value!.getSelectedRows()[0]) {
-    newPaketID = paketeStore.addNew(gridApi.value!.getSelectedRows()[0].id)
+    newPaketID = paketeStore.addNew(gridApi.value!.getSelectedRows()[0].id);
     refreshTable(gridApi.value!.getFocusedCell()!.column, newPaketID);
   } else {
-    newPaketID = paketeStore.addNew(-1)
+    newPaketID = paketeStore.addNew(-1);
     refreshTable(columnApi.value!.getColumns()![0].getColId(), newPaketID);
   }
 }
@@ -265,10 +259,10 @@ function addNewKindPaket() {
   }
 }
 
-const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null)
+const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
 
 function attemptDeletePaket() {
-  confirmDialogRef.value!.showDialog()
+  confirmDialogRef.value!.showDialog();
 }
 
 function deletePaket() {
@@ -276,14 +270,15 @@ function deletePaket() {
     const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
     const focusedColumn = gridApi.value!.getFocusedCell()?.column!;
     paketeStore.deletePaket(gridApi.value!.getSelectedRows()[0].id);
-    if (rowData[focusedRowIndex]) refreshTable(focusedColumn, rowData[focusedRowIndex].id)
+    if (rowData[focusedRowIndex]) refreshTable(focusedColumn, rowData[focusedRowIndex].id);
     else if (rowData.length !== 0) {
       refreshTable(focusedColumn, rowData[rowData.length - 1].id);
     } else {
-      refreshTable(focusedColumn.getColId())
+      refreshTable(focusedColumn.getColId());
     }
   }
 }
+
 function movePaketUp() {
   if (gridApi.value!.getSelectedRows()[0]) {
     let paketID = gridApi.value!.getSelectedRows()[0].id;
@@ -334,108 +329,108 @@ function movePaketRightUp() {
 
 function refreshTable(colKey?: Column | string, paketId?: number) {
   nextTick(() => {
-    gridApi.value!.setRowData(paketeStore.paketeAsTreeView)
-    columnDefs.value.forEach(column => column.editable = false)
+    gridApi.value!.setRowData(paketeStore.paketeAsTreeView);
+    columnDefs.value.forEach(column => column.editable = false);
     if (paketId != undefined && colKey != undefined) {
       gridApi.value!.getRowNode(paketId + "")!.setSelected(true);
       gridApi.value!.setFocusedCell(gridApi.value!.getRowNode(paketId + "")!.rowIndex as number, colKey);
     }
-    gridApi.value!.refreshCells({force: true});
+    gridApi.value!.refreshCells({ force: true });
   });
 }
 
 function onCellKeyPress(e: any) {
   if (e.event) {
-    const key = e.event.key
+    const key = e.event.key;
     const ctrl = e.event.ctrlKey;
     const shift = e.event.shiftKey;
     const colKey = e.column.colId;
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
-        case 'ArrowUp':
+        case "ArrowUp":
           if (ctrl || shift) {
             nextTick(() => movePaketUp());
           } else {
             const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
             const selectedPaket = rowData[focusedRowIndex];
             if (selectedPaket) {
-              gridApi.value!.getRowNode(selectedPaket.id + "")!.setSelected(true)
+              gridApi.value!.getRowNode(selectedPaket.id + "")!.setSelected(true);
             }
           }
           break;
-        case 'ArrowDown':
+        case "ArrowDown":
           if (ctrl || shift) {
             nextTick(() => movePaketDown());
           } else {
             const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
             const selectedPaket = rowData[focusedRowIndex];
             if (selectedPaket) {
-              gridApi.value!.getRowNode(selectedPaket.id + "")!.setSelected(true)
+              gridApi.value!.getRowNode(selectedPaket.id + "")!.setSelected(true);
             }
           }
           break;
-        case 'ArrowLeft':
+        case "ArrowLeft":
           if (ctrl) nextTick(() => movePaketLeftDown());
           else if (shift) nextTick(() => movePaketLeftUp());
           break;
-        case 'ArrowRight':
+        case "ArrowRight":
           if (ctrl) nextTick(() => movePaketRightDown());
           else if (shift) nextTick(() => movePaketRightUp());
           break;
-        case '_':
-        case '-':
+        case "_":
+        case "-":
           nextTick(() => attemptDeletePaket());
           break;
-        case 'Delete':
+        case "Delete":
           if (shift || ctrl) {
             nextTick(() => attemptDeletePaket());
           } else {
             if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
-              if (colKey === 'schaetzung') {
+              if (colKey === "schaetzung") {
                 const oldValue = e.data.schaetzung;
-                e.data.schaetzung = null
+                e.data.schaetzung = null;
                 nextTick(() => paketeStore.updateParentsAfterSchaetzungUpdated(e.data, oldValue));
-              } else if (colKey === 'bucket') {
+              } else if (colKey === "bucket") {
                 nextTick(() => paketeStore.updateBucket(e.data, null));
-              } else e.data[colKey] = null
-              refreshTable(colKey, e.data.id)
+              } else if (!(colKey === "ticket_nr")) e.data[colKey] = null;
+              refreshTable(colKey, e.data.id);
             }
           }
           break;
-        case '+':
+        case "+":
           if (!ctrl && !shift)
             nextTick(() => addNewPaket());
           else if (shift) {
             nextTick(() => addNewKindPaket());
           }
           break;
-        case '*': {
+        case "*": {
           if (!ctrl)
             nextTick(() => addNewKindPaket());
-          break
+          break;
         }
-        case ' ':
+        case " ":
           if (ctrl) {
             if (e.data.children.length > 0) {
               const aktuellesPaket = e.data;
               aktuellesPaket.open = !aktuellesPaket.open;
               e.node.setData(aktuellesPaket);
               nextTick(() => paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket));
-              refreshTable(colKey, e.data.id)
+              refreshTable(colKey, e.data.id);
             }
           }
           break;
-        case 'F2':
+        case "F2":
           nextTick(() => startEditingCell(e, colKey));
           break;
       }
     } else {
       switch (key) {
-        case 'Enter': {
+        case "Enter": {
           nextTick(() => stopEiditingAndSetFocus(false, e.rowIndex, colKey));
           break;
         }
-        case 'Escape': {
+        case "Escape": {
           nextTick(() => stopEiditingAndSetFocus(true, e.rowIndex, colKey));
           break;
         }
@@ -446,18 +441,18 @@ function onCellKeyPress(e: any) {
 
 function startEditingCell(e: any, colKey: string) {
   if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
-    columnDefs.value!.find(column => column.field === colKey)!.editable = true
+    columnDefs.value!.find(column => column.field === colKey)!.editable = true;
     nextTick(() => gridApi.value!.startEditingCell({
       rowIndex: e.rowIndex,
       colKey: e.column
-    }))
+    }));
   }
 }
 
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
-  columnDefs.value!.forEach(column => column.editable = false)
+  columnDefs.value!.forEach(column => column.editable = false);
   gridApi.value!.setFocusedCell(rowIndex, colKey);
-  gridApi.value!.stopEditing(cancel)
+  gridApi.value!.stopEditing(cancel);
 }
 </script>
 
@@ -470,6 +465,7 @@ function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: stri
   top: 5px;
   z-index: 2000;
 }
+
 .centeredButton {
   margin: 0;
   position: absolute;

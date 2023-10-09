@@ -83,6 +83,12 @@ import type {Bucket} from "@/models/Bucket";
 import {ExportProject} from "@/components/ExportProject";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import {POSITION, useToast} from "vue-toastification";
+import {
+  errorToastBucketDuplicateName,
+  errorToastBucketEmptyName,
+  successToastBucketAdded,
+  successToastBucketDeleted, successToastBucketsSwapped
+} from "@/models/Toasts";
 
 const newBucketName = ref("")
 const currentSelectedBucket = ref(-1)
@@ -196,91 +202,6 @@ function convertNachkommastelle() {
   }
   else projektStore.nachkommastellen = 0
 }
-function successToastBucketAdded() {
-  toast.success("Neues Bucket hinzugefügt!", {
-    position: POSITION.TOP_RIGHT,
-    timeout: 5000,
-    closeOnClick: true,
-    pauseOnFocusLoss: true,
-    pauseOnHover: true,
-    draggable: true,
-    draggablePercent: 0.6,
-    showCloseButtonOnHover: false,
-    hideProgressBar: true,
-    closeButton: "button",
-    icon: true,
-    rtl: false
-  });
-}
-
-function successToastBucketsSwapped() {
-  toast.success("Buckets getauscht!", {
-    position: POSITION.TOP_RIGHT,
-    timeout: 5000,
-    closeOnClick: true,
-    pauseOnFocusLoss: true,
-    pauseOnHover: true,
-    draggable: true,
-    draggablePercent: 0.6,
-    showCloseButtonOnHover: false,
-    hideProgressBar: true,
-    closeButton: "button",
-    icon: true,
-    rtl: false
-  });
-}
-
-function successToastBucketDeleted(name: string) {
-  toast.success(`Bucket ${name} gelöscht!`, {
-    position: POSITION.TOP_RIGHT,
-    timeout: 5000,
-    closeOnClick: true,
-    pauseOnFocusLoss: true,
-    pauseOnHover: true,
-    draggable: true,
-    draggablePercent: 0.6,
-    showCloseButtonOnHover: false,
-    hideProgressBar: true,
-    closeButton: "button",
-    icon: true,
-    rtl: false
-  });
-}
-
-function errorToastBucketEmptyName() {
-  toast.error("Das Bucket darf keinen leeren String haben!", {
-    position: POSITION.TOP_RIGHT,
-    timeout: 5000,
-    closeOnClick: true,
-    pauseOnFocusLoss: true,
-    pauseOnHover: true,
-    draggable: true,
-    draggablePercent: 0.6,
-    showCloseButtonOnHover: false,
-    hideProgressBar: true,
-    closeButton: "button",
-    icon: true,
-    rtl: false
-  });
-}
-
-function errorToastBucketDuplicateName(name: String) {
-  toast.error(`Das Bucket ${name} gibt es schon!`, {
-    position: POSITION.TOP_RIGHT,
-    timeout: 5000,
-    closeOnClick: true,
-    pauseOnFocusLoss: true,
-    pauseOnHover: true,
-    draggable: true,
-    draggablePercent: 0.6,
-    showCloseButtonOnHover: false,
-    hideProgressBar: true,
-    closeButton: "button",
-    icon: true,
-    rtl: false
-  });
-}
-
 </script>
 
 <style scoped>
