@@ -148,7 +148,7 @@ const columnDefs = ref([
       if (isNaN(newValue)) params.data.schaetzung = params.oldValue;
       else {
         params.data.schaetzung = Number(newValue);
-        paketeStore.updateParentsAfterSchaetzungUpdated(params.data, params.oldValue);
+        paketeStore.updateParentsAfterSchaetzungUpdated(params.data);
         gridApi.value!.refreshCells({ force: true });
       }
     },
