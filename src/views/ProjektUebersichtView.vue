@@ -7,7 +7,7 @@
       Modus
     </v-btn>
 <!--    TODO Nachkommastelle darf keine Nachkommastellen selbst haben-->
-    <v-text-field v-model.number="projektStore.nachkommastellen" label="Nachkommastellen" @blur="convertNachkommastelle"></v-text-field>
+    <v-text-field v-model.number="nachkommastellen" label="Nachkommastellen" @blur="convertNachkommastelle" ></v-text-field>
     <h1>Projektinformationen</h1>
     <h3>Projektname</h3>
     <v-text-field v-model="projektStore.projektname" outlined solo></v-text-field>
@@ -195,12 +195,13 @@ function downloadProject() {
   });
   link.dispatchEvent(clickEvent);
 }
+
+const nachkommastellen = ref(2);
 function convertNachkommastelle() {
-  let nachkommastelle = projektStore.nachkommastellen;
-  if (!isNaN(parseFloat(nachkommastelle.toString()))) {
-    projektStore.nachkommastellen = Math.floor(nachkommastelle);
+  if (!isNaN(parseFloat(nachkommastellen.value.toString()))) {
+    projektStore.nachkommastellen = Math.floor(nachkommastellen.value);
   }
-  else projektStore.nachkommastellen = 0
+  else projektStore.nachkommastellen = nachkommastellen.value = 0
 }
 </script>
 
