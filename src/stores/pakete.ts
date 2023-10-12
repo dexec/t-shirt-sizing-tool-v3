@@ -66,23 +66,20 @@ export const usePaketeStore = defineStore("pakete", () => {
     }
     return result;
   }
-
-  function updateParentsAfterSchaetzungUpdated(paket: Paket, oldValue: number | null) {
-    if (paket.schaetzung == null && oldValue == null) return;
-    let diff;
-    if (paket.schaetzung == null) {
-      diff = -(oldValue ?? 0);
-    } else {
-      diff = paket.schaetzung - (oldValue ?? 0);
-    }
+  function updateParentsAfterSchaetzungUpdated(paket: Paket) {
     let parentOfPaket = paket.parent;
-    while (parentOfPaket) {
-      if (parentOfPaket.children.filter(paketOfChildren => paketOfChildren.schaetzung != null).length == 0) parentOfPaket.schaetzung = null;
-      else {
-        parentOfPaket.schaetzung = (parentOfPaket.schaetzung ?? 0) + diff;
-        parentOfPaket.schaetzung = parseFloat(parentOfPaket.schaetzung.toFixed(useProjektStore().nachkommastellen));
+    while (parentOfPaket!=null) {
+      parentOfPaket.schaetzung=null;
+      for(const childPaket of parentOfPaket.children) {
+        if (childPaket.schaetzung != null) {
+          if (parentOfPaket.schaetzung != null) {
+            parentOfPaket.schaetzung += parseFloat(childPaket.schaetzung.toFixed(useProjektStore().nachkommastellen))
+          } else {
+            parentOfPaket.schaetzung = parseFloat(childPaket.schaetzung.toFixed(useProjektStore().nachkommastellen))
+          }
+        }
       }
-      parentOfPaket = parentOfPaket.parent;
+      parentOfPaket = parentOfPaket.parent
     }
   }
 
@@ -179,7 +176,7 @@ export const usePaketeStore = defineStore("pakete", () => {
       parentOfPaket.children.splice(parentOfPaket.children.indexOf(paketToDelete), 1);
     }
     if (paketToDelete.schaetzung != null)
-      updateParentsAfterSchaetzungUpdated(paketToDelete, null);
+      updateParentsAfterSchaetzungUpdated(paketToDelete);
   }
 
   function createNewUniqueTicketNr(): string {
@@ -395,7 +392,7 @@ export const usePaketeStore = defineStore("pakete", () => {
       else if (newParent.schaetzung != null && paketToMove.schaetzung != null) {
         const oldSchaetzung = paketToMove.schaetzung;
         paketToMove.schaetzung = newParent.schaetzung;
-        updateParentsAfterSchaetzungUpdated(paketToMove, oldSchaetzung);
+        updateParentsAfterSchaetzungUpdated(paketToMove);
       } else {
         newParent.schaetzung = paketToMove.schaetzung;
       }
