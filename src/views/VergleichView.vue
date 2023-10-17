@@ -3,14 +3,14 @@
     <v-row class="mb-6">
       <v-col class="d-flex flex-nowrap justify-center">
         <v-btn class="clickable-element bucketsButton" @click="showPaketeWithoutBucket=!showPaketeWithoutBucket"><span
-            class="bucketsButtonText">Toggle
-          Arbeitspakete</span></v-btn>
+            class="bucketsButtonText">Toggle Arbeitspakete</span></v-btn>
         <v-dialog v-model="dialog" width="auto">
           <template v-slot:activator="{props}">
             <v-btn class="mx-6 bucketsButton clickable-element" v-bind="props">
               <span class="bucketsButtonText">Buckets konfigurieren</span>
             </v-btn>
           </template>
+
           <v-card>
             <v-card-text>
               <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name
@@ -115,6 +115,7 @@ import {computed, onActivated, ref} from "vue";
 import {Bucket} from "@/models/Bucket";
 import {Paket} from "@/models/Paket";
 import draggable from "vuedraggable";
+import "@/styles/hoveLink.css"
 
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
