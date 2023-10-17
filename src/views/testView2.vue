@@ -71,7 +71,7 @@ const eintraegeStore = useEintraegeStore();
 statistikenStore.berechne();
 eintraegeStore.berechne();
 
-function downloadExcelSheet() {
+function download() {
   const wb = XLSX.utils.book_new();
   const sheetKalkulation = createSheetForKalkulation(statistikenStore.statistiken as Statistik[], eintraegeStore.eintraege as AbstrakterEintrag[], projektStore.bucketmodus);
   const sheetAllePakete = createSheetForPakete(paketeStore.paketeFullTreeView(), projektStore.bucketmodus);
