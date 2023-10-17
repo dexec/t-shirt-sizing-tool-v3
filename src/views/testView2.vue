@@ -5,7 +5,6 @@
   <div class="result-table">
     <button class="download-btn" type="button" v-on:click="testfunction(paketeStore.paketeFullTreeView())">Test</button>
   </div>
-  <v-btn @click="testFilterPakete">Test Filter</v-btn>
 </template>
 
 
@@ -72,11 +71,7 @@ const eintraegeStore = useEintraegeStore();
 statistikenStore.berechne();
 eintraegeStore.berechne();
 
-function testFilterPakete() {
-  paketeStore.filteredPaketeAsTreeView("a");
-}
-
-function download() {
+function downloadExcelSheet() {
   const wb = XLSX.utils.book_new();
   const sheetKalkulation = createSheetForKalkulation(statistikenStore.statistiken as Statistik[], eintraegeStore.eintraege as AbstrakterEintrag[], projektStore.bucketmodus);
   const sheetAllePakete = createSheetForPakete(paketeStore.paketeFullTreeView(), projektStore.bucketmodus);
