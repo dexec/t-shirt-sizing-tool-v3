@@ -1,6 +1,6 @@
 .clickable-element {
     padding: 10px 20px;
-    background-color: #3498db;
+    background-color: #03787c;
     color: white;
     border-radius: 5px;
     cursor: pointer;
@@ -8,6 +8,6 @@
 }
 
 .clickable-element:hover {
-    background-color: #2980b9;
+    background-color: #015c60;
     transform: scale(1.05);
 }
