@@ -1,78 +1,79 @@
 <template>
-  <div class="d-flex flex-column justify-center">
-    <v-btn @click="downloadProject">Projekt speichern</v-btn>
-    <v-btn v-if="projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketmodus
-    </v-btn>
-    <v-btn v-else-if="!projektStore.bucketmodus" @click="projektStore.bucketmodus=!projektStore.bucketmodus">Bucketloser
-      Modus
-    </v-btn>
-<!--    TODO Nachkommastelle darf keine Nachkommastellen selbst haben-->
-    <v-text-field v-model.number="nachkommastellen" label="Nachkommastellen" @blur="convertNachkommastelle" ></v-text-field>
-    <h1>Projektinformationen</h1>
-    <h3>Projektname</h3>
-    <v-text-field v-model="projektStore.projektname" outlined solo></v-text-field>
-    <h3>Beschreibung</h3>
-    <v-textarea v-model="projektStore.projektbeschreibung" outlined solo></v-textarea>
-    <h1 v-if="projektStore.bucketmodus">Buckets</h1>
-    <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
-      <div v-for="(bucket,index) in bucketStore.bucketsAsSortedArray" :key="bucket.id">
-        <v-container style="width: 300px;height: 150px" class="mb-4">
-          <v-row>
-            <v-col>
-              <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketBefore()">
-                <v-icon icon="mdi-plus"></v-icon>
-              </v-btn>
-              <v-btn :disabled="( index==0 )" :style="showArrowLeft(bucket as Bucket)" class="button"
-                     @click="swapWithBucketBefore()">
-                <v-icon icon="mdi-arrow-left"></v-icon>
-              </v-btn>
-            </v-col>
-            <v-col>
-              <v-hover v-if="currentEditBucket!==bucket.id" v-slot="{hover}">
-                <v-card :class="{'on-hover':hover}" :elevation="hover ? 12:2" :style="bucket.id===currentSelectedBucket? 'backgroundColor: green': ''
-                        || bucket.name===''? 'border: 1px solid red !important':''"
-                        class="bucket"
-                        @click="currentSelectedBucket=bucket.id"
-                        @dblclick="currentEditBucket=bucket.id; newBucketName=bucket.name">
+  <div class="d-flex flex-column justify-center ma-10">
+    <h1>Konfiguration</h1>
+    <v-text-field v-model="projektStore.projektname" label="Projektname" outlined solo
+                  style="width:20vw"></v-text-field>
+    <v-text-field v-model.number="nachkommastellen" label="Nachkommastellen" style="width:20vw"
+                  @blur="convertNachkommastelle"></v-text-field>
+    <label class="switch">
+      <input id="toggleSwitch" v-model="projektStore.bucketmodus" checked type="checkbox">
+      <span class="slider"></span>
+      <span class="text">Buckets aktivieren</span>
+    </label>
+    <h1>Downloads</h1>
+    <v-btn class="my-5" style="width: 20vw" @click="downloadProject">Projekt speichern</v-btn>
+    <v-btn class="my-5" style="width: 20vw" @click="downloadExcel">Excel-Sheet runterladen</v-btn>
+    <div>
+      <h1 v-if="projektStore.bucketmodus">Buckets</h1>
+      <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
+        <div v-for="(bucket,index) in bucketStore.bucketsAsSortedArray" :key="bucket.id">
+          <v-container class="mb-4" style="width: 300px;height: 150px">
+            <v-row>
+              <v-col>
+                <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketBefore()">
+                  <v-icon icon="mdi-plus"></v-icon>
+                </v-btn>
+                <v-btn :disabled="( index==0 )" :style="showArrowLeft(bucket as Bucket)" class="button"
+                       @click="swapWithBucketBefore()">
+                  <v-icon icon="mdi-arrow-left"></v-icon>
+                </v-btn>
+              </v-col>
+              <v-col>
+                <div v-if="currentEditBucket!==bucket.id" :style="bucketStyle(bucket as Bucket)"
+                     class="bucket"
+                     @click="currentSelectedBucket=bucket.id; log()"
+                     @dblclick="currentEditBucket=bucket.id; newBucketName=bucket.name">
                   {{ bucket.name }}
-                </v-card>
-              </v-hover>
-              <v-hover v-else v-slot="{hover}">
-                <v-card :class="{'on-hover':hover}" class="bucket">
-<!--                  TODO Richtiges Textfeld hinkriegen-->
-                  <v-text-field id="textfield" v-model="newBucketName" autofocus @blur="clearData()"
-                                @keydown="editBucket" @focus="$event.target.select()"></v-text-field>
-                </v-card>
-              </v-hover>
-            </v-col>
-            <v-col>
-              <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketAfter()">
-                <v-icon icon="mdi-plus"></v-icon>
-              </v-btn>
-              <v-btn :disabled="!(index < bucketStore.bucketsAsSortedArray.length - 1)"
-                     :style="showArrowRight(bucket as Bucket)"
-                     class="button" @click="swapWithBucketAfter()">
-                <v-icon icon="mdi-arrow-right"></v-icon>
-              </v-btn>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col class="d-flex justify-center">
-              <v-btn :style="showButtons(bucket as Bucket)" class="button" @click="attemptDeleteBucket()">
-                <v-icon icon="mdi-minus"></v-icon>
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-container>
-      </div>
-      <div v-if="bucketStore.bucketsAsSortedArray.length===0">
-        <v-btn @click="addFirstBucket()">
-          <v-icon icon="mdi-plus"></v-icon>
-        </v-btn>
+                </div>
+                <div v-else class="bucketEdit">
+<!--                  <input id="textfield" v-model="newBucketName" autofocus type="text" @blur="clearData()"
+                         @focus="$event.target.select()"
+                         @keydown="editBucket">-->
+                  <input id="textfield" v-model="newBucketName" autofocus type="text"
+                         @blur="clearData()"
+                         @keydown="editBucket">
+                </div>
+              </v-col>
+              <v-col>
+                <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketAfter()">
+                  <v-icon icon="mdi-plus"></v-icon>
+                </v-btn>
+                <v-btn :disabled="!(index < bucketStore.bucketsAsSortedArray.length - 1)"
+                       :style="showArrowRight(bucket as Bucket)"
+                       class="button" @click="swapWithBucketAfter()">
+                  <v-icon icon="mdi-arrow-right"></v-icon>
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col class="d-flex justify-center">
+                <v-btn :style="showButtons(bucket as Bucket)" class="button" @click="attemptDeleteBucket()">
+                  <v-icon icon="mdi-minus"></v-icon>
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-container>
+        </div>
+        <div v-if="bucketStore.bucketsAsSortedArray.length===0">
+          <v-btn @click="addFirstBucket()">
+            <v-icon icon="mdi-plus"></v-icon>
+          </v-btn>
+        </div>
       </div>
     </div>
   </div>
-  <ConfirmDialog ref="confirmDialogRef" :text="'Sicher?'" :confirmFunction="deleteBucket" :cancelFunction="() => {}"></ConfirmDialog>
+  <ConfirmDialog ref="confirmDialogRef" :cancelFunction="() => {}" :confirmFunction="deleteBucket"
+                 :text="'Sicher?'"></ConfirmDialog>
 </template>
 
 <script lang="ts" setup>
@@ -82,107 +83,120 @@ import {ref} from "vue";
 import type {Bucket} from "@/models/Bucket";
 import {ExportProject} from "@/components/ExportProject";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import {POSITION, useToast} from "vue-toastification";
+import {useToast} from "vue-toastification";
 import {
   errorToastBucketDuplicateName,
   errorToastBucketEmptyName,
   successToastBucketAdded,
-  successToastBucketDeleted, successToastBucketsSwapped
+  successToastBucketDeleted,
+  successToastBucketsSwapped
 } from "@/models/Toasts";
+import {ExportAsExcel} from "@/components/ExportAsExcel";
 
-const newBucketName = ref("")
-const currentSelectedBucket = ref(-1)
-const currentEditBucket = ref(-1)
+const newBucketName = ref("");
+const currentSelectedBucket = ref(-1);
+const currentEditBucket = ref(-1);
 const bucketStore = useBucketsStore();
 const projektStore = useProjektStore();
-const toast = useToast()
+const toast = useToast();
 
-const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null)
+const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
+
+function bucketStyle(bucket: Bucket): string {
+  return bucket.id == currentSelectedBucket.value ? 'background-color: #03787c; color: white' : '';
+}
 
 function attemptDeleteBucket() {
-  confirmDialogRef.value!.showDialog()
+  confirmDialogRef.value!.showDialog();
 }
+
+function log() {
+  console.log("click");
+}
+
 function showButtons(bucket: Bucket): string {
-  if (bucket.id == currentSelectedBucket.value && currentEditBucket.value == -1) return ""
-  else return "visibility: hidden"
+  if (bucket.id == currentSelectedBucket.value && currentEditBucket.value == -1) return "";
+  else return "visibility: hidden";
 }
 
 function showArrowLeft(bucket: Bucket): string {
-  if (bucket.id == currentSelectedBucket.value && currentEditBucket.value === -1) return ""
-  else return "display: none"
+  if (bucket.id == currentSelectedBucket.value && currentEditBucket.value === -1) return "";
+  else return "display: none";
 }
 
 function showArrowRight(bucket: Bucket): string {
-  if (bucket.id == currentSelectedBucket.value && currentEditBucket.value === -1) return ""
+  if (bucket.id == currentSelectedBucket.value && currentEditBucket.value === -1) return "";
   else {
-    return "display: none"
+    return "display: none";
   }
 }
 
 function swapWithBucketBefore() {
-  bucketStore.swapWithBucket(currentSelectedBucket.value, true)
-  successToastBucketsSwapped()
+  bucketStore.swapWithBucket(currentSelectedBucket.value, true);
+  successToastBucketsSwapped();
 }
 
 function swapWithBucketAfter() {
-  bucketStore.swapWithBucket(currentSelectedBucket.value, false)
-  successToastBucketsSwapped()
+  bucketStore.swapWithBucket(currentSelectedBucket.value, false);
+  successToastBucketsSwapped();
 }
 
 function addFirstBucket() {
   const newBucket = bucketStore.addNewBucket(0, true);
-  currentEditBucket.value = newBucket.id
-  newBucketName.value = newBucket.name
-  successToastBucketAdded()
+  currentEditBucket.value = newBucket.id;
+  newBucketName.value = newBucket.name;
+  successToastBucketAdded();
 }
+
 function addNewBucketBefore() {
   const newBucket = bucketStore.addNewBucket(currentSelectedBucket.value, true);
-  currentEditBucket.value = newBucket.id
-  newBucketName.value = newBucket.name
-  successToastBucketAdded()
+  currentEditBucket.value = newBucket.id;
+  newBucketName.value = newBucket.name;
+  successToastBucketAdded();
 }
 
 function addNewBucketAfter() {
   const newBucket = bucketStore.addNewBucket(currentSelectedBucket.value, false);
-  currentEditBucket.value = newBucket.id
-  newBucketName.value = newBucket.name
-  successToastBucketAdded()
+  currentEditBucket.value = newBucket.id;
+  newBucketName.value = newBucket.name;
+  successToastBucketAdded();
 }
 
 function editBucket(e: KeyboardEvent) {
   if (e.key == 'Enter') {
-    if(newBucketName.value=="") {
-      errorToastBucketEmptyName()
-    }
-    else {
-      const foundBucket = bucketStore.bucketsAsSortedArray.find(bucket => bucket.name == newBucketName.value)
+    if (newBucketName.value == "") {
+      errorToastBucketEmptyName();
+    } else {
+      const foundBucket = bucketStore.bucketsAsSortedArray.find(bucket => bucket.name == newBucketName.value);
       if (foundBucket != undefined && foundBucket.id != currentEditBucket.value) {
-        errorToastBucketDuplicateName(newBucketName.value)
+        errorToastBucketDuplicateName(newBucketName.value);
       } else {
         bucketStore.updateBucketName(currentEditBucket.value, newBucketName.value);
-        document.getElementById("textfield")!.blur()
+        document.getElementById("textfield")!.blur();
         clearData();
       }
     }
   } else if (e.key == 'Escape') {
-    document.getElementById("textfield")!.blur()
+    document.getElementById("textfield")!.blur();
   }
 }
 
 function deleteBucket() {
-  const name = bucketStore.bucketsAsMap.get(currentSelectedBucket.value)?.name
-  bucketStore.deleteBucket(currentSelectedBucket.value)
-  clearData()
-  successToastBucketDeleted(name ?? "")
+  const name = bucketStore.bucketsAsMap.get(currentSelectedBucket.value)?.name;
+  bucketStore.deleteBucket(currentSelectedBucket.value);
+  clearData();
+  successToastBucketDeleted(name ?? "");
 }
 
 function clearData() {
-  newBucketName.value = ""
-  currentSelectedBucket.value = -1
-  currentEditBucket.value = -1
+  newBucketName.value = "";
+  currentSelectedBucket.value = -1;
+  currentEditBucket.value = -1;
+  console.log("cleared")
 }
+
 function downloadProject() {
-  const exportProject = ExportProject.getInstance();
+  const exportProject = new ExportProject();
   const link = document.createElement("a");
   link.href = URL.createObjectURL(exportProject.createFile());
   link.download = "test";
@@ -196,12 +210,16 @@ function downloadProject() {
   link.dispatchEvent(clickEvent);
 }
 
+function downloadExcel() {
+  new ExportAsExcel().downloadExcelSheet();
+}
+
 const nachkommastellen = ref(2);
+
 function convertNachkommastelle() {
   if (!isNaN(parseFloat(nachkommastellen.value.toString()))) {
     projektStore.nachkommastellen = Math.floor(nachkommastellen.value);
-  }
-  else projektStore.nachkommastellen = nachkommastellen.value = 0
+  } else projektStore.nachkommastellen = nachkommastellen.value = 0;
 }
 </script>
 
@@ -217,5 +235,79 @@ function convertNachkommastelle() {
   display: inline-block;
   text-align: center;
   line-height: 80px;
+}
+
+.bucketEdit {
+  border: 1px solid black;
+  width: 80px;
+  height: 80px;
+  display: inline-block;
+  text-align: center;
+  line-height: 80px;
+}
+
+.bucket:hover {
+  cursor: pointer;
+  transform: scale(1.05);
+}
+
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 34px;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  border-radius: 50%;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #4CAF50; /* Green when activated */
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Styles for when not activated (boz) */
+input:not(:checked) + .slider {
+  background-color: #FF0000; /* Red when not activated */
+}
+
+.text {
+  position: absolute;
+  white-space: nowrap;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 60px; /* Adjust as needed */
+  margin-left: 10px; /* Adjust as needed */
 }
 </style>
