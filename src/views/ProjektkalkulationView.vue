@@ -1,5 +1,5 @@
 <template>
-
+<!--TODO Prozentangaben noch mal * 100 rechnen-->
   <div class="d-flex flex-row" style="width: 100%;height: 100%">
     <ag-grid-vue
         :columnDefs="columnDefs"
