@@ -215,7 +215,7 @@ const providedFunctionsContextMenu = ref([
   { functionName: "movePaketRightUp", functionLabel: "Pfeil hoch rechts", icon: "mdi-arrow-top-right" },
   { functionName: "movePaketRightDown", functionLabel: "Pfeil runter rechts", icon: "mdi-arrow-bottom-right" },
   { functionName: "movePaketLeftDown", functionLabel: "Pfeil runter links", icon: "mdi-arrow-bottom-left" },
-  { functionName: "movePaketLeftUp", functionLabel: "Pfeil hoch links", icon: "mdi-arrow-left-up" }
+  { functionName: "movePaketLeftUp", functionLabel: "Pfeil hoch links", icon: "mdi-arrow-top-left" }
 ]);
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 
