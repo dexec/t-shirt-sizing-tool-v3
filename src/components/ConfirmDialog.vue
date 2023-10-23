@@ -1,17 +1,24 @@
 <template>
-  <div id="confirmDialogContainer" class="text-center">
+  <div class="text-center">
     <v-dialog
-      v-model="dialog"
+      :model-value="props.modelValue"
       width="auto"
+      @update:modelValue="onCancel"
     >
       <v-card>
         <v-card-text>
-          {{ props.text }}
+          <slot name="question">Sicher?</slot>
         </v-card-text>
         <v-card-actions class="d-flex flex-column">
-          <v-btn block color="primary" @click="dialog = false; confirmFunction()" @keydown.enter="log()">Bestätigen
+          <v-btn block color="primary" @click="onConfirm">
+            <slot name="confirmText">
+              Bestätigen
+            </slot>
           </v-btn>
-          <v-btn block color="primary" @click="dialog = false; cancelFunction()">Abbrechen
+          <v-btn block color="primary" @click="onCancel">
+            <slot name="cancelText">
+              Abbrechen
+            </slot>
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -19,33 +26,45 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { nextTick, watch } from "vue";
 
-const props = defineProps(["text", "confirmFunction", "cancelFunction"]);
-const dialog = ref(false);
+const emit = defineEmits(["confirm", "cancel", "update:modelValue"]);
+const props = defineProps<{ modelValue: boolean }>();
 
-//TODO Keyboard shortcuts
-function log() {
-  console.log('abc')
+watch(() => props.modelValue, (isVisible) => {
+
+  if (isVisible) {
+    (document.activeElement as HTMLElement)?.blur();
+    nextTick(() => {
+      document.addEventListener("keyup", handleEvent, { capture: true });
+    });
+  } else {
+    nextTick(() => {
+      document.removeEventListener("keyup", handleEvent);
+    });
+  }
+});
+
+function handleEvent(e: KeyboardEvent) {
+  e.preventDefault();
+  if (e.key == "Enter" && props.modelValue) {
+    emit("confirm");
+    emit("update:modelValue", false);
+  } else if (e.key == "Escape") {
+    emit("cancel");
+    emit("update:modelValue", false);
+  }
 }
-function showDialog() {
-  dialog.value = true;
-}
-/*
-onMounted(() => {
-  document.addEventListener("keyup", (e) => {
-    if (dialog.value) {
-      if (e.key == "Enter" || e.key == "Esc") {
-        dialog.value = false;
-        document.getElementById('confirmDialogContainer')?.focus()
-        if (e.key == "Enter") props.confirmFunction();
-        else if (e.key == "Esc") props.cancelFunction();
-      }
-    }
-  });
-});*/
 
-defineExpose({ showDialog });
+function onCancel() {
+  emit("cancel");
+  emit("update:modelValue", false);
+}
+
+function onConfirm() {
+  emit("confirm");
+  emit("update:modelValue", false);
+}
 </script>
 <style scoped>
 
