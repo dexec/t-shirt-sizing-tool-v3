@@ -11,8 +11,10 @@
       <span class="text">Buckets aktivieren</span>
     </label>
     <h1>Downloads</h1>
-    <v-btn class="my-5" style="width: 20vw" @click="downloadProject">Projekt speichern</v-btn>
-    <v-btn class="my-5" style="width: 20vw" @click="downloadExcel">Excel-Sheet runterladen</v-btn>
+    <v-btn class="my-5 clickable-element" style="width: 20vw" @click="downloadProject"><span style="color: white">Projekt speichern</span>
+    </v-btn>
+    <v-btn class="my-5 clickable-element" style="width: 20vw" @click="downloadExcel"><span style="color: white">Excel-Sheet runterladen</span>
+    </v-btn>
     <div>
       <h1 v-if="projektStore.bucketmodus">Buckets</h1>
       <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
@@ -31,15 +33,16 @@
               <v-col>
                 <div v-if="currentEditBucket!==bucket.id" :style="bucketStyle(bucket as Bucket)"
                      class="bucket"
-                     @click="currentSelectedBucket=bucket.id; log()"
-                     @dblclick="currentEditBucket=bucket.id; newBucketName=bucket.name">
+                     @click="currentSelectedBucket=bucket.id"
+                     @dblclick="onDoubleClickedBucket(bucket as Bucket)">
                   {{ bucket.name }}
                 </div>
                 <div v-else class="bucketEdit">
-<!--                  <input id="textfield" v-model="newBucketName" autofocus type="text" @blur="clearData()"
-                         @focus="$event.target.select()"
-                         @keydown="editBucket">-->
-                  <input id="textfield" v-model="newBucketName" autofocus type="text"
+                  <!--                  <input id="textfield" v-model="newBucketName" autofocus type="text" @blur="clearData()"
+                                           @focus="$event.target.select()"
+                                           @keydown="editBucket">-->
+                  <input id="currentEditBucket" v-model="newBucketName" autofocus style="width: 80px;text-align: center; line-height: 80px; height: 80px;"
+                         type="text"
                          @blur="clearData()"
                          @keydown="editBucket">
                 </div>
@@ -72,18 +75,21 @@
       </div>
     </div>
   </div>
-  <ConfirmDialog ref="confirmDialogRef" :cancelFunction="() => {}" :confirmFunction="deleteBucket"
-                 :text="'Sicher?'"></ConfirmDialog>
+  <ConfirmDialog v-model="showDialog" @cancel="cancelDeleteBucket" @confirm="deleteBucket">
+    <template #question>Möchten Sie das Bucket wirklich löschen?</template>
+    <template #confirmText>Bestätigen</template>
+    <template #cancelText>Abbrechen</template>
+  </ConfirmDialog>
 </template>
 
 <script lang="ts" setup>
-import {useBucketsStore} from "@/stores/buckets";
-import {useProjektStore} from "@/stores/projekt";
-import {ref} from "vue";
-import type {Bucket} from "@/models/Bucket";
-import {ExportProject} from "@/components/ExportProject";
+import { useBucketsStore } from "@/stores/buckets";
+import { useProjektStore } from "@/stores/projekt";
+import { ref } from "vue";
+import type { Bucket } from "@/models/Bucket";
+import { ExportProject } from "@/components/ExportProject";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import {useToast} from "vue-toastification";
+import { useToast } from "vue-toastification";
 import {
   errorToastBucketDuplicateName,
   errorToastBucketEmptyName,
@@ -91,7 +97,7 @@ import {
   successToastBucketDeleted,
   successToastBucketsSwapped
 } from "@/models/Toasts";
-import {ExportAsExcel} from "@/components/ExportAsExcel";
+import { ExportAsExcel } from "@/components/ExportAsExcel";
 
 const newBucketName = ref("");
 const currentSelectedBucket = ref(-1);
@@ -100,14 +106,25 @@ const bucketStore = useBucketsStore();
 const projektStore = useProjektStore();
 const toast = useToast();
 
-const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
+const showDialog = ref(false);
+const currentEditBucketRef = ref<HTMLElement |null>(null)
+
+function cancelDeleteBucket() {
+
+}
 
 function bucketStyle(bucket: Bucket): string {
-  return bucket.id == currentSelectedBucket.value ? 'background-color: #03787c; color: white' : '';
+  return bucket.id == currentSelectedBucket.value ? "background-color: #03787c; color: white" : "";
+}
+
+function onDoubleClickedBucket(bucket: Bucket) {
+  currentEditBucket.value = bucket.id;
+  newBucketName.value = bucket.name;
+  currentEditBucketRef.value?.focus();
 }
 
 function attemptDeleteBucket() {
-  confirmDialogRef.value!.showDialog();
+  showDialog.value = true;
 }
 
 function log() {
@@ -163,7 +180,7 @@ function addNewBucketAfter() {
 }
 
 function editBucket(e: KeyboardEvent) {
-  if (e.key == 'Enter') {
+  if (e.key == "Enter") {
     if (newBucketName.value == "") {
       errorToastBucketEmptyName();
     } else {
@@ -172,12 +189,12 @@ function editBucket(e: KeyboardEvent) {
         errorToastBucketDuplicateName(newBucketName.value);
       } else {
         bucketStore.updateBucketName(currentEditBucket.value, newBucketName.value);
-        document.getElementById("textfield")!.blur();
+        currentEditBucketRef.value?.blur();
         clearData();
       }
     }
-  } else if (e.key == 'Escape') {
-    document.getElementById("textfield")!.blur();
+  } else if (e.key == "Escape") {
+    currentEditBucketRef.value?.blur();
   }
 }
 
@@ -192,7 +209,7 @@ function clearData() {
   newBucketName.value = "";
   currentSelectedBucket.value = -1;
   currentEditBucket.value = -1;
-  console.log("cleared")
+  console.log("cleared");
 }
 
 function downloadProject() {
