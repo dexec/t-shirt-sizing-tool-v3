@@ -1,46 +1,55 @@
 <template>
+
   <div class="wrapper">
     <div class="content">
       <div class="menu">
+
         <div v-for="providedFunction of providedFunctions" :key="providedFunctions.indexOf(providedFunction)"
              @click="providedFunction.function">
-          <span class="item" v-if="providedFunction.icon">
+          <span v-if="providedFunction.icon" class="item">
             <v-icon size="x-small">{{ providedFunction.icon }}</v-icon>
           </span>
-          <span class="item" v-else>{{ providedFunction.functionLabel }}</span>
+          <span v-else class="item">{{ providedFunction.functionLabel }}</span>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import type { Ref } from "vue";
 import { inject, ref } from "vue";
 
-const props = defineProps(['providedFunctionsProp'])
-const providedFunctions: Ref<Array<{functionLabel:string, functionName:string,function:Function,icon:string}>> = ref([])
+const props = defineProps(["providedFunctionsProp"]);
+const providedFunctions: Ref<Array<{
+  functionLabel: string,
+  functionName: string,
+  function: Function,
+  icon: string
+}>> = ref([]);
 for (let providedFunctionProp of props.providedFunctionsProp) {
   const providedFunction = inject(providedFunctionProp.functionName);
 
-  if (typeof providedFunction === 'function') providedFunctions.value.push({
+  if (typeof providedFunction === "function") providedFunctions.value.push({
     functionLabel: providedFunctionProp.functionLabel,
     functionName: providedFunctionProp.functionName,
     function: providedFunction,
     icon: providedFunctionProp.icon
-  })
+  });
 }
-function showMenu(e:any) {
+
+function showMenu(e: any) {
   e.preventDefault();
-  const contextMenu = document.querySelector(".wrapper") as HTMLElement
-  let x = e.clientX
-  let y = e.clientY
+  const contextMenu = document.querySelector(".wrapper") as HTMLElement;
+  let x = e.clientX;
+  let y = e.clientY;
   contextMenu.style.left = `${x}px`;
   contextMenu.style.top = `${y}px`;
   contextMenu.style.display = "block";
   document.addEventListener("click", () => contextMenu.style.display = "none");
 }
-  defineExpose({showMenu})
+
+defineExpose({ showMenu });
 
 </script>
 
