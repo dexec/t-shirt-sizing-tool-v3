@@ -1,31 +1,38 @@
 <template>
-  <div class="d-flex flex-row" style="width: 100%;height: 100%">
-    <ag-grid-vue
-      :cacheQuickFilter="true"
-      :columnDefs="columnDefs"
-      :defaultColDef="defaultColDef"
-      :getRowId="getRowId"
-      :rowData="rowData"
-      :stopEditingWhenCellsLoseFocus="false"
-      class="ag-theme-alpine"
-      rowSelection="single"
-      style="width: 100%;height: 100%"
-      @cellValueChanged="onCellValueChanged"
-      @contextmenu="rightClickOnCell"
-      @cell-key-down="onCellKeyPress"
-      @cell-clicked="onCellClicked"
-      @cell-double-clicked="onCellDoubleClicked"
-      @grid-ready="onGridReady">
-    </ag-grid-vue>
+
+    <div style="height: 100%;display:flex;flex-direction: row;overflow: hidden; flex-grow: 1 ">
+
+        <ag-grid-vue
+          :cacheQuickFilter="true"
+          :columnDefs="columnDefs"
+          :defaultColDef="defaultColDef"
+          :getRowId="getRowId"
+          :rowData="rowData"
+          :stopEditingWhenCellsLoseFocus="false"
+          class="ag-theme-alpine"
+          rowSelection="single"
+          style="width: 100%;height: 100%"
+          @cellValueChanged="onCellValueChanged"
+          @contextmenu="rightClickOnCell"
+          @cell-key-down="onCellKeyPress"
+          @cell-clicked="onCellClicked"
+          @cell-double-clicked="onCellDoubleClicked"
+          @grid-ready="onGridReady">
+        </ag-grid-vue>
+
+
   </div>
   <v-btn v-if="rowData.length==0" class="centeredButton" @click="addNewPaket">Neues Paket erstellen</v-btn>
   <v-text-field bg-color="white" class="searchfield" label="" placeholder="Paket suchen" readonly
                 @click="toggleSuche()"></v-text-field>
-  <SuchComponent v-if="showSuche" :toggle-suche="toggleSuche" :show-searched-paket="showSearchedPaket"
+  <SuchComponent v-if="showSuche" :show-searched-paket="showSearchedPaket" :toggle-suche="toggleSuche"
                  style="height: 100%"></SuchComponent>
   <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctionsContextMenu]"></context-menu>
-  <ConfirmDialog ref="confirmDialogRef" :cancel-function="() => {}" :confirm-function="deletePaket"
-                 :text="'Sicher?'"></ConfirmDialog>
+  <ConfirmDialog v-model="showDialog" @cancel="cancelDeletePaket" @confirm="deletePaket">
+    <template #question>Möchten Sie das Paket wirklich löschen?</template>
+    <template #confirmText>Bestätigen</template>
+    <template #cancelText>Abbrechen</template>
+  </ConfirmDialog>
 </template>
 <script lang="ts" setup>
 import "ag-grid-community/styles/ag-grid.css";
@@ -34,9 +41,9 @@ import { AgGridVue } from "ag-grid-vue3";
 import TreeDataCellRenderer from "@/components/TreeDataCellRenderer.vue";
 
 import { usePaketeStore } from "@/stores/pakete";
-import { nextTick, onBeforeMount, provide, reactive, ref } from "vue";
+import { nextTick, provide, reactive, ref } from "vue";
 import { useBucketsStore } from "@/stores/buckets";
-import { POSITION, useToast } from "vue-toastification";
+import { useToast } from "vue-toastification";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { useProjektStore } from "@/stores/projekt";
 import { Column, ColumnApi, GridApi } from "ag-grid-community";
@@ -57,12 +64,18 @@ let duplicateTicketNrFound = false;
 function onGridReady(params: any) {
   columnApi.value = params.columnApi;
   gridApi.value = params.api;
+  params.api.sizeColumnsToFit()
+  window.addEventListener('resize', function () {
+    setTimeout(function () {
+      params.api.sizeColumnsToFit();
+    });
+  });
 }
 
 const columnApi = ref<ColumnApi>();
 
 const defaultColDef = reactive({
-  resizable: true, filter: "agTextColumnFilter",
+  resizable: true, /*filter: "agTextColumnFilter",*/
   suppressKeyboardEvent: (params: any) => {
     let key = params.event.key;
     return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key) /*|| suppressedKeysArray.includes(key)*/;
@@ -97,12 +110,6 @@ const columnDefs = ref([
   {
     field: "thema",
     headerName: "Thema",
-    width: 300,
-    editable: false
-  },
-  {
-    field: "lvl",
-    headerName: "LVL",
     editable: false
   },
   {
@@ -165,11 +172,6 @@ const columnDefs = ref([
     },
     filter: "agNumberColumnFilter",
     editable: false
-  },
-  {
-    field: "id",
-    headerName: "ID",
-    editable: false
   }
 ]);
 const showSuche = ref(false);
@@ -197,6 +199,23 @@ function showSearchedPaket(paket: Paket) {
   }
   refreshTable();
 });*/
+const showDialog = ref(false);
+
+function attemptDeletePaket() {
+  showDialog.value = true;
+}
+
+function cancelDeletePaket() {
+  const focusedRow = gridApi.value!.getFocusedCell();
+  const focusedRowIndex = focusedRow!.rowIndex;
+  const focusedColumn = focusedRow!.column;
+  nextTick(() => {
+    if (rowData[focusedRowIndex]) {
+      refreshTable(focusedColumn, rowData[focusedRowIndex].id);
+    }
+  });
+}
+
 provide("addNewPaket", addNewPaket);
 provide("addNewKindPaket", addNewKindPaket);
 provide("attemptDeletePaket", attemptDeletePaket);
@@ -229,6 +248,7 @@ function rightClickOnCell(e: any) {
 }
 
 function onCellClicked() {
+
   columnDefs.value.forEach(column => column.editable = false);
 }
 
@@ -257,12 +277,6 @@ function addNewKindPaket() {
     const newPaketID = paketeStore.addNewChild(gridApi.value!.getSelectedRows()[0].id);
     refreshTable(gridApi.value!.getFocusedCell()!.column, newPaketID);
   }
-}
-
-const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
-
-function attemptDeletePaket() {
-  confirmDialogRef.value!.showDialog();
 }
 
 function deletePaket() {
@@ -389,7 +403,7 @@ function onCellKeyPress(e: any) {
               if (colKey === "schaetzung") {
                 const oldValue = e.data.schaetzung;
                 e.data.schaetzung = null;
-                nextTick(() => paketeStore.updateParentsAfterSchaetzungUpdated(e.data, oldValue));
+                nextTick(() => paketeStore.updateParentsAfterSchaetzungUpdated(e.data));
               } else if (colKey === "bucket") {
                 nextTick(() => paketeStore.updateBucket(e.data, null));
               } else if (!(colKey === "ticket_nr")) e.data[colKey] = null;
