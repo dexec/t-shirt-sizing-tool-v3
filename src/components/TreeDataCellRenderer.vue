@@ -25,6 +25,8 @@ function changeOpenState() {
   nextTick(() => {
     props.params.api.setRowData(paketeStore.paketeAsTreeView);
     props.params.api.setFocusedCell(props.params.api.getRowNode(aktuellesPaket.id).rowIndex, props.params.column);
+    props.params.columnApi.autoSizeColumn('ticket_nr')
+    props.params.api.sizeColumnsToFit()
   });
 }
 </script>
