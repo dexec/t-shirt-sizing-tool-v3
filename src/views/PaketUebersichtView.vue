@@ -65,9 +65,11 @@ function onGridReady(params: any) {
   columnApi.value = params.columnApi;
   gridApi.value = params.api;
   params.api.sizeColumnsToFit()
+  columnApi.value!.autoSizeColumns(['ticket_nr','thema'])
   window.addEventListener('resize', function () {
     setTimeout(function () {
       params.api.sizeColumnsToFit();
+
     });
   });
 }
@@ -115,7 +117,9 @@ const columnDefs = ref([
   {
     field: "beschreibung",
     headerName: "Beschreibung",
-    editable: false
+    editable: false,
+    flex:3,
+    suppressSizeToFit: true
   },
   {
     field: "komponente",
@@ -145,7 +149,8 @@ const columnDefs = ref([
       else return { backgroundColor: "transparent" };
     },
     hide: !projectStore.bucketmodus,
-    editable: false
+    editable: false,
+    maxWidth:200
   },
   {
     field: "schaetzung",
@@ -171,7 +176,8 @@ const columnDefs = ref([
       else return { backgroundColor: "transparent" };
     },
     filter: "agNumberColumnFilter",
-    editable: false
+    editable: false,
+    maxWidth:200
   }
 ]);
 const showSuche = ref(false);
@@ -259,6 +265,7 @@ function onCellDoubleClicked(e: any) {
 }
 
 function onCellValueChanged(params: any) {
+  columnApi.value!.autoSizeColumns(['ticket_nr','thema'])
 }
 
 function addNewPaket() {
@@ -284,12 +291,15 @@ function deletePaket() {
     const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
     const focusedColumn = gridApi.value!.getFocusedCell()?.column!;
     paketeStore.deletePaket(gridApi.value!.getSelectedRows()[0].id);
-    if (rowData[focusedRowIndex]) refreshTable(focusedColumn, rowData[focusedRowIndex].id);
-    else if (rowData.length !== 0) {
-      refreshTable(focusedColumn, rowData[rowData.length - 1].id);
-    } else {
-      refreshTable(focusedColumn.getColId());
-    }
+    //TODO Aktualisiert die Grid Size nicht irgendwie
+    nextTick(() => {
+      if (rowData[focusedRowIndex]) refreshTable(focusedColumn, rowData[focusedRowIndex].id);
+      else if (rowData.length !== 0) {
+        refreshTable(focusedColumn, rowData[rowData.length - 1].id);
+      } else {
+        refreshTable(focusedColumn.getColId());
+      }
+    })
   }
 }
 
@@ -350,6 +360,8 @@ function refreshTable(colKey?: Column | string, paketId?: number) {
       gridApi.value!.setFocusedCell(gridApi.value!.getRowNode(paketId + "")!.rowIndex as number, colKey);
     }
     gridApi.value!.refreshCells({ force: true });
+    columnApi.value!.autoSizeColumns(['ticket_nr','thema'])
+    gridApi.value!.sizeColumnsToFit()
   });
 }
 
