@@ -1,18 +1,29 @@
 <template>
-
   <div class="wrapper">
-    <div class="content">
-      <div class="menu">
+    <v-list class="my-1 py-1" density="compact">
+      <v-list-item v-for="providedFunction of providedFunctions" :key="providedFunctions.indexOf(providedFunction)"
+                   density="compact" @click="providedFunction.function">
+        <span v-if="providedFunction.icon" class="item">
+          <v-icon size="x-small">
+            {{ providedFunction.icon }}
+          </v-icon>
+        </span>
+        <span v-else class="item">
+          {{ providedFunction.functionLabel }}
+        </span>
+      </v-list-item>
+    </v-list>
+    <!--      <div class="menu">
 
-        <div v-for="providedFunction of providedFunctions" :key="providedFunctions.indexOf(providedFunction)"
-             @click="providedFunction.function">
-          <span v-if="providedFunction.icon" class="item">
-            <v-icon size="x-small">{{ providedFunction.icon }}</v-icon>
-          </span>
-          <span v-else class="item">{{ providedFunction.functionLabel }}</span>
-        </div>
-      </div>
-    </div>
+            <div v-for="providedFunction of providedFunctions" :key="providedFunctions.indexOf(providedFunction)"
+                 @click="providedFunction.function">
+              <span v-if="providedFunction.icon" class="item">
+                <v-icon size="x-small">{{ providedFunction.icon }}</v-icon>
+              </span>
+              <span v-else class="item">{{ providedFunction.functionLabel }}</span>
+            </div>
+          </div> -->
+
   </div>
 </template>
 
@@ -63,6 +74,7 @@ defineExpose({ showMenu });
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
 }
 
+/*
 .wrapper .menu {
   padding: 10px 12px;
 }
@@ -82,6 +94,6 @@ defineExpose({ showMenu });
 
 .content .item:hover {
   background: #f2f2f2;
-}
+}*/
 
 </style>
