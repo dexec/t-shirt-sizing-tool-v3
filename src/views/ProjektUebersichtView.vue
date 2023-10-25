@@ -10,13 +10,8 @@
       <span class="slider"></span>
       <span class="text">Buckets aktivieren</span>
     </label>
-    <h1>Downloads</h1>
-    <v-btn class="my-5 clickable-element" style="width: 20vw" @click="downloadProject"><span style="color: white">Projekt speichern</span>
-    </v-btn>
-    <v-btn class="my-5 clickable-element" style="width: 20vw" @click="downloadExcel"><span style="color: white">Excel-Sheet runterladen</span>
-    </v-btn>
     <div>
-      <h1 v-if="projektStore.bucketmodus">Buckets</h1>
+      <h2 v-if="projektStore.bucketmodus">Buckets</h2>
       <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
         <div v-for="(bucket,index) in bucketStore.bucketsAsSortedArray" :key="bucket.id">
           <v-container class="mb-4" style="width: 300px;height: 150px">
@@ -41,7 +36,8 @@
                   <!--                  <input id="textfield" v-model="newBucketName" autofocus type="text" @blur="clearData()"
                                            @focus="$event.target.select()"
                                            @keydown="editBucket">-->
-                  <input id="currentEditBucket" v-model="newBucketName" autofocus style="width: 80px;text-align: center; line-height: 80px; height: 80px;"
+                  <input id="currentEditBucket" v-model="newBucketName" autofocus
+                         style="width: 80px;text-align: center; line-height: 80px; height: 80px;"
                          type="text"
                          @blur="clearData()"
                          @keydown="editBucket">
@@ -74,6 +70,12 @@
         </div>
       </div>
     </div>
+
+  <h1>Downloads</h1>
+  <v-btn class="my-5 clickable-element" style="width: 20vw" @click="downloadProject"><span style="color: white">Projekt speichern</span>
+  </v-btn>
+  <v-btn class="my-5 clickable-element" style="width: 20vw" @click="downloadExcel"><span style="color: white">Excel-Sheet runterladen</span>
+  </v-btn>
   </div>
   <ConfirmDialog v-model="showDialog" @cancel="cancelDeleteBucket" @confirm="deleteBucket">
     <template #question>Möchten Sie das Bucket wirklich löschen?</template>
@@ -107,7 +109,7 @@ const projektStore = useProjektStore();
 const toast = useToast();
 
 const showDialog = ref(false);
-const currentEditBucketRef = ref<HTMLElement |null>(null)
+const currentEditBucketRef = ref<HTMLElement | null>(null);
 
 function cancelDeleteBucket() {
 
