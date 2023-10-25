@@ -1,33 +1,29 @@
 <template>
-
-    <div style="height: 100%;display:flex;flex-direction: row;overflow: hidden; flex-grow: 1 ">
-
-        <ag-grid-vue
-          :cacheQuickFilter="true"
-          :columnDefs="columnDefs"
-          :defaultColDef="defaultColDef"
-          :getRowId="getRowId"
-          :rowData="rowData"
-          :stopEditingWhenCellsLoseFocus="false"
-          class="ag-theme-alpine"
-          rowSelection="single"
-          style="width: 100%;height: 100%"
-          @cellValueChanged="onCellValueChanged"
-          @contextmenu="rightClickOnCell"
-          @cell-key-down="onCellKeyPress"
-          @cell-clicked="onCellClicked"
-          @cell-double-clicked="onCellDoubleClicked"
-          @grid-ready="onGridReady">
-        </ag-grid-vue>
-
-
+  <div style="height: 100%;display:flex;flex-direction: row;overflow: hidden; flex-grow: 1 ">
+    <ag-grid-vue
+      :cacheQuickFilter="true"
+      :columnDefs="columnDefs"
+      :defaultColDef="defaultColDef"
+      :getRowId="getRowId"
+      :rowData="rowData"
+      :stopEditingWhenCellsLoseFocus="false"
+      class="ag-theme-alpine"
+      rowSelection="single"
+      style="width: 100%;height: 100%"
+      @cellValueChanged="onCellValueChanged"
+      @contextmenu="rightClickOnCell"
+      @cell-key-down="onCellKeyPress"
+      @cell-clicked="onCellClicked"
+      @cell-double-clicked="onCellDoubleClicked"
+      @grid-ready="onGridReady">
+    </ag-grid-vue>
   </div>
   <v-btn v-if="rowData.length==0" class="centeredButton" @click="addNewPaket">Neues Paket erstellen</v-btn>
   <v-text-field bg-color="white" class="searchfield" label="" placeholder="Paket suchen" readonly
                 @click="toggleSuche()"></v-text-field>
   <SuchComponent v-if="showSuche" :show-searched-paket="showSearchedPaket" :toggle-suche="toggleSuche"
                  style="height: 100%"></SuchComponent>
-  <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctionsContextMenu]"></context-menu>
+  <ContextMenu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctionsContextMenu]"></ContextMenu>
   <ConfirmDialog v-model="showDialog" @cancel="cancelDeletePaket" @confirm="deletePaket">
     <template #question>Möchten Sie das Paket wirklich löschen?</template>
     <template #confirmText>Bestätigen</template>
@@ -64,12 +60,11 @@ let duplicateTicketNrFound = false;
 function onGridReady(params: any) {
   columnApi.value = params.columnApi;
   gridApi.value = params.api;
-  params.api.sizeColumnsToFit()
-  columnApi.value!.autoSizeColumns(['ticket_nr','thema'])
-  window.addEventListener('resize', function () {
-    setTimeout(function () {
-      params.api.sizeColumnsToFit();
-
+  //TODO Grid soll warten bis resiszed wude
+  columnApi.value!.autoSizeColumn("ticket_nr");
+  window.addEventListener("resize", function() {
+    setTimeout(function() {
+      columnApi.value!.autoSizeColumn("ticket_nr");
     });
   });
 }
@@ -77,7 +72,7 @@ function onGridReady(params: any) {
 const columnApi = ref<ColumnApi>();
 
 const defaultColDef = reactive({
-  resizable: true, /*filter: "agTextColumnFilter",*/
+  /* resizable: true,*/ /*filter: "agTextColumnFilter",*/
   suppressKeyboardEvent: (params: any) => {
     let key = params.event.key;
     return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key) /*|| suppressedKeysArray.includes(key)*/;
@@ -118,7 +113,7 @@ const columnDefs = ref([
     field: "beschreibung",
     headerName: "Beschreibung",
     editable: false,
-    flex:3,
+    flex: 3,
     suppressSizeToFit: true
   },
   {
@@ -150,7 +145,7 @@ const columnDefs = ref([
     },
     hide: !projectStore.bucketmodus,
     editable: false,
-    maxWidth:200
+    maxWidth: 200
   },
   {
     field: "schaetzung",
@@ -177,7 +172,7 @@ const columnDefs = ref([
     },
     filter: "agNumberColumnFilter",
     editable: false,
-    maxWidth:200
+    maxWidth: 200
   }
 ]);
 const showSuche = ref(false);
@@ -265,7 +260,7 @@ function onCellDoubleClicked(e: any) {
 }
 
 function onCellValueChanged(params: any) {
-  columnApi.value!.autoSizeColumns(['ticket_nr','thema'])
+  columnApi.value!.autoSizeColumn("ticket_nr");
 }
 
 function addNewPaket() {
@@ -299,7 +294,7 @@ function deletePaket() {
       } else {
         refreshTable(focusedColumn.getColId());
       }
-    })
+    });
   }
 }
 
@@ -360,8 +355,7 @@ function refreshTable(colKey?: Column | string, paketId?: number) {
       gridApi.value!.setFocusedCell(gridApi.value!.getRowNode(paketId + "")!.rowIndex as number, colKey);
     }
     gridApi.value!.refreshCells({ force: true });
-    columnApi.value!.autoSizeColumns(['ticket_nr','thema'])
-    gridApi.value!.sizeColumnsToFit()
+    columnApi.value!.autoSizeColumns(["ticket_nr", "thema"]);
   });
 }
 
