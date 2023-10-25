@@ -40,14 +40,14 @@ watch(() => props.modelValue, (isVisible) => {
     });
   } else {
     nextTick(() => {
-      document.removeEventListener("keyup", handleEvent);
+      document.removeEventListener("keyup", handleEvent, { capture: true });
     });
   }
 });
 
 function handleEvent(e: KeyboardEvent) {
   e.preventDefault();
-  if (e.key == "Enter" && props.modelValue) {
+  if (e.key == "Enter") {
     emit("confirm");
     emit("update:modelValue", false);
   } else if (e.key == "Escape") {
