@@ -22,7 +22,6 @@
   ],
   "projekt": {
     "projektname": "Testname",
-    "projektbeschreibung": "Dies ist ein neues Projekt",
     "bucketmodus": true,
     "nachkommastellen": 2
   },

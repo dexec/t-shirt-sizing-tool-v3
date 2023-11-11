@@ -1,12 +1,10 @@
 export class Projekt {
     private _projektname: string
-    private _projektbeschreibung: string
     private _bucketmodus: boolean
     private _nachkommastellen: number
 
-    constructor(projektname: string, projektbeschreibung: string, bucketmodus: boolean, nachkommastellen: number) {
+    constructor(projektname: string, bucketmodus: boolean, nachkommastellen: number) {
         this._projektname = projektname;
-        this._projektbeschreibung = projektbeschreibung;
         this._bucketmodus = bucketmodus;
         this._nachkommastellen = nachkommastellen;
     }
@@ -18,14 +16,6 @@ export class Projekt {
 
     set projektname(value: string) {
         this._projektname = value;
-    }
-
-    get projektbeschreibung(): string {
-        return this._projektbeschreibung;
-    }
-
-    set projektbeschreibung(value: string) {
-        this._projektbeschreibung = value;
     }
 
     get bucketmodus(): boolean {

@@ -19,12 +19,11 @@ export class ExportProject {
     }[] = []
     private readonly _paketeTree: { key: number, children: number[] }[] = []
     private readonly _eintraege: { bezeichnung: string, aufwandRelativ?: number, aufwandAbsolut?: number }[] = []
-    private _projekt: { projektname: string, projektbeschreibung: string, bucketmodus: boolean, nachkommastellen: number }
+    private _projekt: { projektname: string,  bucketmodus: boolean, nachkommastellen: number }
 
     constructor() {
         this._projekt = {
             projektname: "",
-            projektbeschreibung: "",
             bucketmodus: false,
             nachkommastellen: 2
         }
@@ -36,7 +35,7 @@ export class ExportProject {
 
     public createFile(): Blob {
         const mergedObjects: {
-            projekt: { projektname: string, projektbeschreibung: string, bucketmodus: boolean }
+            projekt: { projektname: string, bucketmodus: boolean }
             buckets: { name: string }[],
             pakete: {
                 id: number,
@@ -115,7 +114,6 @@ export class ExportProject {
         const projektStore = useProjektStore();
         this._projekt = {
             projektname: projektStore.projektname,
-            projektbeschreibung: projektStore.projektbeschreibung,
             bucketmodus: projektStore.bucketmodus,
             nachkommastellen: projektStore.nachkommastellen
         }
