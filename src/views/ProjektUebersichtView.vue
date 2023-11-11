@@ -10,6 +10,12 @@
       <span class="slider"></span>
       <span class="text">Buckets aktivieren</span>
     </label>
+<!--    TODO Aufschläge erklären konfig programmieren-->
+    <label class="switch">
+      <input id="toggleSwitch" v-model="projektStore.bucketmodus" checked type="checkbox">
+      <span class="slider"></span>
+      <span class="text">Aufschläge erklären</span>
+    </label>
     <div>
       <h2 v-if="projektStore.bucketmodus">Buckets</h2>
       <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
