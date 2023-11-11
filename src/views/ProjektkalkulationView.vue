@@ -259,11 +259,11 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
       }
       let startaufwand;
       if (vorigerAbschnittEintraege[0].isAufwandRelativBase) {
-        startaufwand = vorigerAbschnittEintraege[0].aufwandAbsolut;
-      } else startaufwand = vorigerAbschnittEintraege[0].aufwandAbsolut.toFixed(projectStore.nachkommastellen);
+        startaufwand = vorigerAbschnittEintraege[0].aufwandAbsolut.toFixed(projectStore.nachkommastellen);
+      } else startaufwand = vorigerAbschnittEintraege[0].aufwandAbsolut;
       erklaerungsRechnung.value += +startaufwand;
       erklaerungsRechnung.value = `Das ergibt für den oberen Wert <span style=color:green>${erklaerungsRechnung.value}</span> = <span style=color:red>${aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen)}</span>`
-      erklaerungsRechnungZusatz.value = `Für den unteren Wert ergibt das <span style=color:red>${aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen)}</span> + <span style=color:blue>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand}</span> = <span style=color:red>${aktuellerEintrag.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span>`;
+      erklaerungsRechnungZusatz.value = `Für den unteren Wert ergibt das <span style=color:red>${aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen)}</span> + <span style=color:blue>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span> = <span style=color:red>${aktuellerEintrag.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span>`;
       break;
     }
     case SummeET.ENDSUMME: {
@@ -343,7 +343,7 @@ function erklaereAnteilAnGesamtprojekt(bezeichnung: string, rowIndex: number) {
     }
     default: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
-      erklaerungsText.value = "Der Anteil am Gesamtprojekt zeit, wie viel Aufwand in Prozent der aktuelle Eintrag für das Gesamtprojekt ausmacht.";
+      erklaerungsText.value = "Der Anteil am Gesamtprojekt zeigt, wie viel Aufwand in Prozent der aktuelle Eintrag für das Gesamtprojekt ausmacht.";
       erklaerungsRechnung.value = `Das ergibt <span style=color:green>${aktuellerEintrag.aufwandAbsolut.toFixed(projectStore.nachkommastellen)}</span> / <span style=color:blue>${endsumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span> = <span style=color:red>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projectStore.nachkommastellen)}%</span>`;
     }
   }
