@@ -5,18 +5,20 @@
                   style="width:20vw"></v-text-field>
     <v-text-field v-model.number="nachkommastellen" label="Nachkommastellen" style="width:20vw"
                   @blur="convertNachkommastelle"></v-text-field>
-    <label class="switch">
-      <input id="toggleSwitch" v-model="projektStore.bucketmodus" checked type="checkbox">
-      <span class="slider"></span>
-      <span class="text">Buckets aktivieren</span>
-    </label>
-<!--    TODO Aufschläge erklären konfig programmieren-->
-    <label class="switch">
-      <input id="toggleSwitch" v-model="projektStore.bucketmodus" checked type="checkbox">
-      <span class="slider"></span>
-      <span class="text">Aufschläge erklären</span>
-    </label>
-    <div>
+
+      <label class="switch">
+        <input v-model="projektStore.bucketmodus" checked type="checkbox">
+        <span class="slider"></span>
+        <span class="text">Buckets aktivieren</span>
+      </label>
+
+      <!--    TODO Aufschläge erklären konfig programmieren-->
+      <label class="switch mt-4">
+        <input v-model="projektStore.aufschlaegeErklaeren" checked type="checkbox">
+        <span class="slider"></span>
+        <span class="text">Aufschläge erklären</span>
+      </label>
+
       <h2 v-if="projektStore.bucketmodus">Buckets</h2>
       <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
         <div v-for="(bucket,index) in bucketStore.bucketsAsSortedArray" :key="bucket.id">
@@ -76,13 +78,6 @@
         </div>
       </div>
     </div>
-
-  <h1>Downloads</h1>
-  <v-btn class="my-5 clickable-element" style="width: 20vw" @click="downloadProject"><span style="color: white">Projekt speichern</span>
-  </v-btn>
-  <v-btn class="my-5 clickable-element" style="width: 20vw" @click="downloadExcel"><span style="color: white">Excel-Sheet runterladen</span>
-  </v-btn>
-  </div>
   <ConfirmDialog v-model="showDialog" @cancel="cancelDeleteBucket" @confirm="deleteBucket">
     <template #question>Möchten Sie das Bucket wirklich löschen?</template>
     <template #confirmText>Bestätigen</template>
@@ -91,13 +86,11 @@
 </template>
 
 <script lang="ts" setup>
-import { useBucketsStore } from "@/stores/buckets";
 import { useProjektStore } from "@/stores/projekt";
+import { useBucketsStore } from "@/stores/buckets";
 import { ref } from "vue";
 import type { Bucket } from "@/models/Bucket";
-import { ExportProject } from "@/components/ExportProject";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import { useToast } from "vue-toastification";
 import {
   errorToastBucketDuplicateName,
   errorToastBucketEmptyName,
@@ -105,15 +98,12 @@ import {
   successToastBucketDeleted,
   successToastBucketsSwapped
 } from "@/models/Toasts";
-import { ExportAsExcel } from "@/components/ExportAsExcel";
 
 const newBucketName = ref("");
 const currentSelectedBucket = ref(-1);
 const currentEditBucket = ref(-1);
-const bucketStore = useBucketsStore();
 const projektStore = useProjektStore();
-const toast = useToast();
-
+const bucketStore = useBucketsStore();
 const showDialog = ref(false);
 const currentEditBucketRef = ref<HTMLElement | null>(null);
 
@@ -220,24 +210,6 @@ function clearData() {
   console.log("cleared");
 }
 
-function downloadProject() {
-  const exportProject = new ExportProject();
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(exportProject.createFile());
-  link.download = "test";
-
-  // Simulate a click on the link
-  const clickEvent = new MouseEvent("click", {
-    view: window,
-    bubbles: true,
-    cancelable: true
-  });
-  link.dispatchEvent(clickEvent);
-}
-
-function downloadExcel() {
-  new ExportAsExcel().downloadExcelSheet();
-}
 
 const nachkommastellen = ref(2);
 
