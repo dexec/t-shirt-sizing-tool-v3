@@ -8,46 +8,50 @@
 </template>
 <style scoped>
 .button {
-  color: white; font-size: 1rem; height: 15vh; width: 20vw;
+  color: white;
+  font-size: 1rem;
+  height: 15vh;
+  width: 20vw;
 }
 </style>
 <script lang="ts" setup>
-import {ref} from "vue";
-import {ImportProject} from "@/components/ImportProject";
+import { ref } from "vue";
+import { ImportProject } from "@/components/ImportProject";
 import router from "@/router";
 import saveFile from "@/stores/file.json";
-import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
-import "@/styles/hoveLink.css"
+import { useVariablenAustauschStore } from "@/stores/variablenAustausch";
+import "@/styles/hoveLink.css";
+
 function createNewProject() {
-  const emptyProject = '{\n' +
-      '  "projekt": {\n' +
-      '    "projektname": "",\n' +
-      '    "projektbeschreibung": "",\n' +
-      '    "bucketmodus": true,\n' +
-      '    "nachkommastellen": 2\n' +
-      '  },\n' +
-      '  "eintraege": [],\n' +
-      '  "buckets": [{\n' +
-      '      "name": "S"\n' +
-      '    },\n' +
-      '    {\n' +
-      '      "name": "M"\n' +
-      '    },\n' +
-      '    {\n' +
-      '      "name": "L"\n' +
-      '    }],\n' +
-      '  "pakete": [],\n' +
-      '  "paketeTree": []\n' +
-      '}';
+  const emptyProject = "{\n" +
+    "  \"projekt\": {\n" +
+    "    \"projektname\": \"\",\n" +
+    "    \"bucketmodus\": true,\n" +
+    "    \"aufschlaegeErklaeren\": true,\n" +
+    "    \"nachkommastellen\": 2\n" +
+    "  },\n" +
+    "  \"eintraege\": [],\n" +
+    "  \"buckets\": [{\n" +
+    "      \"name\": \"S\"\n" +
+    "    },\n" +
+    "    {\n" +
+    "      \"name\": \"M\"\n" +
+    "    },\n" +
+    "    {\n" +
+    "      \"name\": \"L\"\n" +
+    "    }],\n" +
+    "  \"pakete\": [],\n" +
+    "  \"paketeTree\": []\n" +
+    "}";
   new ImportProject(emptyProject);
   useVariablenAustauschStore().geladen = true;
-  router.push('/projekt');
+  router.push("/projekt");
 }
 
 function createNewSample() {
   new ImportProject(JSON.stringify(saveFile));
   useVariablenAustauschStore().geladen = true;
-  router.push('/projekt');
+  router.push("/projekt");
 }
 
 const fileRef = ref<HTMLInputElement | null>(null);
@@ -66,7 +70,7 @@ function handleFileUpload(event: any) {
       if (jsonFile.buckets && jsonFile.eintraege && jsonFile.pakete && jsonFile.paketeTree) {
         new ImportProject(JSON.stringify(jsonFile));
         useVariablenAustauschStore().geladen = true;
-        router.push('/projekt');
+        router.push("/projekt");
       }
     };
     reader.readAsText(file);
