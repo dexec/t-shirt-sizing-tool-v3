@@ -700,7 +700,7 @@ export class ExportAsExcel {
                 } else {
                     const serializableEintrag: SerializableEintrag = {
                         bezeichnung: eintrag.bezeichnung,
-                        aufschlag: eintrag.vorigerAbschnittAufschlag / 100,
+                        aufschlag: eintrag.vorigerAbschnittAufwandRelativ / 100,
                         aufwand: eintrag.zwischensummeAufwand,
                         anteilZwischensumme: eintrag.anteilZwischensumme / 100,
                         anteilGesamtprojekt: eintrag.anteilGesamtprojekt / 100

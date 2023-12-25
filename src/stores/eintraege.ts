@@ -46,9 +46,9 @@ export const useEintraegeStore = defineStore("eintraege", () => {
           vorigerAbschnittAufschlag += aktuellerEintrag.aufwandRelativ;
         } else {
           const aktuelleZwischensumme = eintraege.value[i] as Zwischensumme;
-          aktuelleZwischensumme.vorigerAbschnittAufwand = vorigerAbschnittAufwand
-          aktuelleZwischensumme.vorigerAbschnittAufschlag =vorigerAbschnittAufschlag
-          aktuelleZwischensumme.zwischensummeAufwand = zwischensumme.zwischensummeAufwand + aktuelleZwischensumme.vorigerAbschnittAufwand;
+          aktuelleZwischensumme.vorigerAbschnittAufwandAbsolut = vorigerAbschnittAufwand
+          aktuelleZwischensumme.vorigerAbschnittAufwandRelativ =vorigerAbschnittAufschlag
+          aktuelleZwischensumme.zwischensummeAufwand = zwischensumme.zwischensummeAufwand + aktuelleZwischensumme.vorigerAbschnittAufwandAbsolut;
           zwischensumme = aktuelleZwischensumme;
           vorigerAbschnittAufwand = 0;
           vorigerAbschnittAufschlag = 0;
@@ -65,9 +65,9 @@ export const useEintraegeStore = defineStore("eintraege", () => {
           const aktuelleZwischensumme = eintraege.value[i] as Zwischensumme;
           zwischensumme = aktuelleZwischensumme;
           if (aktuelleZwischensumme.zwischensummeAufwand == 0) aktuelleZwischensumme.anteilZwischensumme = 0;
-          else aktuelleZwischensumme.anteilZwischensumme = parseFloat((aktuelleZwischensumme.vorigerAbschnittAufwand / aktuelleZwischensumme.zwischensummeAufwand * 100).toFixed(projectStore.nachkommastellen));
+          else aktuelleZwischensumme.anteilZwischensumme = parseFloat((aktuelleZwischensumme.vorigerAbschnittAufwandAbsolut / aktuelleZwischensumme.zwischensummeAufwand * 100).toFixed(projectStore.nachkommastellen));
           if (endsumme.zwischensummeAufwand == 0) aktuelleZwischensumme.anteilGesamtprojekt = 0;
-          else aktuelleZwischensumme.anteilGesamtprojekt = parseFloat((aktuelleZwischensumme.vorigerAbschnittAufwand / endsumme.zwischensummeAufwand * 100).toFixed(projectStore.nachkommastellen));
+          else aktuelleZwischensumme.anteilGesamtprojekt = parseFloat((aktuelleZwischensumme.vorigerAbschnittAufwandAbsolut / endsumme.zwischensummeAufwand * 100).toFixed(projectStore.nachkommastellen));
         }
       }
     }
