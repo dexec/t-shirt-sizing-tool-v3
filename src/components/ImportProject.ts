@@ -13,7 +13,7 @@ export class ImportProject {
     private readonly _buckets: Bucket[] = []
     private readonly _pakete: Paket[] = []
     private readonly _eintraege: AbstrakterEintrag[] = []
-    private _projekt: Projekt = new Projekt("",  false,2)
+    private _projekt: Projekt = new Projekt("",  true,true,2)
 
     constructor(fileContents: string) {
         const jsonfile = JSON.parse(fileContents);
@@ -110,7 +110,7 @@ export class ImportProject {
     }
 
     private fileToProjectData(projectData: any): void {
-        this._projekt = new Projekt(projectData.projektname, projectData.projektbeschreibung, projectData.bucketmodus);
+        this._projekt = new Projekt(projectData.projektname, projectData.bucketmodus,projectData.aufschlaegeErklaeren,projectData.nachkommastellen);
     }
 
     private writeProjectStore() {
@@ -118,6 +118,7 @@ export class ImportProject {
         projectStore.projektname = this._projekt.projektname;
         projectStore.bucketmodus = this._projekt.bucketmodus;
         projectStore.nachkommastellen = this._projekt.nachkommastellen;
+        projectStore.aufschlaegeErklaeren = this._projekt.aufschlaegeErklaeren;
     }
 
     private writeEintraegeStore() {

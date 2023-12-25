@@ -23,6 +23,7 @@
   "projekt": {
     "projektname": "Testname",
     "bucketmodus": true,
+    "aufschlaegeErklaeren": true,
     "nachkommastellen": 2
   },
   "eintraege": [
