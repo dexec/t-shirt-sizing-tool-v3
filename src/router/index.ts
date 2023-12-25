@@ -1,9 +1,9 @@
 // Composables
 import {createRouter, createWebHashHistory} from 'vue-router'
 import VergleichView from "@/views/VergleichView.vue";
-import BucketUebersichtView from "@/views/BucketUebersichtView.vue";
+import BucketUebersichtView from "@/views/StatistikenView.vue";
 import PaketUebersichtView from "@/views/PaketUebersichtView.vue";
-import ProjektkalkulationView from "@/views/ProjektkalkulationView.vue";
+import ProjektkalkulationView from "@/views/Projektaufschlaege.vue";
 import ProjektUebersichtView from "@/views/ProjektUebersichtView.vue";
 import testView from "@/views/testView.vue";
 import testView2 from "@/views/testView2.vue";

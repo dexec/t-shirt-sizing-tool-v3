@@ -24,11 +24,11 @@
   <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctions]"></context-menu>
 </template>
 <script lang="ts" setup>
-import BezeichnungCellRenderer from "@/components/projektkalkulation/BezeichnungCellRenderer.vue";
-import AufschlagCellRenderer from "@/components/projektkalkulation/AufwandRelativCellRenderer.vue";
-import AufwandCellRenderer from "@/components/projektkalkulation/AufwandAbsolutCellRenderer.vue";
-import AnteilAnZwischensummeCellRenderer from "@/components/projektkalkulation/AnteilAnZwischensummeCellRenderer.vue";
-import AnteilAmGesamtprojektCellRenderer from "@/components/projektkalkulation/AnteilAmGesamtprojektCellRenderer.vue";
+import BezeichnungCellRenderer from "@/components/aufschlaegeViewComponents/BezeichnungCellRenderer.vue";
+import AufschlagCellRenderer from "@/components/aufschlaegeViewComponents/AufwandRelativCellRenderer.vue";
+import AufwandCellRenderer from "@/components/aufschlaegeViewComponents/AufwandAbsolutCellRenderer.vue";
+import AnteilAnZwischensummeCellRenderer from "@/components/aufschlaegeViewComponents/AnteilAnZwischensummeCellRenderer.vue";
+import AnteilAmGesamtprojektCellRenderer from "@/components/aufschlaegeViewComponents/AnteilAmGesamtprojektCellRenderer.vue";
 import { AgGridVue } from "ag-grid-vue3";
 import { nextTick, provide, reactive, ref } from "vue";
 import { Column, ColumnApi, GridApi } from "ag-grid-community";
