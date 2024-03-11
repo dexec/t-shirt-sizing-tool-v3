@@ -11,8 +11,6 @@
         <span class="slider"></span>
         <span class="text">Buckets aktivieren</span>
       </label>
-
-      <!--    TODO Aufschläge erklären konfig programmieren-->
       <label class="switch mt-4">
         <input v-model="projektStore.aufschlaegeErklaeren" checked type="checkbox">
         <span class="slider"></span>
@@ -36,15 +34,12 @@
               <v-col>
                 <div v-if="currentEditBucket!==bucket.id" :style="bucketStyle(bucket as Bucket)"
                      class="bucket"
-                     @click="currentSelectedBucket=bucket.id"
+                     @click="currentSelectedBucket=bucket.id; currentEditBucket=-1"
                      @dblclick="onDoubleClickedBucket(bucket as Bucket)">
                   {{ bucket.name }}
                 </div>
-                <div v-else class="bucketEdit">
-                  <!--                  <input id="textfield" v-model="newBucketName" autofocus type="text" @blur="clearData()"
-                                           @focus="$event.target.select()"
-                                           @keydown="editBucket">-->
-                  <input id="currentEditBucket" v-model="newBucketName" autofocus
+                <div v-else>
+                  <input class="bucketEdit" id="currentEditBucket" v-model="newBucketName"
                          style="width: 80px;text-align: center; line-height: 80px; height: 80px;"
                          type="text"
                          @blur="clearData()"
@@ -88,7 +83,7 @@
 <script lang="ts" setup>
 import { useProjektStore } from "@/stores/projekt";
 import { useBucketsStore } from "@/stores/buckets";
-import { ref } from "vue";
+import {nextTick, ref, watch} from "vue";
 import type { Bucket } from "@/models/Bucket";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import {
@@ -106,7 +101,16 @@ const projektStore = useProjektStore();
 const bucketStore = useBucketsStore();
 const showDialog = ref(false);
 const currentEditBucketRef = ref<HTMLElement | null>(null);
-
+watch(currentEditBucket, (value: Number) => {
+  if(value==-1) {
+    return
+  }
+  nextTick(() => {
+    let currentEditBucketInput = document.getElementById("currentEditBucket") as HTMLInputElement
+    currentEditBucketInput?.focus();
+    currentEditBucketInput?.setSelectionRange(0,newBucketName.value.length);
+  });
+})
 function cancelDeleteBucket() {
 
 }
@@ -118,7 +122,6 @@ function bucketStyle(bucket: Bucket): string {
 function onDoubleClickedBucket(bucket: Bucket) {
   currentEditBucket.value = bucket.id;
   newBucketName.value = bucket.name;
-  currentEditBucketRef.value?.focus();
 }
 
 function attemptDeleteBucket() {
@@ -187,7 +190,6 @@ function editBucket(e: KeyboardEvent) {
         errorToastBucketDuplicateName(newBucketName.value);
       } else {
         bucketStore.updateBucketName(currentEditBucket.value, newBucketName.value);
-        currentEditBucketRef.value?.blur();
         clearData();
       }
     }
