@@ -20,7 +20,7 @@ import { ImportProject } from "@/components/ImportProject";
 import router from "@/router";
 import saveFile from "@/stores/file.json";
 import { useVariablenAustauschStore } from "@/stores/variablenAustausch";
-import "@/styles/hoveLink.css";
+import "@/styles/hoverLink.css";
 
 function createNewProject() {
   const emptyProject = "{\n" +
