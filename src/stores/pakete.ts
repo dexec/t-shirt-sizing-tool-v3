@@ -9,14 +9,17 @@ export const usePaketeStore = defineStore("pakete", () => {
   const paketeAsMap = ref(new Map<number, Paket>());
   const unsortedPaketeListsSortedByBucketsMap = ref(new Map<Bucket, Paket[]>());
 
-  function paketeFullTreeView() {
+  function paketeFullOpenedTreeView() {
     const result: Paket[] = [];
     const stack: Paket[] = [...paketeAsTreeView.value as Paket[]];
     while (stack.length > 0) {
       const aktuellesPaket = stack.shift()!;
       result.push(aktuellesPaket);
-      if (!aktuellesPaket.open) {
-        stack.unshift(...aktuellesPaket.children.reverse());
+      //TODO Reihenfolge ist anders als im Excel-Export
+      for (const child of aktuellesPaket.children) {
+        if (!stack.includes(child)) {
+          stack.unshift(child);
+        }
       }
     }
     return result;
@@ -66,20 +69,21 @@ export const usePaketeStore = defineStore("pakete", () => {
     }
     return result;
   }
+
   function updateParentsAfterSchaetzungUpdated(paket: Paket) {
     let parentOfPaket = paket.parent;
-    while (parentOfPaket!=null) {
-      parentOfPaket.schaetzung=null;
-      for(const childPaket of parentOfPaket.children) {
+    while (parentOfPaket != null) {
+      parentOfPaket.schaetzung = null;
+      for (const childPaket of parentOfPaket.children) {
         if (childPaket.schaetzung != null) {
           if (parentOfPaket.schaetzung != null) {
-            parentOfPaket.schaetzung += parseFloat(childPaket.schaetzung.toFixed(useProjektStore().nachkommastellen))
+            parentOfPaket.schaetzung += parseFloat(childPaket.schaetzung.toFixed(useProjektStore().nachkommastellen));
           } else {
-            parentOfPaket.schaetzung = parseFloat(childPaket.schaetzung.toFixed(useProjektStore().nachkommastellen))
+            parentOfPaket.schaetzung = parseFloat(childPaket.schaetzung.toFixed(useProjektStore().nachkommastellen));
           }
         }
       }
-      parentOfPaket = parentOfPaket.parent
+      parentOfPaket = parentOfPaket.parent;
     }
   }
 
@@ -133,23 +137,25 @@ export const usePaketeStore = defineStore("pakete", () => {
       }
     }
   }
+
   function showPaket(paket: Paket) {
     let parentOfPaket = paket.parent;
-    const parents:Paket[]=[]
-    while(parentOfPaket) {
-      if(!parentOfPaket.open) parents.unshift(parentOfPaket);
+    const parents: Paket[] = [];
+    while (parentOfPaket) {
+      if (!parentOfPaket.open) parents.unshift(parentOfPaket);
       parentOfPaket = parentOfPaket.parent;
     }
-    for(const paketOfParents of parents) {
+    for (const paketOfParents of parents) {
       paketOfParents.open = true;
       updateTreeViewAfterChangedOpenState(paketOfParents);
     }
   }
+
   function deletePaket(id: number) {
     const paketToDelete = paketeAsMap.value.get(id) as Paket;
     const stack = [paketToDelete];
     let counter = 0;
-    while (stack.length > 0 && stack[0]!=null) {
+    while (stack.length > 0 && stack[0] != null) {
       const aktuellesPaket = stack.shift() as Paket;
       if (aktuellesPaket.open) {
         for (const child of aktuellesPaket.children) {
@@ -180,9 +186,9 @@ export const usePaketeStore = defineStore("pakete", () => {
   }
 
   function createNewUniqueTicketNr(): string {
-    if(paketeAsMap.value.size==0) return "Ticket-Nr 1"
-    const highestPaketId = Array.from(paketeAsMap.value.values()).reduce((a,b) => a.id > b.id ? a:b).id;
-    for(let i = 1; i++;) {
+    if (paketeAsMap.value.size == 0) return "Ticket-Nr 1";
+    const highestPaketId = Array.from(paketeAsMap.value.values()).reduce((a, b) => a.id > b.id ? a : b).id;
+    for (let i = 1; i++;) {
       const newPaketTicketNr = "Ticket-Nr " + (highestPaketId + i);
       if (!Array.from(paketeAsMap.value.values()).find(paket => paket.ticket_nr == newPaketTicketNr)) {
         return newPaketTicketNr;
@@ -190,8 +196,9 @@ export const usePaketeStore = defineStore("pakete", () => {
     }
     throw new Error("Unexpected code execution.");
   }
+
   function addNew(id: number): number {
-    const newPaket = new Paket("" , "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
+    const newPaket = new Paket("", "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
     newPaket.ticket_nr = createNewUniqueTicketNr();
     paketeAsMap.value.set(newPaket.id, newPaket);
     if (id == -1) {
@@ -224,7 +231,7 @@ export const usePaketeStore = defineStore("pakete", () => {
   function addNewChild(id: number): number {
     const parentOfNewPaket = paketeAsMap.value.get(id) as Paket;
     const newPaket = new Paket("", "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
-    newPaket.ticket_nr = createNewUniqueTicketNr()
+    newPaket.ticket_nr = createNewUniqueTicketNr();
     newPaket.lvl = parentOfNewPaket.lvl + 1;
     newPaket.parent = parentOfNewPaket;
     if (parentOfNewPaket.children.length == 0) {
@@ -518,7 +525,7 @@ export const usePaketeStore = defineStore("pakete", () => {
     paketeAsMap,
     paketeAsTreeView,
     unsortedPaketeListsSortedByBucketsMap,
-    paketeFullTreeView,
+    paketeFullTreeView: paketeFullOpenedTreeView,
     paketeChildren,
     paketeChildrenWithNoBucket,
     applyFilterOnPaket,

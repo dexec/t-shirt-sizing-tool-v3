@@ -70,7 +70,7 @@ const columnApi = ref<ColumnApi>();
 function onGridReady(params: any) {
   columnApi.value = params.columnApi;
   gridApi.value = params.api;
-  columnApi.value!.autoSizeColumn("bezeichnung");
+ // columnApi.value!.autoSizeColumn("bezeichnung");
   window.addEventListener("resize", function() {
     setTimeout(function() {
       columnApi.value!.autoSizeColumn("bezeichnung");
@@ -735,7 +735,7 @@ function refreshTable(colKey?: Column | string, rowIndex?: number) {
       gridApi.value!.setFocusedCell(rowIndex, colKey);
     }
     gridApi.value!.refreshCells({ force: true });
-    columnApi.value!.autoSizeColumn("bezeichnung");
+    //columnApi.value!.autoSizeColumn("bezeichnung");
   });
 }
 
