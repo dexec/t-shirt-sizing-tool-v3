@@ -721,7 +721,7 @@ function moveZeileDown() {
     }
   }
 }
-
+//TODO Beim klick auf eine Zelle wird eine Erklärung eingeblendet. Dann aktualisiert die Seite und scrollt nach oben. Der Scroll soll nicht passieren.
 function refreshTable(colKey?: Column | string, rowIndex?: number) {
   nextTick(() => {
     gridApi.value!.setRowData(eintraegeStore.eintraege);
