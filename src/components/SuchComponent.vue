@@ -15,17 +15,31 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
-import { usePaketeStore } from "@/stores/pakete";
-import { Paket } from "@/models/Paket";
+import {onMounted, onUnmounted, ref} from "vue";
+import {usePaketeStore} from "@/stores/pakete";
+import {Paket} from "@/models/Paket";
 
 const paketeStore = usePaketeStore();
 const suchString = ref("");
-defineProps(['toggleSuche','showSearchedPaket']);
+const props = defineProps(['toggleSuche', 'showSearchedPaket']);
 const foundPakete = ref<Paket[]>([]);
 
-//TODO Über ESC-Taste schließen lassen
 //TODO Den gesuchten Text im gefundenen Ticket markieren, Größe der gefundenen Tickets anpassen an Text
+
+onMounted(() => {
+  window.addEventListener('keyup', escapePressed, {capture: true});
+});
+onUnmounted(() => {
+  window.removeEventListener('keyup', escapePressed, {capture: true});
+});
+
+function escapePressed(event: any) {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    props.toggleSuche();
+  }
+}
+
 function searchPaket() {
   if (suchString.value != "") {
     foundPakete.value.length = 0;
