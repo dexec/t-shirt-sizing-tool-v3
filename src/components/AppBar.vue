@@ -14,9 +14,6 @@
     </v-tabs>
   </v-app-bar>
 </template>
-<style scoped>
-
-</style>
 <script setup>
   import {useProjektStore} from "@/stores/projekt";
   import { ExportProject } from "@/components/ExportProject";
