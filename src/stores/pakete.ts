@@ -66,23 +66,19 @@ export const usePaketeStore = defineStore("pakete", () => {
     }
     return result;
   }
-  function updateParentsAfterSchaetzungUpdated(paket: Paket) {
-    let parentOfPaket = paket.parent;
-    while (parentOfPaket!=null) {
-      parentOfPaket.schaetzung=null;
-      for(const childPaket of parentOfPaket.children) {
-        if (childPaket.schaetzung != null) {
-          if (parentOfPaket.schaetzung != null) {
-            parentOfPaket.schaetzung += parseFloat(childPaket.schaetzung.toFixed(useProjektStore().nachkommastellen))
-          } else {
-            parentOfPaket.schaetzung = parseFloat(childPaket.schaetzung.toFixed(useProjektStore().nachkommastellen))
-          }
-        }
+  function berechneSchaetzungen() {
+      console.log("Rechnung läuft")
+    const paketeSortiertNachLevel: Paket[] = [];
+    for(const paket of paketeAsMap.value.values()) {
+      paketeSortiertNachLevel.push(paket)
+    }
+    paketeSortiertNachLevel.sort((a,b) => a.lvl + b.lvl )
+    for(const paket of paketeSortiertNachLevel) {
+      if(paket.parent!=null) {
+          paket.parent.schaetzung = paket.parent.children.map(paket => paket.schaetzung).reduce((a, b) => (a ?? 0) + (b ?? 0));
       }
-      parentOfPaket = parentOfPaket.parent
     }
   }
-
   function updateBucket(paket: Paket, bucket: Bucket | null) {
     if (paket.bucket) {
       const indexOfPaket = unsortedPaketeListsSortedByBucketsMap.value.get(paket.bucket)!.indexOf(paket);
@@ -176,7 +172,8 @@ export const usePaketeStore = defineStore("pakete", () => {
       parentOfPaket.children.splice(parentOfPaket.children.indexOf(paketToDelete), 1);
     }
     if (paketToDelete.schaetzung != null)
-      updateParentsAfterSchaetzungUpdated(paketToDelete);
+      berechneSchaetzungen()
+      //updateParentsAfterSchaetzungUpdated(paketToDelete);
   }
 
   function createNewUniqueTicketNr(): string {
@@ -392,7 +389,8 @@ export const usePaketeStore = defineStore("pakete", () => {
       else if (newParent.schaetzung != null && paketToMove.schaetzung != null) {
         const oldSchaetzung = paketToMove.schaetzung;
         paketToMove.schaetzung = newParent.schaetzung;
-        updateParentsAfterSchaetzungUpdated(paketToMove);
+        berechneSchaetzungen();
+        //updateParentsAfterSchaetzungUpdated(paketToMove);
       } else {
         newParent.schaetzung = paketToMove.schaetzung;
       }
@@ -527,7 +525,7 @@ export const usePaketeStore = defineStore("pakete", () => {
     parentsOfPaket,
     rootParentOfPaket,
     updateTreeViewAfterChangedOpenState,
-    updateParentsAfterSchaetzungUpdated,
+    berechneSchaetzungen,
     updateBucket,
     deletePaket,
     addNew,
