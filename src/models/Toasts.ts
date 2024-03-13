@@ -1,7 +1,8 @@
 import { POSITION, useToast } from "vue-toastification";
 const toast = useToast()
-function successToastBucketAdded() {
-  toast.success("Neues Bucket hinzugefügt!", {
+
+function defaultSuccessToast(message: String) {
+  toast.success(message, {
     position: POSITION.TOP_RIGHT,
     timeout: 5000,
     closeOnClick: true,
@@ -17,41 +18,7 @@ function successToastBucketAdded() {
   });
 }
 
-function successToastBucketsSwapped() {
-  toast.success("Buckets getauscht!", {
-    position: POSITION.TOP_RIGHT,
-    timeout: 5000,
-    closeOnClick: true,
-    pauseOnFocusLoss: true,
-    pauseOnHover: true,
-    draggable: true,
-    draggablePercent: 0.6,
-    showCloseButtonOnHover: false,
-    hideProgressBar: true,
-    closeButton: "button",
-    icon: true,
-    rtl: false
-  });
-}
-
-function successToastBucketDeleted(name: string) {
-  toast.success(`Bucket ${name} gelöscht!`, {
-    position: POSITION.TOP_RIGHT,
-    timeout: 5000,
-    closeOnClick: true,
-    pauseOnFocusLoss: true,
-    pauseOnHover: true,
-    draggable: true,
-    draggablePercent: 0.6,
-    showCloseButtonOnHover: false,
-    hideProgressBar: true,
-    closeButton: "button",
-    icon: true,
-    rtl: false
-  });
-}
-
-function errorToastBucketEmptyName() {
+function defaultErrorToast(message: String) {
   toast.error("Das Bucket darf keinen leeren String haben!", {
     position: POSITION.TOP_RIGHT,
     timeout: 5000,
@@ -67,56 +34,35 @@ function errorToastBucketEmptyName() {
     rtl: false
   });
 }
+function successToastBucketAdded() {
+  defaultSuccessToast("Neues Bucket hinzugefügt!");
+}
+
+function successToastBucketsSwapped() {
+  defaultSuccessToast("Buckets getauscht!")
+}
+
+function successToastBucketDeleted(name: string) {
+  defaultSuccessToast(`Bucket ${name} gelöscht!`)
+}
+
+function successToastBucketRenamed() {
+  defaultSuccessToast("Bucket umbenannt!")
+}
+function errorToastBucketEmptyName() {
+  defaultErrorToast("Das Bucket darf keinen leeren String haben!")
+}
 
 function errorToastBucketDuplicateName(name: String) {
-  toast.error(`Das Bucket ${name} gibt es schon!`, {
-    position: POSITION.TOP_RIGHT,
-    timeout: 5000,
-    closeOnClick: true,
-    pauseOnFocusLoss: true,
-    pauseOnHover: true,
-    draggable: true,
-    draggablePercent: 0.6,
-    showCloseButtonOnHover: false,
-    hideProgressBar: true,
-    closeButton: "button",
-    icon: true,
-    rtl: false
-  });
+  defaultErrorToast(`Das Bucket ${name} gibt es schon!`)
 }
 
 function errorToastPaketNrNotUnique() {
-  toast.error("Die Ticket-Nr muss eindeutig sein!", {
-    position: POSITION.TOP_RIGHT,
-    timeout: 5000,
-    closeOnClick: true,
-    pauseOnFocusLoss: true,
-    pauseOnHover: true,
-    draggable: true,
-    draggablePercent: 0.6,
-    showCloseButtonOnHover: false,
-    hideProgressBar: true,
-    closeButton: "button",
-    icon: true,
-    rtl: false
-  });
+  defaultErrorToast("Die Ticket-Nr muss eindeutig sein!")
 }
 
 function errorToastPaketNrEmpty() {
-  toast.error("Die Ticket-Nr darf nicht leer sein!", {
-    position: POSITION.TOP_RIGHT,
-    timeout: 5000,
-    closeOnClick: true,
-    pauseOnFocusLoss: true,
-    pauseOnHover: true,
-    draggable: true,
-    draggablePercent: 0.6,
-    showCloseButtonOnHover: false,
-    hideProgressBar: true,
-    closeButton: "button",
-    icon: true,
-    rtl: false
-  });
+  defaultErrorToast("Die Ticket-Nr darf nicht leer sein!")
 }
 
 export {
@@ -125,6 +71,7 @@ export {
   successToastBucketAdded,
   successToastBucketDeleted,
   successToastBucketsSwapped,
+  successToastBucketRenamed,
   errorToastPaketNrNotUnique,
   errorToastPaketNrEmpty
 }

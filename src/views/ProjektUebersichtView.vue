@@ -90,7 +90,7 @@ import {
   errorToastBucketDuplicateName,
   errorToastBucketEmptyName,
   successToastBucketAdded,
-  successToastBucketDeleted,
+  successToastBucketDeleted, successToastBucketRenamed,
   successToastBucketsSwapped
 } from "@/models/Toasts";
 
@@ -190,11 +190,12 @@ function editBucket(e: KeyboardEvent) {
         errorToastBucketDuplicateName(newBucketName.value);
       } else {
         bucketStore.updateBucketName(currentEditBucket.value, newBucketName.value);
+        successToastBucketRenamed();
         clearData();
       }
     }
   } else if (e.key == "Escape") {
-    currentEditBucketRef.value?.blur();
+    document.getElementById("currentEditBucket")?.blur();
   }
 }
 
@@ -213,7 +214,7 @@ function clearData() {
 }
 
 
-const nachkommastellen = ref(2);
+const nachkommastellen = ref(projektStore.nachkommastellen);
 
 function convertNachkommastelle() {
   if (!isNaN(parseFloat(nachkommastellen.value.toString()))) {
