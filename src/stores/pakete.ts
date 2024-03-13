@@ -335,11 +335,11 @@ export const usePaketeStore = defineStore("pakete", () => {
       const indexOfPaketToMoveAsChild = paketToMove.parent.children.indexOf(paketToMove);
       paketToMove.parent.children.splice(indexOfPaketToMoveAsChild, 1);
     }
-    //TODO BUG wenn bei allen Paketen Schätzungen vorhanden sind
     if (newParent.children.length == 0) {
       if (newParent.schaetzung != null && paketToMove.schaetzung == null) paketToMove.schaetzung = newParent.schaetzung;
       else newParent.schaetzung = paketToMove.schaetzung;
     } else newParent.schaetzung = (newParent.schaetzung ?? 0) + (paketToMove.schaetzung ?? 0);
+    berechneSchaetzungen();
     newParent.children.unshift(paketToMove);
     updateBucket(newParent, null);
     paketToMove.parent = newParent;
@@ -383,14 +383,11 @@ export const usePaketeStore = defineStore("pakete", () => {
     // Paket wird dem neuen Elternteil als Kind zugewiesen
     const newParent = paketeAsTreeView.value[indexOfNewParent] as Paket;
     //Schätzung vom neuen Parent anpassen
-    //TODO BUG wenn bei allen Paketen Schätzungen vorhanden sind
     if (newParent.children.length == 0) {
       if (newParent.schaetzung != null && paketToMove.schaetzung == null) paketToMove.schaetzung = newParent.schaetzung;
       else if (newParent.schaetzung != null && paketToMove.schaetzung != null) {
-        const oldSchaetzung = paketToMove.schaetzung;
         paketToMove.schaetzung = newParent.schaetzung;
         berechneSchaetzungen();
-        //updateParentsAfterSchaetzungUpdated(paketToMove);
       } else {
         newParent.schaetzung = paketToMove.schaetzung;
       }
