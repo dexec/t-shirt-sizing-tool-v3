@@ -114,7 +114,7 @@ import { computed, onActivated, ref } from "vue";
 import { Bucket } from "@/models/Bucket";
 import { Paket } from "@/models/Paket";
 import draggable from "vuedraggable";
-import "@/styles/hoveLink.css";
+import "@/styles/hoverLink.css";
 
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();

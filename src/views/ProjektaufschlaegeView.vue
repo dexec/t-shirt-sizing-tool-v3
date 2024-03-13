@@ -24,11 +24,11 @@
   <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctions]"></context-menu>
 </template>
 <script lang="ts" setup>
-import BezeichnungCellRenderer from "@/components/projektkalkulation/BezeichnungCellRenderer.vue";
-import AufschlagCellRenderer from "@/components/projektkalkulation/AufwandRelativCellRenderer.vue";
-import AufwandCellRenderer from "@/components/projektkalkulation/AufwandAbsolutCellRenderer.vue";
-import AnteilAnZwischensummeCellRenderer from "@/components/projektkalkulation/AnteilAnZwischensummeCellRenderer.vue";
-import AnteilAmGesamtprojektCellRenderer from "@/components/projektkalkulation/AnteilAmGesamtprojektCellRenderer.vue";
+import BezeichnungCellRenderer from "@/components/aufschlaegeViewComponents/BezeichnungCellRenderer.vue";
+import AufschlagCellRenderer from "@/components/aufschlaegeViewComponents/AufwandRelativCellRenderer.vue";
+import AufwandCellRenderer from "@/components/aufschlaegeViewComponents/AufwandAbsolutCellRenderer.vue";
+import AnteilAnZwischensummeCellRenderer from "@/components/aufschlaegeViewComponents/AnteilAnZwischensummeCellRenderer.vue";
+import AnteilAmGesamtprojektCellRenderer from "@/components/aufschlaegeViewComponents/AnteilAmGesamtprojektCellRenderer.vue";
 import { AgGridVue } from "ag-grid-vue3";
 import { nextTick, provide, reactive, ref } from "vue";
 import { Column, ColumnApi, GridApi } from "ag-grid-community";
@@ -221,7 +221,7 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
         startaufschlag = vorigerAbschnittEintraege[0].aufwandRelativ;
       } else startaufschlag = vorigerAbschnittEintraege[0].aufwandRelativ.toFixed(projectStore.nachkommastellen);
       erklaerungsRechnung.value += startaufschlag + "%";
-      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${erklaerungsRechnung.value}</span> = <span style=color:red>${aktuellerEintrag.vorigerAbschnittAufschlag.toFixed(projectStore.nachkommastellen)}%</span>`;
+      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${erklaerungsRechnung.value}</span> = <span style=color:red>${aktuellerEintrag.vorigerAbschnittAufwandRelativ.toFixed(projectStore.nachkommastellen)}%</span>`;
       break;
     }
     default : {
@@ -270,8 +270,8 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
         startaufwand = vorigerAbschnittEintraege[0].aufwandAbsolut.toFixed(projectStore.nachkommastellen);
       } else startaufwand = vorigerAbschnittEintraege[0].aufwandAbsolut;
       erklaerungsRechnung.value += +startaufwand;
-      erklaerungsRechnung.value = `Das ergibt für den oberen Wert <span style=color:green>${erklaerungsRechnung.value}</span> = <span style=color:red>${aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen)}</span>`;
-      erklaerungsRechnungZusatz.value = `Für den unteren Wert ergibt das <span style=color:red>${aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen)}</span> + <span style=color:blue>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span> = <span style=color:red>${aktuellerEintrag.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span>`;
+      erklaerungsRechnung.value = `Das ergibt für den oberen Wert <span style=color:green>${erklaerungsRechnung.value}</span> = <span style=color:red>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projectStore.nachkommastellen)}</span>`;
+      erklaerungsRechnungZusatz.value = `Für den unteren Wert ergibt das <span style=color:red>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projectStore.nachkommastellen)}</span> + <span style=color:blue>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span> = <span style=color:red>${aktuellerEintrag.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span>`;
       break;
     }
     case SummeET.ENDSUMME: {
@@ -318,7 +318,7 @@ function erklaereAnteilAnZwischensumme(bezeichnung: string, rowIndex: number) {
     case SummeET.ZWISCHENSUMME: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Zwischensumme;
       erklaerungsText.value = "Der Anteil an nächster Zwischensumme bedeutet hier, wie viel Aufwand in Prozent der vorige Abschnitt für die aktuelle Zwischensumme ausmacht.";
-      erklaerungsRechnung.value = `Daraus ergibt sich <span style=color:green>${aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen)}</span> / <span style=color:blue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span> = <span style=color:red>${aktuellerEintrag.anteilZwischensumme.toFixed(projectStore.nachkommastellen)}%</span>`;
+      erklaerungsRechnung.value = `Daraus ergibt sich <span style=color:green>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projectStore.nachkommastellen)}</span> / <span style=color:blue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span> = <span style=color:red>${aktuellerEintrag.anteilZwischensumme.toFixed(projectStore.nachkommastellen)}%</span>`;
       break;
     }
     default: {
@@ -346,7 +346,7 @@ function erklaereAnteilAnGesamtprojekt(bezeichnung: string, rowIndex: number) {
     case SummeET.ZWISCHENSUMME: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Zwischensumme;
       erklaerungsText.value = "Der Anteil am Gesamtporjekt zeigt, wie viel Aufwand in Prozent der vorige Abschnitt für die Endsumme ausmacht.";
-      erklaerungsRechnung.value = `Daraus ergibt sich <span style=color:green>${aktuellerEintrag.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen)}</span> / <span style=color:blue>${endsumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span> = <span style=color:red>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projectStore.nachkommastellen)}%</span>`;
+      erklaerungsRechnung.value = `Daraus ergibt sich <span style=color:green>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projectStore.nachkommastellen)}</span> / <span style=color:blue>${endsumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen)}</span> = <span style=color:red>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projectStore.nachkommastellen)}%</span>`;
       break;
     }
     default: {
@@ -721,7 +721,7 @@ function moveZeileDown() {
     }
   }
 }
-
+//TODO Beim klick auf eine Zelle wird eine Erklärung eingeblendet. Dann aktualisiert die Seite und scrollt nach oben. Der Scroll soll nicht passieren.
 function refreshTable(colKey?: Column | string, rowIndex?: number) {
   nextTick(() => {
     gridApi.value!.setRowData(eintraegeStore.eintraege);

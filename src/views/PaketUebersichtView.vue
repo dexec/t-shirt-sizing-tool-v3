@@ -105,6 +105,11 @@ const columnDefs = ref([
     editable: false
   },
   {
+    field:"id",
+    headerName: "id",
+    editable: false
+  },
+  {
     field: "thema",
     headerName: "Thema",
     editable: false
@@ -155,7 +160,7 @@ const columnDefs = ref([
       if (isNaN(newValue)) params.data.schaetzung = params.oldValue;
       else {
         params.data.schaetzung = Number(newValue);
-        paketeStore.updateParentsAfterSchaetzungUpdated(params.data);
+        paketeStore.berechneSchaetzungen();
         gridApi.value!.refreshCells({ force: true });
       }
     },
@@ -187,19 +192,6 @@ function showSearchedPaket(paket: Paket) {
   refreshTable(columnApi.value!.getColumns()![0].getColId(), paket.id);
 }
 
-/*watch(() => variablenAustauschStore.searching, (newValue) => {
-  //gridApi.value!.setQuickFilter(newValue);
-  for (let paket of paketeStore.paketeAsMap.values()) {
-    const paketStringIndexed: { [index: string]: any } = paket
-    /!*for (const key in paketStringIndexed) {
-      if (typeof paketStringIndexed[key] === "string" && gridApi.value!.getQuickFilter() != "" && paketStringIndexed[key].includes(gridApi.value!.getQuickFilter())) {
-        if(!paketeStore.paketeAsTreeView.includes(paket))
-        paketeStore.showPaket(paket as Paket)
-      }
-    }*!/
-  }
-  refreshTable();
-});*/
 const showDialog = ref(false);
 
 function attemptDeletePaket() {
@@ -409,7 +401,7 @@ function onCellKeyPress(e: any) {
               if (colKey === "schaetzung") {
                 const oldValue = e.data.schaetzung;
                 e.data.schaetzung = null;
-                nextTick(() => paketeStore.updateParentsAfterSchaetzungUpdated(e.data));
+                nextTick(() => paketeStore.berechneSchaetzungen());
               } else if (colKey === "bucket") {
                 nextTick(() => paketeStore.updateBucket(e.data, null));
               } else if (!(colKey === "ticket_nr")) e.data[colKey] = null;

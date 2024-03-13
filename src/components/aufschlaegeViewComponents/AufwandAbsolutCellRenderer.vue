@@ -4,7 +4,7 @@
       <p class="font-weight-bold">{{ zwischensummeAufwand }}</p>
     </div>
     <div v-else>
-      <p class="text-caption pt-2">{{ vorigerAbschnittAufwand }}</p>
+      <p class="text-caption pt-2">{{ vorigerAbschnittAufwandAbsolut }}</p>
       <p class="font-weight-bold">{{ zwischensummeAufwand }}</p>
     </div>
   </div>
@@ -23,6 +23,6 @@ const aufwandAbsolut = computed(() => {
         return props.params.data.aufwandAbsolut.toFixed(projectStore.nachkommastellen)
       else return props.params.data.aufwandAbsolut
     });
-const vorigerAbschnittAufwand = computed(() => props.params.data.vorigerAbschnittAufwand.toFixed(projectStore.nachkommastellen));
+const vorigerAbschnittAufwandAbsolut = computed(() => props.params.data.vorigerAbschnittAufwandAbsolut.toFixed(projectStore.nachkommastellen));
 const zwischensummeAufwand = computed(() => props.params.data.zwischensummeAufwand.toFixed(projectStore.nachkommastellen));
 </script>

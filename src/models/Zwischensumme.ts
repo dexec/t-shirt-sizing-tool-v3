@@ -1,31 +1,31 @@
 import {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
 
 export class Zwischensumme extends AbstrakterEintrag {
-    private _vorigerAbschnittAufschlag: number;
-    private _vorigerAbschnittAufwand: number;
+    private _vorigerAbschnittAufwandRelativ: number;
+    private _vorigerAbschnittAufwandAbsolut: number;
     private _zwischensummeAufwand: number;
 
-    constructor(bezeichnung: string, anteilGesamtprojekt: number, vorigerAbschnittAufschlag: number, vorigerAbschnittAufwand: number, zwischensummeAufwand: number) {
-        super(bezeichnung, zwischensummeAufwand == 0 ? 0 : vorigerAbschnittAufwand / zwischensummeAufwand, anteilGesamtprojekt);
-        this._vorigerAbschnittAufschlag = vorigerAbschnittAufschlag;
-        this._vorigerAbschnittAufwand = vorigerAbschnittAufwand;
+    constructor(bezeichnung: string, anteilGesamtprojekt: number, vorigerAbschnittAufwandRelativ: number, vorigerAbschnittAufwandAbsolut: number, zwischensummeAufwand: number) {
+        super(bezeichnung, zwischensummeAufwand == 0 ? 0 : vorigerAbschnittAufwandAbsolut / zwischensummeAufwand, anteilGesamtprojekt);
+        this._vorigerAbschnittAufwandRelativ = vorigerAbschnittAufwandRelativ;
+        this._vorigerAbschnittAufwandAbsolut = vorigerAbschnittAufwandAbsolut;
         this._zwischensummeAufwand = zwischensummeAufwand;
     }
 
-    get vorigerAbschnittAufschlag(): number {
-        return this._vorigerAbschnittAufschlag;
+    get vorigerAbschnittAufwandRelativ(): number {
+        return this._vorigerAbschnittAufwandRelativ;
     }
 
-    set vorigerAbschnittAufschlag(value: number) {
-        this._vorigerAbschnittAufschlag = value;
+    set vorigerAbschnittAufwandRelativ(value: number) {
+        this._vorigerAbschnittAufwandRelativ = value;
     }
 
-    get vorigerAbschnittAufwand(): number {
-        return this._vorigerAbschnittAufwand;
+    get vorigerAbschnittAufwandAbsolut(): number {
+        return this._vorigerAbschnittAufwandAbsolut;
     }
 
-    set vorigerAbschnittAufwand(value: number) {
-        this._vorigerAbschnittAufwand = value;
+    set vorigerAbschnittAufwandAbsolut(value: number) {
+        this._vorigerAbschnittAufwandAbsolut = value;
     }
 
     get zwischensummeAufwand(): number {
