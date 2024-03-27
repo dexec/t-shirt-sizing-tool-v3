@@ -81,7 +81,7 @@
           <v-col class="d-flex flex-nowrap justify-start">
             <draggable
               v-for="bucketId of selected" :key="bucketId"
-              :list="getPaketeSortedByBucket(bucketsAsMap.get(bucketId)!)"
+              :list="getPaketeSortedByBucket(bucketsAsMap.get(bucketId) as Bucket)"
               class="dragArea list-group"
               group="pakete"
               itemKey="name"
