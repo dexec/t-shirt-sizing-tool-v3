@@ -10,8 +10,8 @@
 .button {
   color: white;
   font-size: 1rem;
-  height: 15vh;
-  width: 20vw;
+  height: 150px;
+  width: 500px;
 }
 </style>
 <script lang="ts" setup>
