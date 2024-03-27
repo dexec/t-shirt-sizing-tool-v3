@@ -15,22 +15,22 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, onUnmounted, ref} from "vue";
-import {usePaketeStore} from "@/stores/pakete";
-import {Paket} from "@/models/Paket";
+import { onMounted, onUnmounted, ref } from "vue";
+import { usePaketeStore } from "@/stores/pakete";
+import { Paket } from "@/models/Paket";
 
 const paketeStore = usePaketeStore();
 const suchString = ref("");
-const props = defineProps(['toggleSuche', 'showSearchedPaket']);
+const props = defineProps(["toggleSuche", "showSearchedPaket"]);
 const foundPakete = ref<Paket[]>([]);
 
 //TODO Den gesuchten Text im gefundenen Ticket markieren, Größe der gefundenen Tickets anpassen an Text
 
 onMounted(() => {
-  window.addEventListener('keyup', escapePressed, {capture: true});
+  window.addEventListener("keyup", escapePressed, { capture: true });
 });
 onUnmounted(() => {
-  window.removeEventListener('keyup', escapePressed, {capture: true});
+  window.removeEventListener("keyup", escapePressed, { capture: true });
 });
 
 function escapePressed(event: any) {
@@ -44,8 +44,10 @@ function searchPaket() {
   if (suchString.value != "") {
     foundPakete.value.length = 0;
     for (let paket of paketeStore.paketeAsMap.values()) {
-      if (paketeStore.applyFilterOnPaket(paket, suchString.value) && !foundPakete.value.includes(paket)) {
-        foundPakete.value.push(paket);
+      if (paket instanceof Paket) {
+        if (paketeStore.applyFilterOnPaket(paket, suchString.value) && !foundPakete.value.includes(paket)) {
+          foundPakete.value.push(paket);
+        }
       }
     }
   } else {
