@@ -48,6 +48,7 @@ import SuchComponent from "@/components/SuchComponent.vue";
 import type { Paket } from "@/models/Paket";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { errorToastPaketNrEmpty, errorToastPaketNrNotUnique } from "@/models/Toasts";
+import WarningCellRenderer from "@/components/cellRenderers/WarningCellRenderer.vue";
 
 const toast = useToast();
 const projectStore = useProjektStore();
@@ -178,6 +179,12 @@ const columnDefs = ref([
     filter: "agNumberColumnFilter",
     editable: false,
     maxWidth: 200
+  },
+  {
+    headerName: "",
+    field: "warning",
+    cellRenderer: WarningCellRenderer,
+    maxWidth: 50
   }
 ]);
 const showSuche = ref(false);
@@ -388,10 +395,6 @@ function onCellKeyPress(e: any) {
         case "ArrowRight":
           if (ctrl) nextTick(() => movePaketRightDown());
           else if (shift) nextTick(() => movePaketRightUp());
-          break;
-        case "_":
-        case "-":
-          nextTick(() => attemptDeletePaket());
           break;
         case "Delete":
           if (shift || ctrl) {
