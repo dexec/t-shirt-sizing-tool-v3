@@ -210,12 +210,9 @@ function clearData() {
   newBucketName.value = "";
   currentSelectedBucket.value = -1;
   currentEditBucket.value = -1;
-  console.log("cleared");
 }
 
-
 const nachkommastellen = ref(projektStore.nachkommastellen);
-
 function convertNachkommastelle() {
   if (!isNaN(parseFloat(nachkommastellen.value.toString()))) {
     projektStore.nachkommastellen = Math.floor(nachkommastellen.value);
