@@ -19,7 +19,7 @@ function defaultSuccessToast(message: String) {
 }
 
 function defaultErrorToast(message: String) {
-  toast.error("Das Bucket darf keinen leeren String haben!", {
+  toast.error(message, {
     position: POSITION.TOP_RIGHT,
     timeout: 5000,
     closeOnClick: true,
