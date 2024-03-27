@@ -10,7 +10,7 @@
               <span class="bucketsButtonText">Buckets konfigurieren</span>
             </v-btn>
           </template>
-          <v-card style="width: 10vw">
+          <v-card style="width: 15vw">
             <v-card-text class="d-flex flex-column justify-center align-center">
               <span>{{selected.length}}/{{numberBucketsToShow}}</span>
               <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name :disabled="numberBucketsToShow==selected.length && !selected.includes(bucket.id)"
