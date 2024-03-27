@@ -42,7 +42,8 @@ import { useBucketsStore } from "@/stores/buckets";
 import { useToast } from "vue-toastification";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { useProjektStore } from "@/stores/projekt";
-import { Column, ColumnApi, GridApi } from "ag-grid-community";
+import { Column, GridApi } from "ag-grid-community";
+import type { ColDef } from "ag-grid-community";
 import type { Bucket } from "@/models/Bucket";
 import SuchComponent from "@/components/SuchComponent.vue";
 import type { Paket } from "@/models/Paket";
@@ -59,18 +60,16 @@ const rowData = paketeStore.paketeAsTreeView;
 let duplicateTicketNrFound = false;
 
 function onGridReady(params: any) {
-  columnApi.value = params.columnApi;
   gridApi.value = params.api;
   //TODO Grid soll warten bis resiszed wude
-  columnApi.value!.autoSizeColumn("ticket_nr");
+  gridApi.value!.autoSizeColumns(["ticket_nr"]);
   window.addEventListener("resize", function() {
     setTimeout(function() {
-      columnApi.value!.autoSizeColumn("ticket_nr");
+      gridApi.value!.autoSizeColumns(["ticket_nr"]);
     });
   });
 }
 
-const columnApi = ref<ColumnApi>();
 
 const defaultColDef = reactive({
   /* resizable: true,*/ /*filter: "agTextColumnFilter",*/
@@ -79,11 +78,11 @@ const defaultColDef = reactive({
     return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key) /*|| suppressedKeysArray.includes(key)*/;
   }
 });
-const columnDefs = ref([
+const columnDefs:ColDef[] = [
   {
     field: "ticket_nr",
     headerName: "Ticket-NR",
-    valueSetter: (params: any) => {
+    valueSetter:(params: any):any => {
       if (params.newValue == "") {
         params.data.ticket_nr = params.oldValue;
         errorToastPaketNrEmpty();
@@ -130,7 +129,7 @@ const columnDefs = ref([
   {
     field: "bucket",
     headerName: "Bucket",
-    valueSetter: (params: any) => {
+    valueSetter: (params: any):any => {
       if (params.newValue === "") paketeStore.updateBucket(params.data, null);
       else {
         const bucket = useBucketsStore().bucketsAsSortedArray.find(bucket => bucket.name === params.newValue) as Bucket;
@@ -156,7 +155,7 @@ const columnDefs = ref([
   {
     field: "schaetzung",
     headerName: "Schätzung",
-    valueSetter: (params: any) => {
+    valueSetter: (params: any):any => {
       const newValue = params.newValue.replace(",", ".");
       if (isNaN(newValue)) params.data.schaetzung = params.oldValue;
       else {
@@ -184,9 +183,10 @@ const columnDefs = ref([
     headerName: "",
     field: "warning",
     cellRenderer: WarningCellRenderer,
-    maxWidth: 50
+    maxWidth: 50,
+    editable:false
   }
-]);
+];
 const showSuche = ref(false);
 
 function toggleSuche() {
@@ -196,7 +196,7 @@ function toggleSuche() {
 function showSearchedPaket(paket: Paket) {
   showSuche.value = false;
   paketeStore.showPaket(paket);
-  refreshTable(columnApi.value!.getColumns()![0].getColId(), paket.id);
+  refreshTable(gridApi.value!.getColumns()![0].getColId(), paket.id);
 }
 
 const showDialog = ref(false);
@@ -248,8 +248,8 @@ function rightClickOnCell(e: any) {
 }
 
 function onCellClicked() {
-
-  columnDefs.value.forEach(column => column.editable = false);
+  columnDefs.forEach(column => column.editable = false);
+  gridApi.value!.setGridOption("columnDefs",columnDefs)
 }
 
 function onCellDoubleClicked(e: any) {
@@ -259,7 +259,7 @@ function onCellDoubleClicked(e: any) {
 }
 
 function onCellValueChanged(params: any) {
-  columnApi.value!.autoSizeColumn("ticket_nr");
+  gridApi.value!.autoSizeColumns(["ticket_nr"]);
 }
 
 function addNewPaket() {
@@ -269,7 +269,7 @@ function addNewPaket() {
     refreshTable(gridApi.value!.getFocusedCell()!.column, newPaketID);
   } else {
     newPaketID = paketeStore.addNew(-1);
-    refreshTable(columnApi.value!.getColumns()![0].getColId(), newPaketID);
+    refreshTable(gridApi.value!.getColumns()![0].getColId(), newPaketID);
   }
 }
 
@@ -347,14 +347,15 @@ function movePaketRightUp() {
 
 function refreshTable(colKey?: Column | string, paketId?: number) {
   nextTick(() => {
-    gridApi.value!.setRowData(paketeStore.paketeAsTreeView);
-    columnDefs.value.forEach(column => column.editable = false);
+    gridApi.value!.setGridOption('rowData',paketeStore.paketeAsTreeView);
+    columnDefs.forEach(column => column.editable = false);
+    gridApi.value!.setGridOption("columnDefs", columnDefs);
     if (paketId != undefined && colKey != undefined) {
       gridApi.value!.getRowNode(paketId + "")!.setSelected(true);
       gridApi.value!.setFocusedCell(gridApi.value!.getRowNode(paketId + "")!.rowIndex as number, colKey);
     }
     gridApi.value!.refreshCells({ force: true });
-    columnApi.value!.autoSizeColumns(["ticket_nr", "thema"]);
+    gridApi.value!.autoSizeColumns(["ticket_nr", "thema"]);
   });
 }
 
@@ -456,7 +457,8 @@ function onCellKeyPress(e: any) {
 
 function startEditingCell(e: any, colKey: string) {
   if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
-    columnDefs.value!.find(column => column.field === colKey)!.editable = true;
+    columnDefs.find(column => column.field === colKey)!.editable = true;
+    gridApi.value!.setGridOption("columnDefs",columnDefs)
     nextTick(() => gridApi.value!.startEditingCell({
       rowIndex: e.rowIndex,
       colKey: e.column
@@ -465,7 +467,8 @@ function startEditingCell(e: any, colKey: string) {
 }
 
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
-  columnDefs.value!.forEach(column => column.editable = false);
+  columnDefs.forEach(column => column.editable = false);
+  gridApi.value!.setGridOption("columnDefs",columnDefs)
   gridApi.value!.setFocusedCell(rowIndex, colKey);
   gridApi.value!.stopEditing(cancel);
 }

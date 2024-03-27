@@ -31,7 +31,7 @@ import AnteilAnZwischensummeCellRenderer from "@/components/cellRenderers/Anteil
 import AnteilAmGesamtprojektCellRenderer from "@/components/cellRenderers/AnteilAmGesamtprojektCellRenderer.vue";
 import { AgGridVue } from "ag-grid-vue3";
 import { nextTick, provide, reactive, ref } from "vue";
-import { Column, ColumnApi, GridApi } from "ag-grid-community";
+import { Column, GridApi } from "ag-grid-community";
 import { useEintraegeStore } from "@/stores/eintraege";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { Eintrag } from "@/models/Eintrag";
@@ -65,18 +65,16 @@ function rightClickOnCell(e: any) {
 }
 
 const gridApi = ref<GridApi>();
-const columnApi = ref<ColumnApi>();
 
 function onGridReady(params: any) {
-  columnApi.value = params.columnApi;
   gridApi.value = params.api;
  // columnApi.value!.autoSizeColumn("bezeichnung");
   window.addEventListener("resize", function() {
     setTimeout(function() {
-      columnApi.value!.autoSizeColumn("bezeichnung");
+      gridApi.value!.autoSizeColumns(["bezeichnung"]);
     });
   });
-  refreshTable(columnApi.value!.getColumns()![0].getColId(), 0);
+  refreshTable(gridApi.value!.getColumns()![0].getColId(), 0);
 }
 
 const columnDefs = ref([
@@ -655,7 +653,7 @@ function eintragErstellen() {
     let colKey = "";
     if (focusedCell != null) {
       colKey = focusedCell.column.getColId();
-    } else colKey = columnApi.value!.getColumns()![0].getColId();
+    } else colKey = gridApi.value!.getColumns()![0].getColId();
     refreshTable(colKey, rowIndexSelectedRow + 1);
     nextTick(() => colorCellsAndExplain(colKey, rowIndexSelectedRow + 1));
   }
@@ -724,7 +722,7 @@ function moveZeileDown() {
 //TODO Beim klick auf eine Zelle wird eine Erklärung eingeblendet. Dann aktualisiert die Seite und scrollt nach oben. Der Scroll soll nicht passieren.
 function refreshTable(colKey?: Column | string, rowIndex?: number) {
   nextTick(() => {
-    gridApi.value!.setRowData(eintraegeStore.eintraege);
+    gridApi.value!.setGridOption('rowData', eintraegeStore.eintraege);
     gridApi.value!.forEachNode(function(node) {
       if (node.data.bezeichnung === SummeET.ZWISCHENSUMME) node.setRowHeight(80);
     });
