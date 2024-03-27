@@ -41,7 +41,7 @@ export const useBucketsStore = defineStore("buckets", () => {
   function deleteBucket(id: number) {
     const pakete = usePaketeStore();
     const bucketToDelete = bucketsAsMap.value.get(id);
-    if (bucketToDelete) {
+    if (bucketToDelete && bucketToDelete instanceof Bucket) {
       const indexOfBucketToDelete = bucketsAsSortedArray.value.findIndex(bucket => bucketToDelete == bucket);
       bucketsAsSortedArray.value.splice(indexOfBucketToDelete, 1);
       pakete.paketeOfBucket(bucketToDelete).forEach(paket => paket.bucket = null);
