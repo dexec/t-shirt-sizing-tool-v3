@@ -2,8 +2,10 @@
   <v-app-bar color="#03787c" flat>
 <!--    TODO Icon einbauen-->
     <v-tabs>
+      <v-tab title="Projekt erstellen" @click="createNewProject"><v-icon icon="mdi-folder-plus"></v-icon></v-tab>
+      <v-tab title="Projekt speichern" @click="downloadProject"><v-icon icon="mdi-content-save-outline"></v-icon></v-tab>
+      <v-tab title="Projekt laden" @click="loadProject"><v-icon icon="mdi-folder-upload-outline"></v-icon></v-tab>
       <v-tab title="Projekt als Excel Tabelle runterladen" @click="downloadExcel"><v-icon icon="mdi-file-excel-outline"></v-icon></v-tab>
-      <v-tab title="Projekt als Datei runterladen" @click="downloadProject"><v-icon icon="mdi-content-save-outline"></v-icon></v-tab>
       <v-tab style="color: white" to="/projekt">Projektübersicht</v-tab>
       <v-tab style="color: white" to="/pakete">Paketübersicht</v-tab>
       <v-tab style="color: white" v-if="projektStore.bucketmodus" to="/vergleich">Vergleich</v-tab>
@@ -19,7 +21,6 @@
   import { ExportProject } from "@/components/ExportProject";
   import { ExportAsExcel } from "@/components/ExportAsExcel";
   const projektStore = useProjektStore();
-
   function downloadProject() {
     const exportProject = new ExportProject();
     const link = document.createElement("a");
