@@ -2,12 +2,13 @@
 <!--  TODO Scroll-Bar in der ganzen Anwendung entfernen!-->
   <v-app>
     <v-main>
-      <AppBar v-if="useVariablenAustauschStore().geladen"></AppBar>
-      <router-view v-slot="{Component}">
+      <AppBar></AppBar>
+<!--      <router-view v-slot="{Component}">
         <keep-alive include="VergleichView">
           <component :is="Component"></component>
         </keep-alive>
-      </router-view>
+      </router-view>-->
+      <router-view></router-view>
     </v-main>
   </v-app>
 </template>
@@ -16,6 +17,6 @@
 
 </style>
 <script lang="ts" setup>
+
 import AppBar from "@/components/AppBar.vue";
-import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
 </script>

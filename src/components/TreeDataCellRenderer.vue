@@ -23,9 +23,9 @@ function changeOpenState() {
   props.params.node.setData(aktuellesPaket);
   paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket);
   nextTick(() => {
-    props.params.api.setRowData(paketeStore.paketeAsTreeView);
+    props.params.api.setGridOption('rowData',paketeStore.paketeAsTreeView);
     props.params.api.setFocusedCell(props.params.api.getRowNode(aktuellesPaket.id).rowIndex, props.params.column);
-    props.params.api.autoSizeColumn('ticket_nr')
+    props.params.api.autoSizeColumns(['ticket_nr'])
   });
 }
 </script>

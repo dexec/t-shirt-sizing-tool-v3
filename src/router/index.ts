@@ -6,24 +6,23 @@ import PaketUebersichtView from "@/views/PaketUebersichtView.vue";
 import ProjektkalkulationView from "@/views/ProjektaufschlaegeView.vue";
 import ProjektUebersichtView from "@/views/ProjektUebersichtView.vue";
 import testView from "@/views/testView.vue";
-import testView2 from "@/views/testView2.vue";
 import {useProjektStore} from "@/stores/projekt";
-import LandingPageView from "@/views/LandingPageView.vue";
-import {useVariablenAustauschStore} from "@/stores/variablenAustausch";
+import {ref} from "vue";
 
 const router = createRouter({
     history: createWebHashHistory(import.meta.env.BASE_URL),
     routes: [
         {
             path: '/',
-            name: 'landingpage',
-            component: LandingPageView
-        },
+            alias: '/projekt',
+            name: 'projekt',
+            component: ProjektUebersichtView
+        }/*,
         {
             path: '/projekt',
             name: 'projekt',
             component: ProjektUebersichtView,
-        },
+        },*/,
         {
             path: '/vergleich',
             name: 'vergleich',
@@ -48,23 +47,20 @@ const router = createRouter({
             path: '/test',
             name: 'test',
             component: testView
-        },
-        {
-            path: '/test2',
-            name: 'test2',
-            component: testView2,
-            props: true
-        },
+        }
     ]
 })
+const geladen = ref(false)
 router.beforeEach((to) => {
-    const variablenAustauschStore = useVariablenAustauschStore();
-    if (!variablenAustauschStore.geladen && to.name!='landingpage') {
-        return {name: 'landingpage'}
+    if (to.name == 'projekt') geladen.value = true
+    if (!geladen.value && to.name != 'projekt' && to.name != '/') {
+
+        geladen.value = true;
+        return {name: 'projekt'}
     }
     if (to.path === '/vergleich') {
         const projectStore = useProjektStore();
-        if(!projectStore.bucketmodus) return false
+        if (!projectStore.bucketmodus) return false
     }
 })
 

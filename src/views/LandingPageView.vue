@@ -19,7 +19,6 @@ import { ref } from "vue";
 import { ImportProject } from "@/components/ImportProject";
 import router from "@/router";
 import saveFile from "@/stores/file.json";
-import { useVariablenAustauschStore } from "@/stores/variablenAustausch";
 import "@/styles/hoverLink.css";
 
 function createNewProject() {
@@ -44,13 +43,11 @@ function createNewProject() {
     "  \"paketeTree\": []\n" +
     "}";
   new ImportProject(emptyProject);
-  useVariablenAustauschStore().geladen = true;
   router.push("/projekt");
 }
 
 function createNewSample() {
   new ImportProject(JSON.stringify(saveFile));
-  useVariablenAustauschStore().geladen = true;
   router.push("/projekt");
 }
 
@@ -69,7 +66,6 @@ function handleFileUpload(event: any) {
       const jsonFile = JSON.parse(fileContents as string);
       if (jsonFile.buckets && jsonFile.eintraege && jsonFile.pakete && jsonFile.paketeTree) {
         new ImportProject(JSON.stringify(jsonFile));
-        useVariablenAustauschStore().geladen = true;
         router.push("/projekt");
       }
     };

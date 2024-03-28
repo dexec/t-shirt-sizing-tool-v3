@@ -40,7 +40,7 @@ export class ExportAsExcel {
         if (this.projektStore.bucketmodus) {
             const sheetAllePaketeOhneBucket = this.createSheetForAllePaketeOhneBucket(this.paketeStore.paketeChildrenWithNoBucket());
             XLSX.utils.book_append_sheet(wb, sheetAllePaketeOhneBucket, "Alle Pakete ohne Bucket");
-            this.createSheetsForBuckets(wb, this.paketeStore.unsortedPaketeListsSortedByBucketsMap);
+            this.createSheetsForBuckets(wb, this.paketeStore.unsortedPaketeListsSortedByBucketsMap as Map<Bucket,Paket[]>);
         } else {
             const sheetAlleKindPakete = this.createSheetForAllePaketeOhneBucket(this.paketeStore.paketeChildren());
             XLSX.utils.book_append_sheet(wb, sheetAlleKindPakete, "Alle Kind Pakete");
