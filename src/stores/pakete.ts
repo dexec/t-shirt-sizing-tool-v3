@@ -23,11 +23,11 @@ export const usePaketeStore = defineStore("pakete", () => {
   }
 
   function paketeChildren() {
-    return Array.from(paketeAsMap.value.values()).filter(paket => paket.children.length == 0);
+    return Array.from(paketeAsMap.value.values()).filter(paket => paket.children.length == 0) as Paket[];
   }
 
   function paketeChildrenWithNoBucket() {
-    return Array.from(paketeAsMap.value.values()).filter(paket => paket.children.length == 0 && !paket.bucket);
+    return Array.from(paketeAsMap.value.values()).filter(paket => paket.children.length == 0 && !paket.bucket) as Paket[];
   }
 
   function applyFilterOnPaket(paket: Paket, filterString: string): boolean {
@@ -43,7 +43,7 @@ export const usePaketeStore = defineStore("pakete", () => {
   function paketeOfBucket(bucket: Bucket) {
     const result: Paket[] = [];
     for (const paket of paketeAsMap.value.values()) {
-      if (paket.bucket == bucket) result.push(paket);
+      if (paket instanceof Paket && paket.bucket == bucket) result.push(paket);
     }
     return result;
   }
@@ -70,7 +70,7 @@ export const usePaketeStore = defineStore("pakete", () => {
       console.log("Rechnung läuft")
     const paketeSortiertNachLevel: Paket[] = [];
     for(const paket of paketeAsMap.value.values()) {
-      paketeSortiertNachLevel.push(paket)
+      if(paket instanceof Paket) paketeSortiertNachLevel.push(paket)
     }
     paketeSortiertNachLevel.sort((a,b) => a.lvl + b.lvl )
     for(const paket of paketeSortiertNachLevel) {
