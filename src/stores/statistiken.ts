@@ -128,7 +128,7 @@ export const useStatistikenStore = defineStore("statistiken", () => {
   function summeAlleBucketsGeschaetzt(): number {
     let result = 0;
     if (projekt.bucketmodus) {
-      buckets.bucketsAsMap.forEach(bucket => result += anzahlGeschaetzt(bucket));
+      buckets.bucketsAsMap.forEach(bucket=> result += anzahlGeschaetzt(bucket));
     } else {
       pakete.paketeChildren().forEach(paket => {
         if (paket.zurRechnungFreigegeben()) {
