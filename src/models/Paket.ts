@@ -32,6 +32,11 @@ export class Paket {
         this._children = children;
     }
 
+
+    static set idCounter(value: number) {
+        this._idCounter = value;
+    }
+
     get id(): number {
         return this._id;
     }
