@@ -8,12 +8,14 @@ import {useBucketsStore} from "@/stores/buckets";
 import {useProjektStore} from "@/stores/projekt";
 import {useEintraegeStore} from "@/stores/eintraege";
 import {usePaketeStore} from "@/stores/pakete";
+import {useVergleicheStore} from "@/stores/vergleiche";
 
 export class ImportProject {
     private readonly _buckets: Bucket[] = []
     private readonly _pakete: Paket[] = []
     private readonly _eintraege: AbstrakterEintrag[] = []
     private _projekt: Projekt = new Projekt("",  true,true,2)
+    private _checkboxIds: number[] = []
 
     constructor(fileContents: string) {
         const jsonfile = JSON.parse(fileContents);
@@ -21,6 +23,7 @@ export class ImportProject {
         this.fileToBucketArray(jsonfile.buckets);
         this.fileToPaketeArray(jsonfile.pakete, jsonfile.paketeTree);
         this.fileToEintrageArray(jsonfile.eintraege);
+        this.fileToCheckboxIdsArray(jsonfile.checkboxIds)
         this.writeProjectStore();
         this.writeEintraegeStore();
         this.writeBucketStoreBucketArray();
@@ -28,14 +31,14 @@ export class ImportProject {
         this.writePaketeStorePaketeMap();
         this.writePaketeStorePaketeTreeView();
         this.writePaketeStoreUnsortedPaketeListsSortedByBucketsMap();
+        this.writeCheckboxIds();
     }
 
     private fileToPaketeArray(paketefromFile: any[], paketeTree: any[]): void {
         for (const paketFromFile of paketefromFile) {
             this._pakete.push(new Paket(paketFromFile.ticket_nr, paketFromFile.thema, paketFromFile.beschreibung, paketFromFile.komponente, paketFromFile.bucket ? this._buckets.find(bucket => bucket.name == paketFromFile.bucket)! : null, paketFromFile.schaetzung, paketFromFile.open, 0, null, [], paketFromFile.id));
         }
-        //Nur dev-Zweck
-        this.generatePakete(0);
+        this.generatePakete(0);//Nur dev-Zweck
         this.setPaketeTreeStructure(paketeTree);
         this.setPaketeLevelAndSchaetzung();
     }
@@ -86,10 +89,13 @@ export class ImportProject {
     }
 
     private fileToBucketArray(bucketsFromFile: any[]): void {
+        let highestId = 0;
         for (const bucketFromFile of bucketsFromFile) {
-            const newBucket = new Bucket(bucketFromFile.name);
+            const newBucket = new Bucket(bucketFromFile.name,bucketFromFile.id);
             this._buckets.push(newBucket);
+            if(newBucket.id > highestId) highestId = newBucket.id
         }
+        Bucket.idCounter = highestId+1;
         const useBucketStore = useBucketsStore();
         useBucketStore.bucketsAsSortedArray = this._buckets;
     }
@@ -111,6 +117,10 @@ export class ImportProject {
 
     private fileToProjectData(projectData: any): void {
         this._projekt = new Projekt(projectData.projektname, projectData.bucketmodus,projectData.aufschlaegeErklaeren,projectData.nachkommastellen);
+    }
+
+    private fileToCheckboxIdsArray(checkboxIds: any): void {
+        this._checkboxIds=checkboxIds
     }
 
     private writeProjectStore() {
@@ -182,5 +192,11 @@ export class ImportProject {
                 unsortedPaketeListsSortedByBucketsMap.get(paket.bucket)!.push(paket);
         });
         paketeStore.unsortedPaketeListsSortedByBucketsMap = unsortedPaketeListsSortedByBucketsMap;
+    }
+    private writeCheckboxIds():void {
+        const vergleichStore = useVergleicheStore();
+        vergleichStore.checkboxSelectedIds.length=0;
+        for(const id of this._checkboxIds)
+        vergleichStore.checkboxSelectedIds.push(id)
     }
 }

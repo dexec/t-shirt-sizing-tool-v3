@@ -72,7 +72,7 @@
           <v-col class="d-flex flex-nowrap justify-start">
             <div v-for="bucketId of selected" :key="bucketId">
               <div v-if="bucketsAsMap.get(bucketId)" class="list-group">
-                <div class="paket">{{ bucketsAsMap.get(bucketId).name }}</div>
+                <div class="paket">{{ bucketsAsMap.get(bucketId)?.name }}</div>
               </div>
             </div>
           </v-col>
@@ -110,14 +110,16 @@
 <script lang="ts" setup>
 import { usePaketeStore } from "@/stores/pakete";
 import { useBucketsStore } from "@/stores/buckets";
-import { computed, onActivated, ref } from "vue";
+import {computed, nextTick, onActivated, onUnmounted, ref} from "vue";
 import { Bucket } from "@/models/Bucket";
 import { Paket } from "@/models/Paket";
 import draggable from "vuedraggable";
 import "@/styles/hoverLink.css";
+import {useVergleicheStore} from "@/stores/vergleiche";
 
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
+
 const dialog = ref(false);
 const unsortedPaketeListsSortedByBucketsMap = paketeStore.unsortedPaketeListsSortedByBucketsMap;
 const showPaketeWithoutBucket = ref(true);
@@ -125,16 +127,16 @@ const searchedPaket = ref(0);
 const paketeWithoutBucket = computed(() => paketeStore.paketeChildrenWithNoBucket());
 const buckets = bucketStore.bucketsAsSortedArray as Bucket[];
 const bucketsAsMap = bucketStore.bucketsAsMap;
-window.addEventListener('resize', function () {
-  dialog.value=false
-  setNumberBucketsToShow()
-});
+
+const vergleichStore = useVergleicheStore();
 const numberBucketsToShow = ref(4);
-const selected = ref<number[]>(buckets.map(bucket => bucket.id));
-onActivated(() => {
-  setNumberBucketsToShow()
+const selected = ref<number[]>(vergleichStore.checkboxSelectedIds);
+
+nextTick(() => {
+  setNumberBucketsToShow();
   sortSelectedBuckets();
 });
+
 function setNumberBucketsToShow() {
   const clientWidth = document.getElementById("container")?.clientWidth;
   if (clientWidth != null) {
@@ -145,6 +147,21 @@ function setNumberBucketsToShow() {
     }
   }
 }
+function sortSelectedBuckets() {
+  const copySelected = [...selected.value];
+  selected.value.length = 0;
+  for (let bucket of buckets) {
+    if (copySelected.includes(bucket.id)) {
+      selected.value.push(bucket.id);
+    }
+  }
+  copySelected.length = 0;
+}
+onUnmounted(() =>  vergleichStore.checkboxSelectedIds.splice(0, vergleichStore.checkboxSelectedIds.length, ...selected.value))
+window.addEventListener('resize', function () {
+  dialog.value=false
+  setNumberBucketsToShow()
+});
 function getTitleForPaket(paket: Paket): string {
   let result: string = "";
   const parents = paketeStore.parentsOfPaket(paket).reverse();
@@ -170,25 +187,6 @@ function applyFilter(paket: Paket, filterString: string): boolean {
   }
   return false;
 }
-
-function sortSelectedBuckets() {
-  const copySelected = [...selected.value];
-  selected.value.length = 0;
-  for (let bucket of buckets) {
-    if (copySelected.includes(bucket.id)) {
-      selected.value.push(bucket.id);
-    }
-  }
-  copySelected.length = 0;
-}
-
-/*function getPaketSortedByBucket(bucket: Bucket) {
-  const result: Paket[] = [];
-  paketeChildren.value.forEach(paket => {
-    if (paket.bucket && paket.bucket == bucket) result.push(paket);
-  });
-  return result;
-}*/
 
 function getPaketeSortedByBucket(bucket: Bucket) {
   return unsortedPaketeListsSortedByBucketsMap.get(bucket) as Paket[];

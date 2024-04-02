@@ -3,11 +3,6 @@
   <v-app>
     <v-main>
       <AppBar></AppBar>
-<!--      <router-view v-slot="{Component}">
-        <keep-alive include="VergleichView">
-          <component :is="Component"></component>
-        </keep-alive>
-      </router-view>-->
       <router-view></router-view>
     </v-main>
   </v-app>
@@ -17,6 +12,8 @@
 
 </style>
 <script lang="ts" setup>
-
 import AppBar from "@/components/AppBar.vue";
+import {ImportProject} from "@/components/ImportProject";
+import saveFile from "@/stores/file.json";
+new ImportProject(JSON.stringify(saveFile));
 </script>

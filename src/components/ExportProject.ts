@@ -4,9 +4,10 @@ import { Eintrag } from "@/models/Eintrag";
 import { Zwischensumme } from "@/models/Zwischensumme";
 import { usePaketeStore } from "@/stores/pakete";
 import { useProjektStore } from "@/stores/projekt";
+import {useVergleicheStore} from "@/stores/vergleiche";
 
 export class ExportProject {
-  private readonly _buckets: { name: string }[] = [];
+  private readonly _buckets: { id:number, name: string }[] = [];
   private readonly _pakete: {
     id: number,
     ticket_nr: string,
@@ -25,6 +26,7 @@ export class ExportProject {
     aufschlaegeErklaeren: boolean,
     nachkommastellen: number
   };
+  private _checkboxIds:number[]=[]
 
   constructor() {
     this._projekt = {
@@ -37,12 +39,14 @@ export class ExportProject {
     this.saveEintraege();
     this.savePakete();
     this.saveProjekt();
+    this.saveCheckboxIds();
   }
 
   public createFile(): Blob {
     const mergedObjects: {
       projekt: { projektname: string, bucketmodus: boolean, aufschlaegeErklaeren: boolean }
       buckets: { name: string }[],
+      checkboxIds: number[],
       pakete: {
         id: number,
         ticket_nr: string,
@@ -59,6 +63,7 @@ export class ExportProject {
       = {
       projekt: this._projekt,
       buckets: this._buckets,
+      checkboxIds: this._checkboxIds,
       pakete: this._pakete,
       paketeTree: this._paketeTree,
       eintraege: this._eintraege
@@ -70,7 +75,7 @@ export class ExportProject {
   private saveBuckets() {
     const bucketStore = useBucketsStore();
     bucketStore.bucketsAsSortedArray.forEach(bucket => {
-      this._buckets.push({ name: bucket.name });
+      this._buckets.push({ id:bucket.id, name: bucket.name });
     });
   }
 
@@ -123,5 +128,10 @@ export class ExportProject {
       aufschlaegeErklaeren: projektStore.aufschlaegeErklaeren,
       nachkommastellen: projektStore.nachkommastellen
     };
+  }
+
+  private saveCheckboxIds() {
+    const vergleicheStore =useVergleicheStore();
+    this._checkboxIds = vergleicheStore.checkboxSelectedIds;
   }
 }
