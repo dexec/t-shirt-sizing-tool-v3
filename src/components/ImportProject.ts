@@ -49,7 +49,7 @@ export class ImportProject {
 
     private generatePakete(numberPakete: number) {
         for (let i = 0; i < numberPakete; i++) {
-            const newPaket = new Paket(i + numberPakete + "", "Testing " + i, "Ticket zum Testen", "Test", null, null, false, 0, null, []);
+            const newPaket = new Paket("Ticket-Nr " + (i + numberPakete), "Testing " + i, "Ticket zum Testen", "Test", null, null, false, 0, null, []);
             this._pakete.push(newPaket);
         }
     }
