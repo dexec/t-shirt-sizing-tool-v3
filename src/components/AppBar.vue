@@ -14,6 +14,7 @@
       <v-tab title="Projekt als Excel Tabelle runterladen" @click="downloadExcel">
         <v-icon icon="mdi-file-excel-outline"></v-icon>
       </v-tab>
+      <v-divider color="#4df0b4" class="border-opacity-100" :thickness="15" vertical></v-divider>
       <v-tab style="color: white" to="/projekt" class="text-capitalize" >Projektübersicht</v-tab>
       <v-tab style="color: white" to="/pakete" class="text-capitalize">Paketübersicht</v-tab>
       <v-tab v-if="projektStore.bucketmodus" style="color: white" to="/vergleich" class="text-capitalize">Vergleich</v-tab>
