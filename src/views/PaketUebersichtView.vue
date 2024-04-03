@@ -368,6 +368,7 @@ function onCellKeyPress(e: any) {
     const colKey = e.column.colId;
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
+        //TODO Bei strg + runter/hoch scroll auch die seite nach maximal runter/hoch, preventdefault fehlt
         case "ArrowUp":
           if (ctrl || shift) {
             nextTick(() => movePaketUp());
