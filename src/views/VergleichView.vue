@@ -1,57 +1,41 @@
 <template>
   <v-container id="container">
-    <v-row class="mb-6">
-      <v-col class="d-flex flex-nowrap justify-center">
-        <v-btn class="clickable-element bucketsButton" @click="showPaketeWithoutBucket=!showPaketeWithoutBucket"><span
-          class="bucketsButtonText">Toggle Arbeitspakete</span></v-btn>
-        <v-dialog v-model="dialog" width="auto">
-          <template v-slot:activator="{props}">
-            <v-btn class="mx-6 bucketsButton clickable-element" v-bind="props">
-              <span class="bucketsButtonText">Buckets konfigurieren</span>
-            </v-btn>
-          </template>
-          <v-card style="width: 15vw">
-            <v-card-text class="d-flex flex-column justify-center align-center">
-              <span>{{selected.length}}/{{numberBucketsToShow}}</span>
-              <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :label=bucket.name :disabled="numberBucketsToShow==selected.length && !selected.includes(bucket.id)"
-                          :value="bucket.id" @change="sortSelectedBuckets()">
-              </v-checkbox>
-              <div v-if="buckets.length == 0">Es gibt keine Buckets</div>
-            </v-card-text>
-          </v-card>
-        </v-dialog>
-        <draggable :list="[]"
-                   :style="{visibility: (!showPaketeWithoutBucket || paketeWithoutBucket.length===0 ? 'visible':'hidden')}"
-                   class="paket"
-                   ghostClass="ghostClass"
-                   group="pakete"
-                   itemKey="name"
-                   style="margin: 0"
-                   @change="removePaketFromBucket"
-        >
-          <template #header>
-            <v-icon icon="mdi-trash-can"></v-icon>
-          </template>
-          <template #item="{  }">
-          </template>
-        </draggable>
-      </v-col>
-    </v-row>
     <v-row>
-      <v-col :style="{visibility: (showPaketeWithoutBucket ? 'visible':'hidden')}" cols="3">
-        <v-text-field id="filterForPaketeList" v-model="paketeListeFilter" clearable label="Pakete filtern"
+      <v-dialog v-model="dialog" width="auto">
+        <template v-slot:activator="{props}">
+          <v-btn class="mx-6 configBucketsButton clickable-element" v-bind="props">
+            <span class="bucketsButtonText">Buckets konfigurieren</span>
+          </v-btn>
+        </template>
+        <v-card style="width: 15vw">
+          <v-card-text class="d-flex flex-column justify-center align-center">
+            <span>{{ selected.length }}/{{ numberBucketsToShow }}</span>
+            <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :disabled="numberBucketsToShow==selected.length && !selected.includes(bucket.id)"
+                        :label=bucket.name
+                        :value="bucket.id" @change="sortSelectedBuckets()">
+            </v-checkbox>
+            <div v-if="buckets.length == 0">Es gibt keine Buckets</div>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+      <v-col :style="{visibility: (showPaketeWithoutBucket ? 'visible':'hidden')}" cols="2">
+        <v-text-field id="filterForPaketeList" v-model="paketeListeFilter" clearable placeholder="Pakete filtern"
                       style="width:200px;"
                       @click:clear="paketeListeFilter=''"></v-text-field>
         <h2>Unzugewiesene Pakete</h2>
         <draggable
-          v-if="paketeWithoutBucket.length > 0"
+          id="paketeWithoutBucketList"
+          :group="{name: 'pakete', pull:true,put:true}"
           :list="paketeWithoutBucket"
           :sort="false"
-          class="dragArea list-group"
-          group="pakete"
+          chosen-class="redBorder"
+          class="dragArea"
+          drag-class="dragClass"
+          ghost-class="ghostClass"
           itemKey="name"
-          style="overflow-y:auto;height: 70vh"
           @change="removePaketFromBucket"
+          @end="endDrag"
+          @start="startDrag"
         >
           <template #item="{ element }">
             <div v-if="applyFilter(element,paketeListeFilter)" :title="getTitleForPaket(element)" class="paket"
@@ -61,10 +45,9 @@
             </div>
           </template>
         </draggable>
-        <span v-if="paketeWithoutBucket.length == 0">Es gibt keine Pakete ohne Bucket</span>
       </v-col>
       <v-col>
-        <v-text-field id="filterForPakete" v-model="paketeTabelleFilter" clearable label="Pakete filtern"
+        <v-text-field id="filterForPakete" v-model="paketeTabelleFilter" clearable placeholder="Pakete filtern"
                       style="width:200px;"
                       @click:clear="paketeTabelleFilter=''"></v-text-field>
         <h2>Buckettabelle</h2>
@@ -72,21 +55,25 @@
           <v-col class="d-flex flex-nowrap justify-start">
             <div v-for="bucketId of selected" :key="bucketId">
               <div v-if="bucketsAsMap.get(bucketId)" class="list-group">
-                <div class="paket">{{ bucketsAsMap.get(bucketId)?.name }}</div>
+                <div class="paket" style="margin:24px">{{ bucketsAsMap.get(bucketId)?.name }}</div>
               </div>
             </div>
           </v-col>
         </v-row>
-        <v-row style="height:65vh; overflow-y:auto; overflow-x:hidden;">
+        <v-row style="height:60vh; overflow-y:auto; overflow-x:hidden;">
           <v-col class="d-flex flex-nowrap justify-start">
             <draggable
               v-for="bucketId of selected" :key="bucketId"
               :list="getPaketeSortedByBucket(bucketsAsMap.get(bucketId) as Bucket)"
-              class="dragArea list-group"
+              class="dragArea list-group paketeInBucketList"
+              ghost-class="ghostClass"
+              drag-class="dragClass"
               group="pakete"
               itemKey="name"
               style="min-height: 100%;"
               @change="changeBucketOfPaket($event,buckets.find(bucket => bucket.id == bucketId)!)"
+              @end="endDrag"
+              @start="startDrag"
             >
               <template #item="{ element }">
                 <div v-if="applyFilter(element, paketeTabelleFilter)" :title="getTitleForPaket(element)"
@@ -110,12 +97,12 @@
 <script lang="ts" setup>
 import { usePaketeStore } from "@/stores/pakete";
 import { useBucketsStore } from "@/stores/buckets";
-import {computed, nextTick, onActivated, onUnmounted, ref} from "vue";
+import { computed, nextTick, onUnmounted, ref } from "vue";
 import { Bucket } from "@/models/Bucket";
 import { Paket } from "@/models/Paket";
 import draggable from "vuedraggable";
 import "@/styles/hoverLink.css";
-import {useVergleicheStore} from "@/stores/vergleiche";
+import { useVergleicheStore } from "@/stores/vergleiche";
 
 const paketeStore = usePaketeStore();
 const bucketStore = useBucketsStore();
@@ -137,16 +124,37 @@ nextTick(() => {
   sortSelectedBuckets();
 });
 
+function startDrag() {
+  const paketeWithoutBucketList = document.getElementById("paketeWithoutBucketList");
+  const paketeInBucketLists = document.getElementsByClassName("paketeInBucketList");
+  if (paketeWithoutBucketList) paketeWithoutBucketList.style.border = "1px dotted red";
+  for (let i = 0; i < paketeInBucketLists.length; i++) {
+    const paketeInBucketList = paketeInBucketLists[i] as HTMLElement;
+    paketeInBucketList.style.border = "1px dotted red";
+  }
+}
+
+function endDrag() {
+  const paketeWithoutBucketList = document.getElementById("paketeWithoutBucketList");
+  const paketeInBucketList = document.getElementsByClassName("paketeInBucketList");
+  if (paketeWithoutBucketList) paketeWithoutBucketList.style.border = "1px solid black";
+  for (let i = 0; i < paketeInBucketList.length; i++) {
+    const htmlelement = paketeInBucketList[i] as HTMLElement;
+    htmlelement.style.border = "1px solid transparent";
+  }
+}
+
 function setNumberBucketsToShow() {
   const clientWidth = document.getElementById("container")?.clientWidth;
   if (clientWidth != null) {
     const bucketTableWidth = clientWidth * 0.75;
     numberBucketsToShow.value = Math.trunc(bucketTableWidth / 200);
     while (selected.value.length > numberBucketsToShow.value) {
-      selected.value.pop()
+      selected.value.pop();
     }
   }
 }
+
 function sortSelectedBuckets() {
   const copySelected = [...selected.value];
   selected.value.length = 0;
@@ -157,11 +165,13 @@ function sortSelectedBuckets() {
   }
   copySelected.length = 0;
 }
-onUnmounted(() =>  vergleichStore.checkboxSelectedIds.splice(0, vergleichStore.checkboxSelectedIds.length, ...selected.value))
-window.addEventListener('resize', function () {
-  dialog.value=false
-  setNumberBucketsToShow()
+
+onUnmounted(() => vergleichStore.checkboxSelectedIds.splice(0, vergleichStore.checkboxSelectedIds.length, ...selected.value));
+window.addEventListener("resize", function() {
+  dialog.value = false;
+  setNumberBucketsToShow();
 });
+
 function getTitleForPaket(paket: Paket): string {
   let result: string = "";
   const parents = paketeStore.parentsOfPaket(paket).reverse();
@@ -244,7 +254,10 @@ function onEndDrag(e: any) {
 </script>
 
 <style scoped>
-.bucketsButton {
+.configBucketsButton {
+  position: fixed;
+  top: 10vh;
+  right: 10vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -280,7 +293,35 @@ function onEndDrag(e: any) {
   /*min-height: 250px;*/
 }
 
+.dragClass {
+  opacity: 30%;
+  border: 3px red solid;
+  color: transparent;
+}
+
 .ghostClass {
-  display: none;
+  border: 3px red solid;
+}
+
+.greenBorder {
+  opacity: 20%;
+  border: 3px green solid;
+}
+
+.blueBorder {
+  border: 3px blue solid;
+}
+
+.paketeInBucketList {
+  border: 1px transparent solid;
+}
+
+#paketeWithoutBucketList {
+  overflow-y: auto;
+  height: 75vh;
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 </style>
