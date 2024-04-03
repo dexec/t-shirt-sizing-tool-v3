@@ -30,7 +30,6 @@ export const useBucketsStore = defineStore("buckets", () => {
       }
     }
     const newBucket = new Bucket(newBucketName);
-    console.log(newBucket.id)
     bucketsAsMap.value.set(newBucket.id, newBucket);
     const selectedBucket = bucketsAsSortedArray.value.find(bucket => bucket.id == id) as Bucket;
     const indexOfNewBucket = before ? bucketsAsSortedArray.value.indexOf(selectedBucket) : bucketsAsSortedArray.value.indexOf(selectedBucket) + 1;
