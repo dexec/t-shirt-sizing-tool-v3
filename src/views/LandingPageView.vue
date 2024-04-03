@@ -26,17 +26,21 @@ function createNewProject() {
     "  \"projekt\": {\n" +
     "    \"projektname\": \"\",\n" +
     "    \"bucketmodus\": true,\n" +
-    "    \"aufschlaegeErklaeren\": true,\n" +
+    "    \"aufschlaegeErklaeren\": false,\n" +
     "    \"nachkommastellen\": 2\n" +
     "  },\n" +
     "  \"eintraege\": [],\n" +
+    "  \"checkboxIds\": [0,1,2],\n" +
     "  \"buckets\": [{\n" +
+    "      \"id\": \"0\"\n" +
     "      \"name\": \"S\"\n" +
     "    },\n" +
     "    {\n" +
+    "      \"id\": \"1\"\n" +
     "      \"name\": \"M\"\n" +
     "    },\n" +
     "    {\n" +
+    "      \"id\": \"2\"\n" +
     "      \"name\": \"L\"\n" +
     "    }],\n" +
     "  \"pakete\": [],\n" +
