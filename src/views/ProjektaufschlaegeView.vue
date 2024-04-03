@@ -13,6 +13,7 @@
       @cell-key-down="onCellKeyPress"
       @cell-double-clicked="onCellDoubleClicked"
       @grid-ready="onGridReady"
+      animateRows="false"
     ></ag-grid-vue>
     <div v-if="projectStore.aufschlaegeErklaeren" style="width:35%; border: 1px solid black">
       <div v-html="erklaerungsText"></div>
@@ -32,6 +33,7 @@ import AnteilAmGesamtprojektCellRenderer from "@/components/cellRenderers/Anteil
 import { AgGridVue } from "ag-grid-vue3";
 import { nextTick, provide, reactive, ref } from "vue";
 import { Column, GridApi } from "ag-grid-community";
+import type {ColDef} from "ag-grid-community";
 import { useEintraegeStore } from "@/stores/eintraege";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { Eintrag } from "@/models/Eintrag";
@@ -77,7 +79,7 @@ function onGridReady(params: any) {
   refreshTable(gridApi.value!.getColumns()![0].getColId(), 0);
 }
 
-const columnDefs = ref([
+const columnDefs: ColDef[] = [
   {
     field: "bezeichnung",
     headerName: "Bezeichnung",
@@ -89,7 +91,7 @@ const columnDefs = ref([
     headerName: "Aufschlag",
     cellRenderer: AufschlagCellRenderer,
     cellStyle: {},
-    valueSetter: (params: any) => {
+    valueSetter: (params: any):any => {
       const newValue = params.newValue.replace(",", ".");
       if (!isNaN(newValue)) {
         eintraegeStore.updateAufschlag(params.node.rowIndex, +newValue);
@@ -124,7 +126,7 @@ const columnDefs = ref([
     cellRenderer: AnteilAmGesamtprojektCellRenderer,
     cellStyle: {},
     editable: false
-  }]);
+  }]
 const defaultColDef = reactive(
   {
     suppressKeyboardEvent: (params: any) => {
@@ -155,10 +157,11 @@ function onCellClicked(e: any) {
 }
 
 function clearColorsAndErklaerungen() {
-  columnDefs.value.forEach(column => {
+  columnDefs.forEach(column => {
     column.editable = false;
     column.cellStyle = {};
   });
+  gridApi.value!.setGridOption("columnDefs",columnDefs)
   erklaerungsText.value = "";
   erklaerungsTextZusatz.value = "";
   erklaerungsRechnung.value = "";
@@ -378,9 +381,10 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
   switch (bezeichnung) {
     case SummeET.STARTSUMME:
       if (column == ColumnET.AUFWAND) {
-        columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
+        columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
           if (params.rowIndex == 0) return { "background-color": "blue", color: "white" };
         };
+        gridApi.value!.setGridOption("columnDefs",columnDefs)
       }
       break;
     case SummeET.ENDSUMME: {
@@ -390,13 +394,14 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
           if (rowData[i] instanceof Eintrag) {
             alleEintraege.push(i);
           }
-          columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
+          columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
             if (alleEintraege.includes(params.rowIndex)) return {
               "background-color": "green",
               color: "white"
             };
             if (params.rowIndex == rowData.length - 1) return { "background-color": "red", color: "white" };
           };
+          gridApi.value!.setGridOption("columnDefs",columnDefs)
         }
       }
       break;
@@ -406,7 +411,7 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
       for (let i = rowIndex - 1; ![SummeET.STARTSUMME as string, SummeET.ZWISCHENSUMME as string].includes(rowData[i].bezeichnung); i--) {
         vorigerAbschnittEintraege.push(i);
       }
-      columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == column)!.cellStyle = (params: any) => {
+      columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == column)!.cellStyle = (params: any):any => {
         if (params.rowIndex == rowIndex) return { "background-color": "red", color: "white" };
         if (vorigerAbschnittEintraege.includes(params.rowIndex)) return {
           "background-color": "green",
@@ -418,13 +423,14 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
         };
         return { color: "black" };
       };
+      gridApi.value!.setGridOption("columnDefs",columnDefs)
       break;
     }
     default: {
       const columnNeighbor = column == ColumnET.AUFSCHLAG ? ColumnET.AUFWAND : ColumnET.AUFSCHLAG;
       for (let i = rowIndex; i >= 0; i--) {
         if ([SummeET.STARTSUMME as string, SummeET.ZWISCHENSUMME as string].includes(rowData[i].bezeichnung)) {
-          columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == column)!.cellStyle = (params: any) => {
+          columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == column)!.cellStyle = (params: any):any => {
             if (params.rowIndex == i && column == ColumnET.AUFWAND) return {
               "background-color": "blue",
               color: "white"
@@ -432,7 +438,7 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
             if (params.rowIndex == rowIndex) return { "background-color": "red", color: "white" };
             return { color: "black" };
           };
-          columnDefs.value.find(column => column.field == columnNeighbor)!.cellStyle = (params: any) => {
+          columnDefs.find(column => column.field == columnNeighbor)!.cellStyle = (params: any):any => {
             if (params.rowIndex == i && column == ColumnET.AUFSCHLAG) return {
               "background-color": "blue",
               color: "white"
@@ -440,6 +446,7 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
             if (params.rowIndex == rowIndex) return { "background-color": "green", color: "white" };
             return { color: "black" };
           };
+          gridApi.value!.setGridOption("columnDefs",columnDefs)
           break;
         }
       }
@@ -459,29 +466,31 @@ function colorZwischensumme(rowIndex: number) {
       for (let i = rowIndex - 1; ![SummeET.STARTSUMME as string, SummeET.ZWISCHENSUMME as string].includes(rowData[i].bezeichnung); i--) {
         vorigerAbschnittEintraege.push(i);
       }
-      columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
+      columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any):any => {
         if (params.rowIndex == rowIndex) return { "background-color": "blue", color: "white" };
         if (vorigerAbschnittEintraege.includes(params.rowIndex)) return { "background-color": "green", color: "white" };
         return { color: "black" };
       };
-      columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.ZWISCHENSUMME)!.cellStyle = (params: any) => {
+      columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.ZWISCHENSUMME)!.cellStyle = (params: any):any => {
         if (params.rowIndex == rowIndex) return { "background-color": "red", color: "white" };
         return { color: "black" };
       };
+      gridApi.value!.setGridOption("columnDefs",columnDefs)
       break;
     }
     default: {
       for (let i = rowIndex; i < rowData.length; i++) {
         if ([SummeET.ZWISCHENSUMME as string, SummeET.ENDSUMME as string].includes(rowData[i].bezeichnung)) {
-          columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
+          columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any):any => {
             if (params.rowIndex == i) return { "background-color": "blue", color: "white" };
             if (params.rowIndex == rowIndex) return { "background-color": "green", color: "white" };
             return { color: "black" };
           };
-          columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.ZWISCHENSUMME)!.cellStyle = (params: any) => {
+          columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.ZWISCHENSUMME)!.cellStyle = (params: any):any => {
             if (params.rowIndex == rowIndex) return { "background-color": "red", color: "white" };
             return { color: "black" };
           };
+          gridApi.value!.setGridOption("columnDefs",columnDefs)
           break;
         }
       }
@@ -498,15 +507,16 @@ function colorGesamtprojekt(rowIndex: number) {
     }
     case SummeET.ZWISCHENSUMME:
     default: {
-      columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
+      columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any):any => {
         if (params.rowIndex == rowIndex) return { "background-color": "green", color: "white" };
         if (params.rowIndex == rowData.length - 1) return { "background-color": "blue", color: "white" };
         return { color: "black" };
       };
-      columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.GESAMTPROJEKT)!.cellStyle = (params: any) => {
+      columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.GESAMTPROJEKT)!.cellStyle = (params: any):any => {
         if (params.rowIndex == rowIndex) return { "background-color": "red", color: "white" };
         return { color: "black" };
       };
+      gridApi.value!.setGridOption("columnDefs",columnDefs)
     }
   }
 }
@@ -626,10 +636,11 @@ function startEditingCell(e: any, colKey: string) {
     } else if (colKey as ColumnET == ColumnET.AUFWAND && e.data.isAufwandRelativBase) {
       e.data.aufwandAbsolut = parseFloat(e.data.aufwandAbsolut.toFixed(projectStore.nachkommastellen));
     }
-    columnDefs.value!.find(column => column.field === colKey)!.editable = true;
-    columnDefs.value.find(columnOfColumnDefs => columnOfColumnDefs.field == colKey)!.cellStyle = (params: any) => {
+    columnDefs.find(column => column.field === colKey)!.editable = true;
+    columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == colKey)!.cellStyle = (params: any):any => {
       if (params.rowIndex == e.rowIndex) return { color: "black" };
     };
+    gridApi.value!.setGridOption("columnDefs",columnDefs)
     nextTick(() => gridApi.value!.startEditingCell({
       rowIndex: e.rowIndex,
       colKey: e.column
@@ -640,7 +651,8 @@ function startEditingCell(e: any, colKey: string) {
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
   gridApi.value!.stopEditing(cancel);
   nextTick(() => eintraegeStore.berechne());
-  columnDefs.value!.forEach(column => column.editable = false);
+  columnDefs.forEach(column => column.editable = false);
+  gridApi.value!.setGridOption("columnDefs",columnDefs)
   gridApi.value!.setFocusedCell(rowIndex, colKey);
   refreshTable(colKey, rowIndex);
 }
@@ -727,7 +739,8 @@ function refreshTable(colKey?: Column | string, rowIndex?: number) {
       if (node.data.bezeichnung === SummeET.ZWISCHENSUMME) node.setRowHeight(80);
     });
     gridApi.value!.onRowHeightChanged();
-    columnDefs.value!.forEach(column => column.editable = false);
+    columnDefs.forEach(column => column.editable = false);
+    gridApi.value!.setGridOption("columnDefs",columnDefs)
     if (rowIndex != undefined && colKey != undefined) {
       gridApi.value!.getRowNode(rowIndex + "")!.setSelected(true);
       gridApi.value!.setFocusedCell(rowIndex, colKey);
