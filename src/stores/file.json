@@ -23,7 +23,7 @@
   "projekt": {
     "projektname": "Testname",
     "bucketmodus": true,
-    "aufschlaegeErklaeren": true,
+    "aufschlaegeErklaeren": false,
     "nachkommastellen": 2
   },
   "checkboxIds": [
