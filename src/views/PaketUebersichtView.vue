@@ -7,6 +7,7 @@
       :getRowId="getRowId"
       :rowData="rowData"
       :stopEditingWhenCellsLoseFocus="false"
+      :animateRows="false"
       class="ag-theme-alpine"
       rowSelection="single"
       style="width: 100%;height: 100%"
