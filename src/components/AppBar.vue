@@ -2,13 +2,13 @@
   <v-app-bar color="#03787c" flat>
     <!--    TODO Icon einbauen-->
     <v-tabs>
-      <v-tab title="Projekt erstellen" @click="showDialog=true">
+      <v-tab title="Projekt erstellen" @click="showDialogCreateNewProject=true">
         <v-icon icon="mdi-folder-plus"></v-icon>
       </v-tab>
       <v-tab title="Projekt speichern" @click="downloadProject">
         <v-icon icon="mdi-content-save-outline"></v-icon>
       </v-tab>
-      <v-tab title="Projekt laden" @click="loadProject">
+      <v-tab title="Projekt laden" @click="showDialogLoadProject=true">
         <v-icon icon="mdi-folder-upload-outline"></v-icon>
       </v-tab>
       <v-tab title="Projekt als Excel Tabelle runterladen" @click="downloadExcel">
@@ -23,7 +23,13 @@
       <v-tab style="color: white" to="/test" class="text-capitalize">Test</v-tab>
     </v-tabs>
   </v-app-bar>
-  <ConfirmDialog v-model="showDialog" @cancel="cancelCreateNewProject" @confirm="createNewProject">
+  <ConfirmDialog v-model="showDialogCreateNewProject" @confirm="createNewProject">
+    <template #question>Möchten Sie wirklich ein neues Projekt erstellen? Alle ungesicherten Daten gehen verloren!
+    </template>
+    <template #confirmText>Bestätigen</template>
+    <template #cancelText>Abbrechen</template>
+  </ConfirmDialog>
+  <ConfirmDialog v-model="showDialogLoadProject" @confirm="loadProject">
     <template #question>Möchten Sie wirklich ein neues Projekt laden? Alle ungesicherten Daten gehen verloren!
     </template>
     <template #confirmText>Bestätigen</template>
@@ -34,11 +40,11 @@
 
 <script lang="ts" setup>
 import { useProjektStore } from "@/stores/projekt";
-import { ExportProject } from "@/components/ExportProject";
-import { ExportAsExcel } from "@/components/ExportAsExcel";
+import { ExportProject } from "@/models/ExportProject";
+import { ExportAsExcel } from "@/models/ExportAsExcel";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { ref } from "vue";
-import { ImportProject } from "@/components/ImportProject.js";
+import { ImportProject } from "@/models/ImportProject.js";
 import router from "@/router/index.js";
 
 const projektStore = useProjektStore();
@@ -62,7 +68,8 @@ function downloadExcel() {
   new ExportAsExcel().downloadExcelSheet();
 }
 
-const showDialog = ref(false);
+const showDialogCreateNewProject = ref(false);
+const showDialogLoadProject = ref(false);
 
 function createNewProject() {
   const emptyProject = "{\n" +
@@ -93,9 +100,6 @@ function createNewProject() {
   router.push('/projekt')
 }
 
-function cancelCreateNewProject() {
-
-}
 
 const fileRef = ref<HTMLInputElement | null>(null);
 
