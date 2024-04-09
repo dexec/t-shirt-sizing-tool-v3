@@ -39,6 +39,7 @@
                   {{ bucket.name }}
                 </div>
                 <div v-else>
+<!--                  TODO Eingabe limitieren, zu viele Buchstaben machen das Rechteck kaputt...-->
                   <input class="bucketEdit" id="currentEditBucket" v-model="newBucketName"
                          style="width: 80px;text-align: center; line-height: 80px; height: 80px;"
                          type="text"
