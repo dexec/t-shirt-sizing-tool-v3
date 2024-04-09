@@ -168,8 +168,8 @@ const columnDefs:ColDef[] = [
     valueGetter: (params: any) => {
       if (params.data.schaetzung) {
         if (params.data.children.length > 0) {
-          return params.data.schaetzung.toFixed(projectStore.nachkommastellen);
-        } else return params.data.schaetzung;
+          return Number(params.data.schaetzung.toFixed(projectStore.nachkommastellen)).toLocaleString();
+        } else return params.data.schaetzung.toLocaleString();
       }
     },
     cellStyle: (params: any): any => {
@@ -260,6 +260,7 @@ function onCellDoubleClicked(e: any) {
 }
 
 function onCellValueChanged(params: any) {
+  //TODO Hier sollten eigentlich alle columns angepasst werden
   gridApi.value!.autoSizeColumns(["ticket_nr"]);
 }
 

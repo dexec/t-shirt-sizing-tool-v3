@@ -106,35 +106,35 @@ statistiken.berechne();
 
 function minBucketmodus(statistik: Statistik) {
   if (statistik.min != null) {
-    return statistik.min.toFixed(projektStore.nachkommastellen);
+    return Number(statistik.min.toFixed(projektStore.nachkommastellen)).toLocaleString();
   }
   return "";
 }
 
 function maxBucketmodus(statistik: Statistik) {
   if (statistik.max != null) {
-    return statistik.max.toFixed(projektStore.nachkommastellen);
+    return Number(statistik.max.toFixed(projektStore.nachkommastellen)).toLocaleString();
   }
   return "";
 }
 
 function durchschnittBucketmodus(statistik: Statistik) {
   if (statistik.durchschnitt != null) {
-    return statistik.durchschnitt.toFixed(projektStore.nachkommastellen);
+    return Number(statistik.durchschnitt.toFixed(projektStore.nachkommastellen)).toLocaleString();
   }
   return "";
 }
 
 function medianBucketmodus(statistik: Statistik) {
   if (statistik.median != null) {
-    return statistik.median.toFixed(projektStore.nachkommastellen);
+    return Number(statistik.median.toFixed(projektStore.nachkommastellen)).toLocaleString();
   }
   return "";
 }
 
 function schaetzungenSummeBucketmodusPT(statistik: Statistik) {
   if (statistik.summeSchaetzungen != null) {
-    return statistik.summeSchaetzungen.toFixed(projektStore.nachkommastellen);
+    return Number(statistik.summeSchaetzungen.toFixed(projektStore.nachkommastellen)).toLocaleString();
   }
   return "";
 }
@@ -147,7 +147,7 @@ function schaetzungenSummeBucketmodusProzent(statistik: Statistik) {
     if (summeSchaetzunSumme == 0) {
       return "0%";
     } else {
-      return (statistik.summeSchaetzungen! / summeSchaetzunSumme * 100).toFixed(projektStore.nachkommastellen) + "%";
+      return Number((statistik.summeSchaetzungen! / summeSchaetzunSumme * 100).toFixed(projektStore.nachkommastellen)).toLocaleString() + "%";
     }
   }
 
@@ -155,7 +155,7 @@ function schaetzungenSummeBucketmodusProzent(statistik: Statistik) {
 
 function durchschnittSummeBucketmodusPT(statistik: Statistik) {
   if (statistik.summeDurchschnitt != null) {
-    return statistik.summeDurchschnitt.toFixed(projektStore.nachkommastellen);
+    return Number(statistik.summeDurchschnitt.toFixed(projektStore.nachkommastellen)).toLocaleString();
   }
   return "";
 }
@@ -168,14 +168,14 @@ function durchschnittSummeBucketmodusProzent(statistik: Statistik) {
     if (summeDurchschnittSumme == 0) {
       return "0%";
     } else {
-      return (statistik.summeDurchschnitt! / summeDurchschnittSumme * 100).toFixed(projektStore.nachkommastellen) + "%";
+      return Number((statistik.summeDurchschnitt! / summeDurchschnittSumme * 100).toFixed(projektStore.nachkommastellen)).toLocaleString() + "%";
     }
   }
 }
 
 function medianSummeBucketmodusPT(statistik: Statistik) {
   if (statistik.summeMedian != null) {
-    return statistik.summeMedian.toFixed(projektStore.nachkommastellen);
+    return Number(statistik.summeMedian.toFixed(projektStore.nachkommastellen)).toLocaleString();
   }
   return "";
 }
@@ -188,7 +188,7 @@ function medianSummeBucketmodusProzent(statistik: Statistik) {
     if (summeMedianSumme == 0) {
       return "0%";
     } else {
-      return (statistik.summeMedian! / summeMedianSumme * 100).toFixed(projektStore.nachkommastellen) + "%";
+      return Number((statistik.summeMedian! / summeMedianSumme * 100).toFixed(projektStore.nachkommastellen)).toLocaleString() + "%";
     }
   }
 }
@@ -196,43 +196,43 @@ function medianSummeBucketmodusProzent(statistik: Statistik) {
 function minSumme() {
   const summeMin = statistiken.summeAlleBucketsMin();
   if (summeMin != null) {
-    return summeMin.toFixed(projektStore.nachkommastellen);
+    return Number(summeMin.toFixed(projektStore.nachkommastellen)).toLocaleString();
   } else return "";
 }
 
 function maxSumme() {
   const summeMax = statistiken.summeAlleBucketsMax();
-  if (summeMax != null) return summeMax.toFixed(projektStore.nachkommastellen);
+  if (summeMax != null) return Number(summeMax.toFixed(projektStore.nachkommastellen)).toLocaleString();
   else return "";
 }
 
 function durchschnittSumme() {
   const summeDurchschnitt = statistiken.summeAlleBucketsDurchschnitt();
-  if (summeDurchschnitt != null) return summeDurchschnitt.toFixed(projektStore.nachkommastellen);
+  if (summeDurchschnitt != null) return Number(summeDurchschnitt.toFixed(projektStore.nachkommastellen)).toLocaleString();
   else return "";
 }
 
 function medianSumme() {
   const summeMedian = statistiken.summeAlleBucketsMedian();
-  if (summeMedian != null) return summeMedian.toFixed(projektStore.nachkommastellen);
+  if (summeMedian != null) return Number(summeMedian.toFixed(projektStore.nachkommastellen)).toLocaleString();
   else return "";
 }
 
 function summeSchaetzungenSumme() {
   const summeSchaetzungen = statistiken.summeAlleBucketsSchaetzungenSumme();
-  if (summeSchaetzungen != null) return summeSchaetzungen.toFixed(projektStore.nachkommastellen);
+  if (summeSchaetzungen != null) return Number(summeSchaetzungen.toFixed(projektStore.nachkommastellen)).toLocaleString();
   else return "";
 }
 
 function summeDurchschnittSumme() {
   const summeDurchschnitt = statistiken.summeAlleBucketsDurchschnittSumme();
-  if (summeDurchschnitt != null) return summeDurchschnitt.toFixed(projektStore.nachkommastellen);
+  if (summeDurchschnitt != null) return Number(summeDurchschnitt.toFixed(projektStore.nachkommastellen)).toLocaleString();
   else return "";
 }
 
 function summeMedianSumme() {
   const summeMedian = statistiken.summeAlleBucketsMedianSumme();
-  if (summeMedian != null) return summeMedian.toFixed(projektStore.nachkommastellen);
+  if (summeMedian != null) return Number(summeMedian.toFixed(projektStore.nachkommastellen)).toLocaleString();
   else return "";
 }
 
