@@ -12,6 +12,7 @@
       @cell-clicked="onCellClicked"
       @cell-key-down="onCellKeyPress"
       @cell-double-clicked="onCellDoubleClicked"
+      stopEditingWhenCellsLoseFocus = true
       @grid-ready="onGridReady"
       animateRows="false"
     ></ag-grid-vue>
@@ -94,9 +95,11 @@ const columnDefs: ColDef[] = [
     valueSetter: (params: any):any => {
       const newValue = params.newValue.replace(",", ".");
       if (!isNaN(newValue)) {
-        eintraegeStore.updateAufschlag(params.node.rowIndex, +newValue);
+        eintraegeStore.updateAufwandRelativ(params.node.rowIndex, +newValue);
       } else params.data.aufwandRelativ = params.oldValue;
-      gridApi.value!.refreshCells({ force: true });
+      //TODO DAS IST DER GRUND, DASS WÄHREND DES EDITS EIN KLICK WOANDERS ABGEFANGEN WIRD!!
+      //gridApi.value!.refreshCells({ force: true });
+
     },
     editable: false
   },
@@ -107,9 +110,9 @@ const columnDefs: ColDef[] = [
     cellStyle: {},
     valueSetter: (params: any) => {
       const newValue = params.newValue.replace(",", ".");
-      if (!isNaN(newValue)) eintraegeStore.updateAufwand(params.node.rowIndex, +newValue);
+      if (!isNaN(newValue)) eintraegeStore.updateAufwandAbsolut(params.node.rowIndex, +newValue);
       else params.data.aufwandAbsolut = params.oldValue;
-      gridApi.value!.refreshCells({ force: true });
+      //gridApi.value!.refreshCells({ force: true });
     },
     editable: false
   },
@@ -140,22 +143,27 @@ const eintraegeStore = useEintraegeStore();
 eintraegeStore.berechne();
 const rowData = eintraegeStore.eintraege;
 
-function onCellDoubleClicked(e: any) {
-  Object.values(SummeET);
-  if (gridApi.value!.getEditingCells().length === 0 && ([ColumnET.BEZEICHNUNG, ColumnET.AUFSCHLAG, ColumnET.AUFWAND].includes(e.colDef.field) && !Object.values(SummeET).includes(e.data.bezeichnung))) {
-    startEditingCell(e, e.column.colId);
-  }
-}
-
 const erklaerungsText = ref("");
 const erklaerungsTextZusatz = ref("");
 const erklaerungsRechnung = ref("");
 const erklaerungsRechnungZusatz = ref("");
-
+const currentSelectedRow = ref(-1);
+const currentSelectedColumn = ref("");
 function onCellClicked(e: any) {
+  if(currentSelectedRow.value == e.rowIndex && currentSelectedColumn.value == e.column.colId) return null;
+  columnDefs.forEach(column => column.editable = false);
+  gridApi.value!.setGridOption("columnDefs",columnDefs)
   nextTick(() => colorCellsAndExplain(e.column.colId, e.rowIndex));
+  currentSelectedColumn.value=e.column.colId;
+  currentSelectedRow.value=e.rowIndex;
 }
-
+function onCellDoubleClicked(e: any) {
+  columnDefs.forEach(column => column.editable = false);
+  gridApi.value!.setGridOption("columnDefs",columnDefs)
+  if (gridApi.value!.getEditingCells().length === 0 && ([ColumnET.BEZEICHNUNG, ColumnET.AUFSCHLAG, ColumnET.AUFWAND].includes(e.colDef.field) && !Object.values(SummeET).includes(e.data.bezeichnung))) {
+    startEditingCell(e, e.column.colId);
+  }
+}
 function clearColorsAndErklaerungen() {
   columnDefs.forEach(column => {
     column.editable = false;
@@ -169,7 +177,7 @@ function clearColorsAndErklaerungen() {
 }
 
 function colorCellsAndExplain(column: string, rowIndex: number) {
-  if (projectStore.aufschlaegeErklaeren) {
+  if (projectStore.aufschlaegeErklaeren && gridApi.value!.getEditingCells()[0]?.rowIndex!=rowIndex) {
     clearColorsAndErklaerungen();
     colorCells(column, rowIndex);
     erklaerungenErstellen(column, rowIndex);
@@ -230,7 +238,7 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
       erklaerungsText.value = "Der Aufschlag errechnet sich durch das Dividieren des Aufwands durch die letzte Zwischensumme.";
       let aufwand;
       let aufschlag;
-      const zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen);
+      const Zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen);
       if (aktuellerEintrag.isAufwandRelativBase) {
         aufwand = aktuellerEintrag.aufwandAbsolut.toFixed(projectStore.nachkommastellen);
         aufschlag = aktuellerEintrag.aufwandRelativ;
@@ -238,7 +246,7 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
         aufwand = aktuellerEintrag.aufwandAbsolut;
         aufschlag = aktuellerEintrag.aufwandRelativ.toFixed(projectStore.nachkommastellen);
       }
-      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${aufwand}</span> / <span style=color:blue> ${zwischensumme}</span> = <span style=color:red>${aufschlag}%</span>`;
+      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${aufwand}</span> / <span style=color:blue> ${Zwischensumme}</span> = <span style=color:red>${aufschlag}%</span>`;
       break;
     }
   }
@@ -293,7 +301,7 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
     }
     default : {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
-      const zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen);
+      const Zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projectStore.nachkommastellen);
       erklaerungsText.value = "Der Aufwand errechnet sich durch das Multiplizieren des Aufschlags mit der Zwischensumme.";
       let aufwand;
       let aufschlag;
@@ -304,7 +312,7 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
         aufwand = aktuellerEintrag.aufwandAbsolut;
         aufschlag = aktuellerEintrag.aufwandRelativ.toFixed(projectStore.nachkommastellen);
       }
-      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${aufschlag}%</span> * <span style=color:blue>${zwischensumme}</span> = <span style=color:red>${aufwand}</span>`;
+      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${aufschlag}%</span> * <span style=color:blue>${Zwischensumme}</span> = <span style=color:red>${aufwand}</span>`;
       break;
     }
   }
@@ -526,7 +534,7 @@ function onCellValueChanged(e: any) {
     if (node.data.bezeichnung === SummeET.ZWISCHENSUMME) node.setRowHeight(80);
   });
   gridApi.value!.onRowHeightChanged();
-  nextTick(() => colorCellsAndExplain(e.column.getColId(), e.rowIndex));
+  //nextTick(() => colorCellsAndExplain(e.column.getColId(), e.rowIndex));
 }
 
 function onCellKeyPress(e: any) {
@@ -535,16 +543,19 @@ function onCellKeyPress(e: any) {
     const ctrl = e.event.ctrlKey;
     const shift = e.event.shiftKey;
     const colKey = e.column.colId;
+
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
         case "ArrowDown": {
+          const focusedCell = gridApi.value!.getFocusedCell()!;
+          const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
+          currentSelectedColumn.value=colKey;
+          currentSelectedRow.value=focusedCell.rowIndex;
           if (e.data.bezeichnung == SummeET.STARTSUMME && (shift || ctrl)) {
             refreshTable(e.column, 1);
           } else if (shift || ctrl) {
             nextTick(() => moveZeileDown());
           } else {
-            const focusedCell = gridApi.value!.getFocusedCell()!;
-            const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
             if (selectedPaket) {
               selectedPaket.setSelected(true);
             }
@@ -553,13 +564,15 @@ function onCellKeyPress(e: any) {
           break;
         }
         case "ArrowUp": {
+          const focusedCell = gridApi.value!.getFocusedCell()!;
+          const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
+          currentSelectedColumn.value=colKey;
+          currentSelectedRow.value=focusedCell.rowIndex;
           if (e.data.bezeichnung == SummeET.ENDSUMME && (shift || ctrl)) {
             refreshTable(e.column, rowData.length - 2);
           } else if (shift || ctrl) {
             nextTick(() => moveZeileUp());
           } else {
-            const focusedCell = gridApi.value!.getFocusedCell()!;
-            const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
             if (selectedPaket) {
               selectedPaket.setSelected(true);
             }
@@ -571,6 +584,8 @@ function onCellKeyPress(e: any) {
         case "ArrowLeft": {
           const focusedCell = gridApi.value!.getFocusedCell()!;
           const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
+          currentSelectedColumn.value=focusedCell.column.getId();
+          currentSelectedRow.value=focusedCell.rowIndex;
           if (selectedPaket) {
             selectedPaket.setSelected(true);
           }
@@ -588,9 +603,9 @@ function onCellKeyPress(e: any) {
           } else {
             if (![ColumnET.ZWISCHENSUMME, ColumnET.GESAMTPROJEKT].includes(colKey) && ![SummeET.ZWISCHENSUMME, SummeET.STARTSUMME, SummeET.ENDSUMME].includes(e.data.bezeichnung)) {
               if (colKey == ColumnET.AUFWAND) {
-                eintraegeStore.updateAufwand(e.rowIndex, 0);
+                eintraegeStore.updateAufwandAbsolut(e.rowIndex, 0);
               } else if (colKey == ColumnET.AUFSCHLAG) {
-                eintraegeStore.updateAufschlag(e.rowIndex, 0);
+                eintraegeStore.updateAufwandRelativ(e.rowIndex, 0);
               }
               refreshTable(colKey, e.rowIndex);
             }
@@ -626,11 +641,13 @@ function onCellKeyPress(e: any) {
         }
       }
     }
+
   }
 }
 
 function startEditingCell(e: any, colKey: string) {
   if ([ColumnET.BEZEICHNUNG, ColumnET.AUFSCHLAG, ColumnET.AUFWAND].includes(colKey as ColumnET) && !Object.values(SummeET).includes(e.data.bezeichnung)) {
+
     if (colKey as ColumnET == ColumnET.AUFSCHLAG && !e.data.isAufwandRelativBase) {
       e.data.aufwandRelativ = parseFloat(e.data.aufwandRelativ.toFixed(projectStore.nachkommastellen));
     } else if (colKey as ColumnET == ColumnET.AUFWAND && e.data.isAufwandRelativBase) {
@@ -647,8 +664,12 @@ function startEditingCell(e: any, colKey: string) {
     }));
   }
 }
-
+function onCellEditingStopped(e:any) {
+  columnDefs.forEach(column => column.editable = false);
+  gridApi.value!.setGridOption("columnDefs",columnDefs)
+}
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
+
   gridApi.value!.stopEditing(cancel);
   nextTick(() => eintraegeStore.berechne());
   columnDefs.forEach(column => column.editable = false);
@@ -660,7 +681,7 @@ function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: stri
 function eintragErstellen() {
   if (gridApi.value!.getSelectedRows()[0] && gridApi.value!.getSelectedRows()[0].bezeichnung !== SummeET.ENDSUMME) {
     const rowIndexSelectedRow = rowData.indexOf(gridApi.value!.getSelectedRows()[0]);
-    eintraegeStore.addNewAufschlag(rowIndexSelectedRow);
+    eintraegeStore.addNewEintrag(rowIndexSelectedRow);
     const focusedCell = gridApi.value!.getFocusedCell();
     let colKey = "";
     if (focusedCell != null) {
