@@ -4,7 +4,7 @@
       <v-dialog v-model="dialog" width="auto">
         <template v-slot:activator="{props}">
           <v-btn class="mx-6 configBucketsButton clickable-element" v-bind="props">
-            <span class="bucketsButtonText">Buckets konfigurieren</span>
+            <span class="bucketsButtonText">Konfig</span>
           </v-btn>
         </template>
         <v-card style="width: 15vw">
@@ -19,10 +19,8 @@
         </v-card>
       </v-dialog>
       <v-col :style="{visibility: (showPaketeWithoutBucket ? 'visible':'hidden')}" cols="2">
-        <v-text-field id="filterForPaketeList" v-model="paketeListeFilter" clearable placeholder="Pakete filtern"
-                      style="width:200px;"
+        <v-text-field id="filterForPaketeList" class="filterClass" v-model="paketeListeFilter" clearable placeholder="Pakete filtern"
                       @click:clear="paketeListeFilter=''"></v-text-field>
-        <h2>Unzugewiesene Pakete</h2>
         <draggable
           id="paketeWithoutBucketList"
           :group="{name: 'pakete', pull:true,put:true}"
@@ -47,20 +45,18 @@
         </draggable>
       </v-col>
       <v-col>
-        <v-text-field id="filterForPakete" v-model="paketeTabelleFilter" clearable placeholder="Pakete filtern"
-                      style="width:200px;"
+        <v-text-field id="filterForPakete" class="filterClass" v-model="paketeTabelleFilter" clearable placeholder="Pakete filtern"
                       @click:clear="paketeTabelleFilter=''"></v-text-field>
-        <h2>Buckettabelle</h2>
-        <v-row>
+        <v-row style="margin-bottom: -30px">
           <v-col class="d-flex flex-nowrap justify-start">
             <div v-for="bucketId of selected" :key="bucketId">
               <div v-if="bucketsAsMap.get(bucketId)" class="list-group">
-                <div class="paket" style="margin:24px">{{ bucketsAsMap.get(bucketId)?.name }}</div>
+                <div class="paketHeader">{{ bucketsAsMap.get(bucketId)?.name }}</div>
               </div>
             </div>
           </v-col>
         </v-row>
-        <v-row style="height:60vh; overflow-y:auto; overflow-x:hidden;">
+        <v-row style="height:73vh; overflow-y:auto; overflow-x:hidden; ">
           <v-col class="d-flex flex-nowrap justify-start">
             <draggable
               v-for="bucketId of selected" :key="bucketId"
@@ -70,7 +66,6 @@
               drag-class="dragClass"
               group="pakete"
               itemKey="name"
-              style="min-height: 100%;"
               @change="changeBucketOfPaket($event,buckets.find(bucket => bucket.id == bucketId)!)"
               @end="endDrag"
               @start="startDrag"
@@ -262,8 +257,8 @@ function onEndDrag(e: any) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 150px;
-  height: 100px;
+  width: 100px;
+  height: 50px;
 }
 
 .bucketsButtonText {
@@ -282,6 +277,24 @@ function onEndDrag(e: any) {
   min-height: 100px;
   border: 1px solid #000;
   margin: 25px;
+  cursor: grab;
+}
+
+.paketHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 50px;
+  min-height: 50px;
+  border: 1px solid #000;
+  margin:24px
+
+}
+
+.paket:hover {
+
 }
 
 .paketContent {
@@ -290,13 +303,13 @@ function onEndDrag(e: any) {
 
 .list-group {
   width: 200px;
-  /*min-height: 250px;*/
 }
 
 .dragClass {
   opacity: 30%;
   border: 3px red solid;
   color: transparent;
+
 }
 
 .ghostClass {
@@ -313,6 +326,8 @@ function onEndDrag(e: any) {
 }
 
 .paketeInBucketList {
+
+  min-height: 100%;
   border: 1px transparent solid;
 }
 
@@ -323,5 +338,10 @@ function onEndDrag(e: any) {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.filterClass {
+  width:150px;
+  height: 80px;
 }
 </style>
