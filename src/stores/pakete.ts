@@ -67,7 +67,6 @@ export const usePaketeStore = defineStore("pakete", () => {
     return result;
   }
   function berechneSchaetzungen() {
-      console.log("Rechnung läuft")
     const paketeSortiertNachLevel: Paket[] = [];
     for(const paket of paketeAsMap.value.values()) {
       if(paket instanceof Paket) paketeSortiertNachLevel.push(paket)
