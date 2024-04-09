@@ -1,7 +1,7 @@
 <template>
   <div v-if="props.params.data instanceof Zwischensumme">
     <div
-        v-if="props.params.data.vorigerAbschnittAufwandRelativ === null || props.params.data.vorigerAbschnittAufwandRelativ === '' || props.params.data.vorigerAbschnittAufwandRelativ=== 'undefined' || props.params.data.bezeichnung==='STARTSUMME' || props.params.data.bezeichnung==='ENDSUMME'">
+        v-if="props.params.data.vorigerAbschnittAufwandRelativ === null || props.params.data.vorigerAbschnittAufwandRelativ === '' || props.params.data.vorigerAbschnittAufwandRelativ=== 'undefined' || props.params.data.bezeichnung==='Startsumme' || props.params.data.bezeichnung==='Endsumme'">
       <p></p>
     </div>
     <div v-else>
@@ -9,7 +9,10 @@
       <p></p>
     </div>
   </div>
-  <div v-else>{{ aufwandRelativ }}%</div>
+  <div v-else>
+    <div v-if="props.params.data.isAufwandRelativBase"> {{ aufwandRelativ }}% *</div>
+    <div v-else>{{ aufwandRelativ }}%</div>
+  </div>
 </template>
 <script lang="ts" setup>
 import {Zwischensumme} from "@/models/Zwischensumme";

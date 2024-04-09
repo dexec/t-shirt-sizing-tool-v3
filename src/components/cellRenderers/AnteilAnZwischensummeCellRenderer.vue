@@ -1,7 +1,7 @@
 <template>
   <div v-if="props.params.data instanceof Zwischensumme">
     <div
-        v-if="props.params.data.bezeichnung==='STARTSUMME' || props.params.data.bezeichnung==='ENDSUMME'">
+        v-if="props.params.data.bezeichnung==='Startsumme' || props.params.data.bezeichnung==='Endsumme'">
       <p></p>
     </div>
     <div v-else><p class="text-caption pt-2">{{ anteilZwischensumme }}%</p>

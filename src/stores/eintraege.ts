@@ -24,7 +24,7 @@ export const useEintraegeStore = defineStore("eintraege", () => {
       let vorigerAbschnittAufschlag = 0
       for (let i = eintraege.value.length - 2; i > 0; i--) {
         const eintrag = eintraege.value[i];
-        if (eintrag instanceof Zwischensumme && eintrag.bezeichnung != "STARTSUMME" && eintrag.bezeichnung != "ENDSUMME") {
+        if (eintrag instanceof Zwischensumme && eintrag.bezeichnung != "Startsumme" && eintrag.bezeichnung != "Endsumme") {
           if (eintraege.value[i - 1] instanceof Zwischensumme) eintraege.value.splice(i, 1);
         }
       }
@@ -72,29 +72,29 @@ export const useEintraegeStore = defineStore("eintraege", () => {
       }
     }
 
-    function updateAufschlag(rowDataIndex: number, newAufschlag: number) {
+    function updateAufwandRelativ(rowDataIndex: number, newAufwandRelativ: number) {
       const projectStore = useProjektStore();
       const eintrag = eintraege.value[rowDataIndex] as Eintrag;
       if (eintrag) {
-        eintrag.aufwandRelativ = newAufschlag;
+        eintrag.aufwandRelativ = newAufwandRelativ;
         eintrag.aufwandAbsolut = parseFloat((eintrag.aufwandRelativ * eintrag.referenzierteZwischensumme.zwischensummeAufwand / 100).toFixed(projectStore.nachkommastellen));
         eintrag.isAufwandRelativBase = true;
         berechne();
       }
     }
 
-    function updateAufwand(rowDataIndex: number, newAufwand: number) {
+    function updateAufwandAbsolut(rowDataIndex: number, newAufwandAbsolut: number) {
       const projectStore = useProjektStore();
       const eintrag = eintraege.value[rowDataIndex] as Eintrag;
       if (eintrag) {
-        eintrag.aufwandAbsolut = newAufwand;
+        eintrag.aufwandAbsolut = newAufwandAbsolut;
         eintrag.aufwandRelativ = parseFloat((eintrag.aufwandAbsolut / eintrag.referenzierteZwischensumme.zwischensummeAufwand * 100).toFixed(projectStore.nachkommastellen));
         eintrag.isAufwandRelativBase = false;
         berechne();
       }
     }
 
-    function addNewAufschlag(rowDataIndex: number) {
+    function addNewEintrag(rowDataIndex: number) {
       let aktuelleZwischensumme: Zwischensumme | undefined = undefined;
       for (let i = rowDataIndex; i >= 0; i--) {
         if (eintraege.value[i] instanceof Zwischensumme) {
@@ -102,14 +102,14 @@ export const useEintraegeStore = defineStore("eintraege", () => {
           break;
         }
       }
-      const newAufschlag = new Eintrag("Neuer Aufschlag", 0, 0, 0, 0, false, aktuelleZwischensumme!);
-      if (rowDataIndex == -1) eintraege.value.splice(rowDataIndex, 0, newAufschlag);
-      else eintraege.value.splice(rowDataIndex + 1, 0, newAufschlag);
+      const newEintrag = new Eintrag("Neuer Aufschlag", 0, 0, 0, 0, false, aktuelleZwischensumme!);
+      if (rowDataIndex == -1) eintraege.value.splice(rowDataIndex, 0, newEintrag);
+      else eintraege.value.splice(rowDataIndex + 1, 0, newEintrag);
       berechne();
     }
 
     function addNewZwischensumme(rowDataIndex: number) {
-      const newAufschlag = new Zwischensumme("ZWISCHENSUMME", 0, 0, 0, 0);
+      const newAufschlag = new Zwischensumme("Zwischensumme", 0, 0, 0, 0);
       if (rowDataIndex == -1) eintraege.value.splice(eintraege.value.length - 1, 0, newAufschlag);
       else eintraege.value.splice(rowDataIndex + 1, 0, newAufschlag);
       berechne();
@@ -118,8 +118,8 @@ export const useEintraegeStore = defineStore("eintraege", () => {
     function deleteEintrag(rowDataIndex: number) {
       eintraege.value.splice(rowDataIndex, 1);
       if (eintraege.value[rowDataIndex] instanceof Zwischensumme &&
-        eintraege.value[rowDataIndex].bezeichnung != "ENDSUMME" &&
-        eintraege.value[rowDataIndex].bezeichnung != "STARTSUMME" &&
+        eintraege.value[rowDataIndex].bezeichnung != "Endsumme" &&
+        eintraege.value[rowDataIndex].bezeichnung != "Startsumme" &&
         eintraege.value[rowDataIndex - 1] instanceof Zwischensumme
       )
         deleteEintrag(rowDataIndex);
@@ -147,9 +147,9 @@ export const useEintraegeStore = defineStore("eintraege", () => {
     return {
       eintraege,
       berechne,
-      updateAufschlag,
-      updateAufwand,
-      addNewAufschlag,
+      updateAufwandRelativ,
+      updateAufwandAbsolut,
+      addNewEintrag,
       addNewZwischensumme,
       deleteEintrag,
       moveDown,

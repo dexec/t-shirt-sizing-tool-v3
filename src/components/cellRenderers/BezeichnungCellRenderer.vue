@@ -1,5 +1,5 @@
 <template>
-  <div v-if="props.params.value==='STARTSUMME' || props.params.value==='ENDSUMME'">
+  <div v-if="props.params.value==='Startsumme' || props.params.value==='Endsumme'">
     <p class="font-weight-bold">{{ params.value }}</p>
   </div>
   <div v-else-if="props.params.data instanceof Zwischensumme">
