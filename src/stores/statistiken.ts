@@ -128,7 +128,7 @@ export const useStatistikenStore = defineStore("statistiken", () => {
   function summeAlleBucketsGeschaetzt(): number {
     let result = 0;
     if (projekt.bucketmodus) {
-      buckets.bucketsAsMap.forEach(bucket=> result += anzahlGeschaetzt(bucket));
+      buckets.bucketsAsMap.forEach(bucket=> result += anzahlGeschaetzt(bucket as Bucket));
     } else {
       pakete.paketeChildren().forEach(paket => {
         if (paket.zurRechnungFreigegeben()) {
@@ -142,7 +142,7 @@ export const useStatistikenStore = defineStore("statistiken", () => {
   function summeAlleBucketsUngeschaetzt(): number {
     let result = 0;
     if (projekt.bucketmodus) {
-      buckets.bucketsAsMap.forEach(bucket => result += anzahlUngeschaetzt(bucket));
+      buckets.bucketsAsMap.forEach(bucket => result += anzahlUngeschaetzt(bucket as Bucket));
     } else {
       pakete.paketeChildren().forEach(paket => {
         if (!paket.zurRechnungFreigegeben()) {
@@ -156,7 +156,7 @@ export const useStatistikenStore = defineStore("statistiken", () => {
   function summeAlleBucketsGesamt(): number {
     let result = 0;
     if (projekt.bucketmodus) {
-      buckets.bucketsAsMap.forEach(bucket => result += anzahlGesamt(bucket));
+      buckets.bucketsAsMap.forEach(bucket => result += anzahlGesamt(bucket as Bucket));
     } else return pakete.paketeChildren().length;
     return result;
   }
@@ -198,7 +198,7 @@ export const useStatistikenStore = defineStore("statistiken", () => {
     let result = 0;
     if(summeAlleBucketsGeschaetzt()==0) return null
     if (projekt.bucketmodus) {
-      buckets.bucketsAsMap.forEach(bucket => result += summeSchaetzungen(bucket) ?? 0);
+      buckets.bucketsAsMap.forEach(bucket => result += summeSchaetzungen(bucket as Bucket) ?? 0);
     } else {
       pakete.paketeChildren().forEach(paket => {
         if (paket.zurRechnungFreigegeben()) result += paket.schaetzung!;
@@ -211,7 +211,7 @@ export const useStatistikenStore = defineStore("statistiken", () => {
     let result = 0;
     if(summeAlleBucketsGeschaetzt()==0) return null;
     if (projekt.bucketmodus) {
-      buckets.bucketsAsMap.forEach(bucket => result += summeDurchschnitt(bucket) ?? 0);
+      buckets.bucketsAsMap.forEach(bucket => result += summeDurchschnitt(bucket as Bucket) ?? 0);
     } else {
       const duchschnittSumme = summeAlleBucketsDurchschnitt();
       if(duchschnittSumme!=null)
@@ -225,7 +225,7 @@ export const useStatistikenStore = defineStore("statistiken", () => {
     let result = 0;
     if(summeAlleBucketsGeschaetzt()==0) return null;
     if (projekt.bucketmodus) {
-      buckets.bucketsAsMap.forEach(bucket => result += summeMedian(bucket) ?? 0);
+      buckets.bucketsAsMap.forEach(bucket => result += summeMedian(bucket as Bucket) ?? 0);
     } else {
       const medianSumme = summeAlleBucketsMedian();
       if(medianSumme!=null) return  medianSumme* summeAlleBucketsGesamt();
