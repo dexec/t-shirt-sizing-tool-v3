@@ -688,7 +688,7 @@ export class ExportAsExcel {
                 };
                 arraySerializableEintraege.push(serializableEintrag);
             } else if (eintrag instanceof Zwischensumme) {
-                if (eintrag.bezeichnung == "STARTSUMME" || eintrag.bezeichnung == "ENDSUMME") {
+                if (eintrag.bezeichnung == "Startsumme" || eintrag.bezeichnung == "Endsumme") {
                     const serializableEintrag: SerializableEintrag = {
                         bezeichnung: eintrag.bezeichnung,
                         aufschlag: null,
@@ -760,7 +760,7 @@ export class ExportAsExcel {
                 r: startzeilennummer + i,
                 c: 4
             })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}%`;
-            if (["STARTSUMME", "ZWISCHENSUMME", "ENDSUMME"].includes(sheet[XLSX.utils.encode_cell({
+            if (["Startsumme", "Zwischensumme", "Endsumme"].includes(sheet[XLSX.utils.encode_cell({
                 r: startzeilennummer + i,
                 c: 0
             })].v)) {
@@ -778,7 +778,7 @@ export class ExportAsExcel {
                 if (sheet[XLSX.utils.encode_cell({
                     r: startzeilennummer + i,
                     c: 0
-                })].v == "ZWISCHENSUMME") {
+                })].v == "Zwischensumme") {
                     //Zwischensumme errechnet sich aus dem vorigen Abschnitt
                     sheet[XLSX.utils.encode_cell({
                         r: startzeilennummer + i,
@@ -823,7 +823,7 @@ export class ExportAsExcel {
                 r: startzeilennummer + i,
                 c: 4
             })].f = `C${startzeilennummer + i + 1}/${endsummenzelle}`;
-            if (["STARTSUMME", "ZWISCHENSUMME"].includes(sheet[XLSX.utils.encode_cell({
+            if (["Startsumme", "Zwischensumme"].includes(sheet[XLSX.utils.encode_cell({
                 r: startzeilennummer + i,
                 c: 0
             })].v)) {

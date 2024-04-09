@@ -82,7 +82,7 @@ export class ExportProject {
   private saveEintraege() {
     const eintraegeStore = useEintraegeStore();
     eintraegeStore.eintraege.forEach(eintrag => {
-      if (!["STARTSUMME", "ENDSUMME"].includes(eintrag.bezeichnung)) {
+      if (!["Startsumme", "Endsumme"].includes(eintrag.bezeichnung)) {
         if (eintrag instanceof Eintrag) {
           if (eintrag.isAufwandRelativBase)
             this._eintraege.push({ bezeichnung: eintrag.bezeichnung, aufwandRelativ: eintrag.aufwandRelativ });

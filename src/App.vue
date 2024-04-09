@@ -13,7 +13,7 @@
 </style>
 <script lang="ts" setup>
 import AppBar from "@/components/AppBar.vue";
-import {ImportProject} from "@/components/ImportProject";
+import {ImportProject} from "@/models/ImportProject";
 import saveFile from "@/stores/file.json";
 new ImportProject(JSON.stringify(saveFile));
 </script>

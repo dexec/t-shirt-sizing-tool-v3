@@ -16,7 +16,7 @@
 </style>
 <script lang="ts" setup>
 import { ref } from "vue";
-import { ImportProject } from "@/components/ImportProject";
+import { ImportProject } from "@/models/ImportProject";
 import router from "@/router";
 import saveFile from "@/stores/file.json";
 import "@/styles/hoverLink.css";
