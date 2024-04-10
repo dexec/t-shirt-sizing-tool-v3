@@ -1,4 +1,5 @@
 <template>
+
   <v-app-bar color="#03787c" flat>
     <!--    TODO Icon einbauen-->
     <v-tabs>
@@ -14,15 +15,23 @@
       <v-tab title="Projekt als Excel Tabelle runterladen" @click="downloadExcel">
         <v-icon icon="mdi-file-excel-outline"></v-icon>
       </v-tab>
-      <v-divider color="#4df0b4" class="border-opacity-100" :thickness="15" vertical></v-divider>
-      <v-tab style="color: white" to="/projekt" class="text-capitalize" >Projektübersicht</v-tab>
-      <v-tab style="color: white" to="/pakete" class="text-capitalize">Paketübersicht</v-tab>
-      <v-tab v-if="projektStore.bucketmodus" style="color: white" to="/vergleich" class="text-capitalize">Vergleich</v-tab>
-      <v-tab style="color: white" to="/buckets" class="text-capitalize">Bucketübersicht</v-tab>
-      <v-tab style="color: white" to="/kalkulation" class="text-capitalize">Projektkalkulation</v-tab>
-      <v-tab style="color: white" to="/test" class="text-capitalize">Test</v-tab>
+      <v-divider :thickness="15" class="border-opacity-100" color="#4df0b4" vertical></v-divider>
+      <v-tab class="text-capitalize" style="color: white" to="/projekt">Projektübersicht</v-tab>
+      <v-tab class="text-capitalize" style="color: white" to="/pakete">Paketübersicht</v-tab>
+      <v-tab v-if="projektStore.bucketmodus" class="text-capitalize" style="color: white" to="/vergleich">Vergleich
+      </v-tab>
+      <v-tab class="text-capitalize" style="color: white" to="/buckets">Bucketübersicht</v-tab>
+      <v-tab class="text-capitalize" style="color: white" to="/kalkulation">Projektkalkulation</v-tab>
+      <v-tab class="text-capitalize" style="color: white" to="/test">Test</v-tab>
     </v-tabs>
+    <!--    <v-text-field bg-color="white" class="searchfield" label="" placeholder="Paket suchen" readonly
+                      @click="toggleSuche()"></v-text-field>-->
+    <input class="searchfield" placeholder="Paket suchen" readonly @click="toggleSuche()">
   </v-app-bar>
+  <SuchComponent v-if="showSuche" :show-searched-paket="showSearchedPaket" :toggle-suche="toggleSuche"
+                 style="height: 100%"></SuchComponent>
+
+
   <ConfirmDialog v-model="showDialogCreateNewProject" @confirm="createNewProject">
     <template #question>Möchten Sie wirklich ein neues Projekt erstellen? Alle ungesicherten Daten gehen verloren!
     </template>
@@ -46,8 +55,14 @@ import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { ref } from "vue";
 import { ImportProject } from "@/models/ImportProject.js";
 import router from "@/router/index.js";
+import SuchComponent from "@/components/SuchComponent.vue";
 
 const projektStore = useProjektStore();
+const showSuche = ref(false);
+
+function toggleSuche() {
+  showSuche.value = !showSuche.value;
+}
 
 function downloadProject() {
   const exportProject = new ExportProject();
@@ -97,7 +112,7 @@ function createNewProject() {
     "  \"paketeTree\": []\n" +
     "}";
   new ImportProject(emptyProject);
-  router.push('/projekt')
+  router.push("/projekt");
 }
 
 
@@ -124,6 +139,12 @@ function handleFileUpload(event: any) {
 }
 </script>
 <style scoped>
-
+.searchfield {
+  position: absolute;
+  width: 200px;
+  height: 80%;
+  right: 10px;
+  background-color: white
+}
 
 </style>
