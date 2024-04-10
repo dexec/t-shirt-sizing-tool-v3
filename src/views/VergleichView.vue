@@ -276,7 +276,7 @@ function onEndDrag(e: any) {
   height: 100px;
   min-height: 100px;
   border: 1px solid #000;
-  margin: 25px;
+  margin: 24px;
   cursor: grab;
 }
 
@@ -289,12 +289,7 @@ function onEndDrag(e: any) {
   height: 50px;
   min-height: 50px;
   border: 1px solid #000;
-  margin:24px
-
-}
-
-.paket:hover {
-
+  margin: 24px
 }
 
 .paketContent {
@@ -326,7 +321,6 @@ function onEndDrag(e: any) {
 }
 
 .paketeInBucketList {
-
   min-height: 100%;
   border: 1px transparent solid;
 }
