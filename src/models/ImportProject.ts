@@ -24,7 +24,7 @@ export class ImportProject {
         this.fileToPaketeArray(jsonfile.pakete, jsonfile.paketeTree);
         this.fileToEintrageArray(jsonfile.eintraege);
         this.fileToCheckboxIdsArray(jsonfile.checkboxIds)
-        this.writeProjectStore();
+        this.writeprojektStore();
         this.writeEintraegeStore();
         this.writeBucketStoreBucketArray();
         this.writeBucketStoreBucketMap();
@@ -127,12 +127,12 @@ export class ImportProject {
         this._checkboxIds=checkboxIds
     }
 
-    private writeProjectStore() {
-        const projectStore = useProjektStore();
-        projectStore.projektname = this._projekt.projektname;
-        projectStore.bucketmodus = this._projekt.bucketmodus;
-        projectStore.nachkommastellen = this._projekt.nachkommastellen;
-        projectStore.aufschlaegeErklaeren = this._projekt.aufschlaegeErklaeren;
+    private writeprojektStore() {
+        const projektStore = useProjektStore();
+        projektStore.projektname = this._projekt.projektname;
+        projektStore.bucketmodus = this._projekt.bucketmodus;
+        projektStore.nachkommastellen = this._projekt.nachkommastellen;
+        projektStore.aufschlaegeErklaeren = this._projekt.aufschlaegeErklaeren;
     }
 
     private writeEintraegeStore() {
