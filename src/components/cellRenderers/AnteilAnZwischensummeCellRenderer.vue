@@ -17,8 +17,7 @@ import {useProjektStore} from "@/stores/projekt";
 import {Zwischensumme} from "@/models/Zwischensumme";
 import {computed} from "vue";
 
-const projectStore = useProjektStore();
+const projektStore = useProjektStore();
 const props = defineProps(['params']);
-const anteilZwischensumme = computed(() => props.params.data.anteilZwischensumme.toFixed(projectStore.nachkommastellen));
-
+const anteilZwischensumme = computed(() => Number(props.params.data.anteilZwischensumme).toLocaleString('de',{ minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }));
 </script>

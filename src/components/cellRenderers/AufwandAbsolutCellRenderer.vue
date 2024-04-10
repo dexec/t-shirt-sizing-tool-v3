@@ -16,14 +16,14 @@ import {Zwischensumme} from "@/models/Zwischensumme";
 import {computed} from "vue";
 import {useProjektStore} from "@/stores/projekt";
 
-const projectStore = useProjektStore();
+const projektStore = useProjektStore();
 const props = defineProps(['params']);
 
 const aufwandAbsolut = computed(() => {
       if (props.params.data.isAufwandRelativBase)
-        return props.params.data.aufwandAbsolut.toFixed(projectStore.nachkommastellen)
-      else return props.params.data.aufwandAbsolut
+        return Number(props.params.data.aufwandAbsolut).toLocaleString('de',{ minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen })
+      else return Number(props.params.data.aufwandAbsolut).toLocaleString()
     });
-const vorigerAbschnittAufwandAbsolut = computed(() => props.params.data.vorigerAbschnittAufwandAbsolut.toFixed(projectStore.nachkommastellen));
-const zwischensummeAufwand = computed(() => props.params.data.zwischensummeAufwand.toFixed(projectStore.nachkommastellen));
+const vorigerAbschnittAufwandAbsolut = computed(() => Number(props.params.data.vorigerAbschnittAufwandAbsolut).toLocaleString('de',{ minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }));
+const zwischensummeAufwand = computed(() => Number(props.params.data.zwischensummeAufwand).toLocaleString("de", { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }));
 </script>

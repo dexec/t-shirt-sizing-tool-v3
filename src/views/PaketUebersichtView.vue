@@ -7,6 +7,7 @@
       :getRowId="getRowId"
       :rowData="rowData"
       :stopEditingWhenCellsLoseFocus="false"
+      :suppressMovableColumns="true"
       :animateRows="false"
       class="ag-theme-alpine"
       rowSelection="single"
@@ -20,8 +21,6 @@
     </ag-grid-vue>
   </div>
   <v-btn v-if="rowData.length==0" class="centeredButton" @click="addNewPaket">Neues Paket erstellen</v-btn>
-  <v-text-field bg-color="white" class="searchfield" label="" placeholder="Paket suchen" readonly
-                @click="toggleSuche()"></v-text-field>
   <SuchComponent v-if="showSuche" :show-searched-paket="showSearchedPaket" :toggle-suche="toggleSuche"
                  style="height: 100%"></SuchComponent>
   <ContextMenu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctionsContextMenu]"></ContextMenu>
@@ -53,7 +52,7 @@ import { errorToastPaketNrEmpty, errorToastPaketNrNotUnique } from "@/models/Toa
 import WarningCellRenderer from "@/components/cellRenderers/WarningCellRenderer.vue";
 
 const toast = useToast();
-const projectStore = useProjektStore();
+const projektStore = useProjektStore();
 const gridApi = ref<GridApi>();
 let getRowId = (params: any): number => params.data._id;
 const paketeStore = usePaketeStore();
@@ -77,7 +76,8 @@ const defaultColDef = reactive({
   suppressKeyboardEvent: (params: any) => {
     let key = params.event.key;
     return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key) /*|| suppressedKeysArray.includes(key)*/;
-  }
+  },
+  sortable: false,
 });
 const columnDefs:ColDef[] = [
   {
@@ -136,6 +136,7 @@ const columnDefs:ColDef[] = [
         const bucket = useBucketsStore().bucketsAsSortedArray.find(bucket => bucket.name === params.newValue) as Bucket;
         paketeStore.updateBucket(params.data, bucket);
       }
+      gridApi.value!.refreshCells({force:true})
     },
     valueGetter: (params: any) => {
       if (params.data.bucket) return params.data.bucket.name;
@@ -149,7 +150,7 @@ const columnDefs:ColDef[] = [
       if (params.data.children.length > 0) return { backgroundColor: "lightgrey" };
       else return { backgroundColor: "transparent" };
     },
-    hide: !projectStore.bucketmodus,
+    hide: !projektStore.bucketmodus,
     editable: false,
     maxWidth: 200
   },
@@ -168,7 +169,7 @@ const columnDefs:ColDef[] = [
     valueGetter: (params: any) => {
       if (params.data.schaetzung) {
         if (params.data.children.length > 0) {
-          return Number(params.data.schaetzung.toFixed(projectStore.nachkommastellen)).toLocaleString();
+          return Number(params.data.schaetzung).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
         } else return params.data.schaetzung.toLocaleString();
       }
     },
@@ -459,14 +460,13 @@ function onCellKeyPress(e: any) {
 }
 
 function startEditingCell(e: any, colKey: string) {
-  if (!((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0)) {
+  if((colKey==="bucket" ||colKey==="schaetzung") && e.data.children.length !== 0 || colKey === "warning") return;
     columnDefs.find(column => column.field === colKey)!.editable = true;
     gridApi.value!.setGridOption("columnDefs",columnDefs)
     nextTick(() => gridApi.value!.startEditingCell({
       rowIndex: e.rowIndex,
       colKey: e.column
     }));
-  }
 }
 
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {

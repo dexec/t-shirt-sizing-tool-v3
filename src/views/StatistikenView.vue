@@ -33,7 +33,7 @@
         <td>{{ statistik.anzahlGesamt }}</td>
         <td>{{ minBucketmodus(statistik as Statistik) }}</td>
         <td>{{ maxBucketmodus(statistik as Statistik) }}</td>
-        <td>{{ (statistik.anteilAnzahl * 100).toFixed(projektStore.nachkommastellen) + "%" }}</td>
+        <td>{{ Number(statistik.anteilAnzahl * 100).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }) + "%" }}</td>
         <td>{{ durchschnittBucketmodus(statistik as Statistik) }}</td>
         <td>{{ medianBucketmodus(statistik as Statistik) }}</td>
         <td>{{ schaetzungenSummeBucketmodusPT(statistik as Statistik) }}
@@ -106,35 +106,35 @@ statistiken.berechne();
 
 function minBucketmodus(statistik: Statistik) {
   if (statistik.min != null) {
-    return Number(statistik.min.toFixed(projektStore.nachkommastellen)).toLocaleString();
+    return Number(statistik.min).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   }
   return "";
 }
 
 function maxBucketmodus(statistik: Statistik) {
   if (statistik.max != null) {
-    return Number(statistik.max.toFixed(projektStore.nachkommastellen)).toLocaleString();
+    return Number(statistik.max).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   }
   return "";
 }
 
 function durchschnittBucketmodus(statistik: Statistik) {
   if (statistik.durchschnitt != null) {
-    return Number(statistik.durchschnitt.toFixed(projektStore.nachkommastellen)).toLocaleString();
+    return Number(statistik.durchschnitt).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   }
   return "";
 }
 
 function medianBucketmodus(statistik: Statistik) {
   if (statistik.median != null) {
-    return Number(statistik.median.toFixed(projektStore.nachkommastellen)).toLocaleString();
+    return Number(statistik.median).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   }
   return "";
 }
 
 function schaetzungenSummeBucketmodusPT(statistik: Statistik) {
   if (statistik.summeSchaetzungen != null) {
-    return Number(statistik.summeSchaetzungen.toFixed(projektStore.nachkommastellen)).toLocaleString();
+    return Number(statistik.summeSchaetzungen).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   }
   return "";
 }
@@ -147,7 +147,7 @@ function schaetzungenSummeBucketmodusProzent(statistik: Statistik) {
     if (summeSchaetzunSumme == 0) {
       return "0%";
     } else {
-      return Number((statistik.summeSchaetzungen! / summeSchaetzunSumme * 100).toFixed(projektStore.nachkommastellen)).toLocaleString() + "%";
+      return Number((statistik.summeSchaetzungen! / summeSchaetzunSumme * 100)).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }) + "%";
     }
   }
 
@@ -155,7 +155,7 @@ function schaetzungenSummeBucketmodusProzent(statistik: Statistik) {
 
 function durchschnittSummeBucketmodusPT(statistik: Statistik) {
   if (statistik.summeDurchschnitt != null) {
-    return Number(statistik.summeDurchschnitt.toFixed(projektStore.nachkommastellen)).toLocaleString();
+    return Number(statistik.summeDurchschnitt).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   }
   return "";
 }
@@ -168,14 +168,14 @@ function durchschnittSummeBucketmodusProzent(statistik: Statistik) {
     if (summeDurchschnittSumme == 0) {
       return "0%";
     } else {
-      return Number((statistik.summeDurchschnitt! / summeDurchschnittSumme * 100).toFixed(projektStore.nachkommastellen)).toLocaleString() + "%";
+      return Number((statistik.summeDurchschnitt! / summeDurchschnittSumme * 100)).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }) + "%";
     }
   }
 }
 
 function medianSummeBucketmodusPT(statistik: Statistik) {
   if (statistik.summeMedian != null) {
-    return Number(statistik.summeMedian.toFixed(projektStore.nachkommastellen)).toLocaleString();
+    return Number(statistik.summeMedian).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   }
   return "";
 }
@@ -188,7 +188,7 @@ function medianSummeBucketmodusProzent(statistik: Statistik) {
     if (summeMedianSumme == 0) {
       return "0%";
     } else {
-      return Number((statistik.summeMedian! / summeMedianSumme * 100).toFixed(projektStore.nachkommastellen)).toLocaleString() + "%";
+      return Number((statistik.summeMedian! / summeMedianSumme * 100)).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }) + "%";
     }
   }
 }
@@ -196,43 +196,43 @@ function medianSummeBucketmodusProzent(statistik: Statistik) {
 function minSumme() {
   const summeMin = statistiken.summeAlleBucketsMin();
   if (summeMin != null) {
-    return Number(summeMin.toFixed(projektStore.nachkommastellen)).toLocaleString();
+    return Number(summeMin).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   } else return "";
 }
 
 function maxSumme() {
   const summeMax = statistiken.summeAlleBucketsMax();
-  if (summeMax != null) return Number(summeMax.toFixed(projektStore.nachkommastellen)).toLocaleString();
+  if (summeMax != null) return Number(summeMax).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   else return "";
 }
 
 function durchschnittSumme() {
   const summeDurchschnitt = statistiken.summeAlleBucketsDurchschnitt();
-  if (summeDurchschnitt != null) return Number(summeDurchschnitt.toFixed(projektStore.nachkommastellen)).toLocaleString();
+  if (summeDurchschnitt != null) return Number(summeDurchschnitt).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   else return "";
 }
 
 function medianSumme() {
   const summeMedian = statistiken.summeAlleBucketsMedian();
-  if (summeMedian != null) return Number(summeMedian.toFixed(projektStore.nachkommastellen)).toLocaleString();
+  if (summeMedian != null) return Number(summeMedian).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   else return "";
 }
 
 function summeSchaetzungenSumme() {
   const summeSchaetzungen = statistiken.summeAlleBucketsSchaetzungenSumme();
-  if (summeSchaetzungen != null) return Number(summeSchaetzungen.toFixed(projektStore.nachkommastellen)).toLocaleString();
+  if (summeSchaetzungen != null) return Number(summeSchaetzungen).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   else return "";
 }
 
 function summeDurchschnittSumme() {
   const summeDurchschnitt = statistiken.summeAlleBucketsDurchschnittSumme();
-  if (summeDurchschnitt != null) return Number(summeDurchschnitt.toFixed(projektStore.nachkommastellen)).toLocaleString();
+  if (summeDurchschnitt != null) return Number(summeDurchschnitt).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   else return "";
 }
 
 function summeMedianSumme() {
   const summeMedian = statistiken.summeAlleBucketsMedianSumme();
-  if (summeMedian != null) return Number(summeMedian.toFixed(projektStore.nachkommastellen)).toLocaleString();
+  if (summeMedian != null) return Number(summeMedian).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
   else return "";
 }
 

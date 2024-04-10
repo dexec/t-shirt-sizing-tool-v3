@@ -19,13 +19,13 @@ import {Zwischensumme} from "@/models/Zwischensumme";
 import {computed} from "vue";
 import {useProjektStore} from "@/stores/projekt";
 
-const projectStore = useProjektStore();
+const projektStore = useProjektStore();
 const props = defineProps(['params']);
 const aufwandRelativ = computed(() => {
   if (props.params.data.isAufwandRelativBase)
-    return props.params.data.aufwandRelativ
-  else return props.params.data.aufwandRelativ.toFixed(projectStore.nachkommastellen)
+    return Number(props.params.data.aufwandRelativ).toLocaleString();
+  else return Number(props.params.data.aufwandRelativ).toLocaleString('de',{ minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
 });
-const vorigerAbschnittAufwandRelativ = computed(() => props.params.data.vorigerAbschnittAufwandRelativ.toFixed(projectStore.nachkommastellen));
+const vorigerAbschnittAufwandRelativ = computed(() => Number(props.params.data.vorigerAbschnittAufwandRelativ).toLocaleString('de',{ minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }));
 
 </script>
