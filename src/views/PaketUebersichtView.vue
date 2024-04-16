@@ -1,23 +1,24 @@
 <template>
   <div style="height: 100%;display:flex;flex-direction: row;overflow: hidden; flex-grow: 1 ">
     <ag-grid-vue
-      :cacheQuickFilter="true"
-      :columnDefs="columnDefs"
-      :defaultColDef="defaultColDef"
-      :getRowId="getRowId"
-      :rowData="rowData"
-      :stopEditingWhenCellsLoseFocus="false"
-      :suppressMovableColumns="true"
-      :animateRows="false"
-      class="ag-theme-alpine"
-      rowSelection="single"
-      style="width: 100%;height: 100%"
-      @cellValueChanged="onCellValueChanged"
-      @contextmenu="rightClickOnCell"
-      @cell-key-down="onCellKeyPress"
-      @cell-clicked="onCellClicked"
-      @cell-double-clicked="onCellDoubleClicked"
-      @grid-ready="onGridReady">
+        :animateRows="false"
+        :cacheQuickFilter="true"
+        :columnDefs="columnDefs"
+        :defaultColDef="defaultColDef"
+        :getRowId="getRowId"
+        :rowData="rowData"
+        :stopEditingWhenCellsLoseFocus="false"
+        :suppressMovableColumns="true"
+        :suppressClickEdit="true"
+        class="ag-theme-alpine"
+        rowSelection="single"
+        style="width: 100%;height: 100%"
+        @cell-editing-stopped="onCellEditingStopped"
+        @cellValueChanged="onCellValueChanged"
+        @contextmenu="rightClickOnCell"
+        @cell-key-down="onCellKeyPress"
+        @cell-double-clicked="onCellDoubleClicked"
+        @grid-ready="onGridReady">
     </ag-grid-vue>
   </div>
   <v-btn v-if="rowData.length==0" class="centeredButton" @click="addNewPaket">Neues Paket erstellen</v-btn>
@@ -33,22 +34,22 @@
 <script lang="ts" setup>
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import { AgGridVue } from "ag-grid-vue3";
+import {AgGridVue} from "ag-grid-vue3";
 import TreeDataCellRenderer from "@/components/TreeDataCellRenderer.vue";
 
-import { usePaketeStore } from "@/stores/pakete";
-import { nextTick, provide, reactive, ref } from "vue";
-import { useBucketsStore } from "@/stores/buckets";
-import { useToast } from "vue-toastification";
+import {usePaketeStore} from "@/stores/pakete";
+import {nextTick, provide, reactive, ref} from "vue";
+import {useBucketsStore} from "@/stores/buckets";
+import {useToast} from "vue-toastification";
 import ContextMenu from "@/components/ContextMenu.vue";
-import { useProjektStore } from "@/stores/projekt";
-import { Column, GridApi } from "ag-grid-community";
-import type { ColDef } from "ag-grid-community";
-import type { Bucket } from "@/models/Bucket";
+import {useProjektStore} from "@/stores/projekt";
+import type {ColDef} from "ag-grid-community";
+import {Column, GridApi} from "ag-grid-community";
+import type {Bucket} from "@/models/Bucket";
 import SuchComponent from "@/components/SuchComponent.vue";
-import type { Paket } from "@/models/Paket";
+import type {Paket} from "@/models/Paket";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import { errorToastPaketNrEmpty, errorToastPaketNrNotUnique } from "@/models/Toasts";
+import {errorToastPaketNrEmpty, errorToastPaketNrNotUnique} from "@/models/Toasts";
 import WarningCellRenderer from "@/components/cellRenderers/WarningCellRenderer.vue";
 
 const toast = useToast();
@@ -62,28 +63,32 @@ let duplicateTicketNrFound = false;
 function onGridReady(params: any) {
   gridApi.value = params.api;
   //TODO Grid soll warten bis resiszed wude
-  gridApi.value!.autoSizeColumns(["ticket_nr"]);
-  window.addEventListener("resize", function() {
-    setTimeout(function() {
-      gridApi.value!.autoSizeColumns(["ticket_nr"]);
+
+/*  window.addEventListener("resize", function () {
+    setTimeout(function () {
+      const columns = gridApi.value!.getColumns()
+      if(columns) gridApi.value!.autoSizeColumns(columns);
     });
-  });
+  });*/
 }
 
-
+const editableFlag = ref(false)
 const defaultColDef = reactive({
   /* resizable: true,*/ /*filter: "agTextColumnFilter",*/
   suppressKeyboardEvent: (params: any) => {
+    const suppressedKeysArray="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!\"£$%^&amp;*()_+-=[];\\'#,./\\|<>?:@~{}".split("");
+
     let key = params.event.key;
-    return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key) /*|| suppressedKeysArray.includes(key)*/;
+    return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key);
   },
   sortable: false,
+  editable: () => {return editableFlag.value}
 });
-const columnDefs:ColDef[] = [
+const columnDefs: ColDef[] = [
   {
     field: "ticket_nr",
     headerName: "Ticket-NR",
-    valueSetter:(params: any):any => {
+    valueSetter: (params: any): any => {
       if (params.newValue == "") {
         params.data.ticket_nr = params.oldValue;
         errorToastPaketNrEmpty();
@@ -102,41 +107,38 @@ const columnDefs:ColDef[] = [
         }
       }
     },
-    cellRenderer: TreeDataCellRenderer,
-    editable: false
+    cellRenderer: TreeDataCellRenderer
   },
   {
-    field:"id",
+    field: "id",
     headerName: "id",
     editable: false
   },
   {
     field: "thema",
     headerName: "Thema",
-    editable: false
+    flex:1
   },
   {
     field: "beschreibung",
     headerName: "Beschreibung",
-    editable: false,
-    flex: 3,
-    suppressSizeToFit: true
+
+    flex:2
   },
   {
     field: "komponente",
-    headerName: "Komponente",
-    editable: false
+    headerName: "Komponente"
   },
   {
     field: "bucket",
     headerName: "Bucket",
-    valueSetter: (params: any):any => {
+    valueSetter: (params: any): any => {
       if (params.newValue === "") paketeStore.updateBucket(params.data, null);
       else {
         const bucket = useBucketsStore().bucketsAsSortedArray.find(bucket => bucket.name === params.newValue) as Bucket;
         paketeStore.updateBucket(params.data, bucket);
       }
-      gridApi.value!.refreshCells({force:true})
+      gridApi.value!.refreshCells({force: true})
     },
     valueGetter: (params: any) => {
       if (params.data.bucket) return params.data.bucket.name;
@@ -147,38 +149,45 @@ const columnDefs:ColDef[] = [
       values: ["", ...useBucketsStore().getBucketNamesSorted()]
     },
     cellStyle: (params: any): any => {
-      if (params.data.children.length > 0) return { backgroundColor: "lightgrey" };
-      else return { backgroundColor: "transparent" };
+      if (params.data.children.length > 0) return {backgroundColor: "lightgrey"};
+      else return {backgroundColor: "transparent"};
     },
     hide: !projektStore.bucketmodus,
-    editable: false,
-    maxWidth: 200
+    editable: (params: any) => {
+      return params.data.children.length == 0 && editableFlag.value
+    },
+    maxWidth: 100
   },
   {
     field: "schaetzung",
     headerName: "Schätzung",
-    valueSetter: (params: any):any => {
+    valueSetter: (params: any): any => {
       const newValue = params.newValue.replace(",", ".");
       if (isNaN(newValue)) params.data.schaetzung = params.oldValue;
       else {
         params.data.schaetzung = Number(newValue);
         paketeStore.berechneSchaetzungen();
-        gridApi.value!.refreshCells({ force: true });
+        gridApi.value!.refreshCells({force: true});
       }
     },
     valueGetter: (params: any) => {
       if (params.data.schaetzung) {
         if (params.data.children.length > 0) {
-          return Number(params.data.schaetzung).toLocaleString('de', { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen });
+          return Number(params.data.schaetzung).toLocaleString('de', {
+            minimumFractionDigits: projektStore.nachkommastellen,
+            maximumFractionDigits: projektStore.nachkommastellen
+          });
         } else return params.data.schaetzung.toLocaleString();
       }
     },
     cellStyle: (params: any): any => {
-      if (params.data.children.length > 0) return { backgroundColor: "lightgrey" };
-      else return { backgroundColor: "transparent" };
+      if (params.data.children.length > 0) return {backgroundColor: "lightgrey"};
+      else return {backgroundColor: "transparent"};
     },
     filter: "agNumberColumnFilter",
-    editable: false,
+    editable: (params: any) => {
+      return params.data.children.length == 0 && editableFlag.value
+    },
     maxWidth: 200
   },
   {
@@ -186,7 +195,7 @@ const columnDefs:ColDef[] = [
     field: "warning",
     cellRenderer: WarningCellRenderer,
     maxWidth: 50,
-    editable:false
+    editable: false
   }
 ];
 const showSuche = ref(false);
@@ -228,15 +237,15 @@ provide("movePaketRightDown", movePaketRightDown);
 provide("movePaketLeftDown", movePaketLeftDown);
 provide("movePaketLeftUp", movePaketLeftUp);
 const providedFunctionsContextMenu = ref([
-  { functionName: "addNewPaket", functionLabel: "Neues Arbeitspaket anlegen" },
-  { functionName: "addNewKindPaket", functionLabel: "Neues Arbeitspaket als Kind anlegen" },
-  { functionName: "attemptDeletePaket", functionLabel: "Paket löschen" },
-  { functionName: "movePaketUp", functionLabel: "Pfeil hoch", icon: "mdi-arrow-up" },
-  { functionName: "movePaketDown", functionLabel: "Pfeil runter", icon: "mdi-arrow-down" },
-  { functionName: "movePaketRightUp", functionLabel: "Pfeil hoch rechts", icon: "mdi-arrow-top-right" },
-  { functionName: "movePaketRightDown", functionLabel: "Pfeil runter rechts", icon: "mdi-arrow-bottom-right" },
-  { functionName: "movePaketLeftDown", functionLabel: "Pfeil runter links", icon: "mdi-arrow-bottom-left" },
-  { functionName: "movePaketLeftUp", functionLabel: "Pfeil hoch links", icon: "mdi-arrow-top-left" }
+  {functionName: "addNewPaket", functionLabel: "Neues Arbeitspaket anlegen"},
+  {functionName: "addNewKindPaket", functionLabel: "Neues Arbeitspaket als Kind anlegen"},
+  {functionName: "attemptDeletePaket", functionLabel: "Paket löschen"},
+  {functionName: "movePaketUp", functionLabel: "Pfeil hoch", icon: "mdi-arrow-up"},
+  {functionName: "movePaketDown", functionLabel: "Pfeil runter", icon: "mdi-arrow-down"},
+  {functionName: "movePaketRightUp", functionLabel: "Pfeil hoch rechts", icon: "mdi-arrow-top-right"},
+  {functionName: "movePaketRightDown", functionLabel: "Pfeil runter rechts", icon: "mdi-arrow-bottom-right"},
+  {functionName: "movePaketLeftDown", functionLabel: "Pfeil runter links", icon: "mdi-arrow-bottom-left"},
+  {functionName: "movePaketLeftUp", functionLabel: "Pfeil hoch links", icon: "mdi-arrow-top-left"}
 ]);
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 
@@ -249,20 +258,19 @@ function rightClickOnCell(e: any) {
   }
 }
 
-function onCellClicked() {
-  columnDefs.forEach(column => column.editable = false);
-  gridApi.value!.setGridOption("columnDefs",columnDefs)
-}
 
 function onCellDoubleClicked(e: any) {
   if (gridApi.value!.getEditingCells().length === 0) {
+    editableFlag.value=true
     startEditingCell(e, e.column.colId);
   }
 }
 
+function onCellEditingStopped() {
+  editableFlag.value = false;
+}
 function onCellValueChanged(params: any) {
-  //TODO Hier sollten eigentlich alle columns angepasst werden
-  gridApi.value!.autoSizeColumns(["ticket_nr"]);
+    gridApi.value!.autoSizeColumns([params.colDef]);
 }
 
 function addNewPaket() {
@@ -280,6 +288,7 @@ function addNewKindPaket() {
   if (gridApi.value!.getSelectedRows()[0]) {
     const newPaketID = paketeStore.addNewChild(gridApi.value!.getSelectedRows()[0].id);
     refreshTable(gridApi.value!.getFocusedCell()!.column, newPaketID);
+    nextTick(() => gridApi.value!.autoSizeColumns(["ticket_nr"]));
   }
 }
 
@@ -350,15 +359,14 @@ function movePaketRightUp() {
 
 function refreshTable(colKey?: Column | string, paketId?: number) {
   nextTick(() => {
-    gridApi.value!.setGridOption('rowData',paketeStore.paketeAsTreeView);
-    columnDefs.forEach(column => column.editable = false);
-    gridApi.value!.setGridOption("columnDefs", columnDefs);
+    gridApi.value!.setGridOption('rowData', paketeStore.paketeAsTreeView);
+    /*columnDefs.forEach(column => column.editable = false);
+    gridApi.value!.setGridOption("columnDefs", columnDefs);*/
     if (paketId != undefined && colKey != undefined) {
       gridApi.value!.getRowNode(paketId + "")!.setSelected(true);
       gridApi.value!.setFocusedCell(gridApi.value!.getRowNode(paketId + "")!.rowIndex as number, colKey);
     }
-    gridApi.value!.refreshCells({ force: true });
-    gridApi.value!.autoSizeColumns(["ticket_nr", "thema"]);
+    gridApi.value!.refreshCells({force: true});
   });
 }
 
@@ -370,7 +378,7 @@ function onCellKeyPress(e: any) {
     const colKey = e.column.colId;
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
-        //TODO Bei strg + runter/hoch scroll auch die seite nach maximal runter/hoch, preventdefault fehlt
+          //TODO Bei strg + runter/hoch scroll auch die seite nach maximal runter/hoch, preventdefault fehlt
         case "ArrowUp":
           if (ctrl || shift) {
             nextTick(() => movePaketUp());
@@ -436,11 +444,13 @@ function onCellKeyPress(e: any) {
               aktuellesPaket.open = !aktuellesPaket.open;
               e.node.setData(aktuellesPaket);
               nextTick(() => paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket));
+              gridApi.value!.autoSizeColumns(['ticket_nr'])
               refreshTable(colKey, e.data.id);
             }
           }
           break;
         case "F2":
+          editableFlag.value = true;
           nextTick(() => startEditingCell(e, colKey));
           break;
       }
@@ -460,18 +470,15 @@ function onCellKeyPress(e: any) {
 }
 
 function startEditingCell(e: any, colKey: string) {
-  if((colKey==="bucket" ||colKey==="schaetzung") && e.data.children.length !== 0 || colKey === "warning") return;
-    columnDefs.find(column => column.field === colKey)!.editable = true;
-    gridApi.value!.setGridOption("columnDefs",columnDefs)
-    nextTick(() => gridApi.value!.startEditingCell({
-      rowIndex: e.rowIndex,
-      colKey: e.column
-    }));
+  if ((colKey === "bucket" || colKey === "schaetzung") && e.data.children.length !== 0 || colKey === "warning") return;
+  nextTick(() => gridApi.value!.startEditingCell({
+    rowIndex: e.rowIndex,
+    colKey: e.column
+  }));
 }
 
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
-  columnDefs.forEach(column => column.editable = false);
-  gridApi.value!.setGridOption("columnDefs",columnDefs)
+  editableFlag.value=false;
   gridApi.value!.setFocusedCell(rowIndex, colKey);
   gridApi.value!.stopEditing(cancel);
 }
