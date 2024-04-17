@@ -11,11 +11,6 @@
         <span class="slider"></span>
         <span class="text">Buckets aktivieren</span>
       </label>
-      <label class="switch mt-4">
-        <input v-model="projektStore.aufschlaegeErklaeren" checked type="checkbox">
-        <span class="slider"></span>
-        <span class="text">Aufschläge erklären</span>
-      </label>
 
       <h2 v-if="projektStore.bucketmodus">Buckets</h2>
       <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
