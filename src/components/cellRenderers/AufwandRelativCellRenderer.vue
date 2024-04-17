@@ -5,13 +5,15 @@
       <p></p>
     </div>
     <div v-else>
-      <p class="text-caption pt-2">{{ vorigerAbschnittAufwandRelativ }}%</p>
+      <p class="text-caption pt-2">{{ vorigerAbschnittAufwandRelativ }}%
+      </p>
       <p></p>
     </div>
   </div>
   <div v-else>
     <div v-if="props.params.data.isAufwandRelativBase"> {{ aufwandRelativ }}% *</div>
     <div v-else>{{ aufwandRelativ }}%</div>
+    <p>abc</p>
   </div>
 </template>
 <script lang="ts" setup>
@@ -21,6 +23,9 @@ import {useProjektStore} from "@/stores/projekt";
 
 const projektStore = useProjektStore();
 const props = defineProps(['params']);
+/*props.params.colDef.cellStyle = (params: any) => {
+  return { "background-color": "lightgray", color: "black" };
+}*/
 const aufwandRelativ = computed(() => {
   if (props.params.data.isAufwandRelativBase)
     return Number(props.params.data.aufwandRelativ).toLocaleString();
@@ -29,3 +34,8 @@ const aufwandRelativ = computed(() => {
 const vorigerAbschnittAufwandRelativ = computed(() => Number(props.params.data.vorigerAbschnittAufwandRelativ).toLocaleString('de',{ minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }));
 
 </script>
+<style scoped>
+.cell {
+  background-color: red;
+}
+</style>
