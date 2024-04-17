@@ -1,10 +1,10 @@
 <template>
   <div :style="'margin-left:' + params.node.data.lvl * 30 + 'px'">
-    <v-btn :style="params.node.data.children.length>0 ? 'visibility:visible':'visibility:hidden'" size="x-small"
-           @click="changeOpenState">
-      <v-icon v-if="!params.node.data.open" size="x-small">mdi-plus</v-icon>
-      <v-icon v-else size="x-small">mdi-minus</v-icon>
-    </v-btn>
+    <button id="treeDataToggle" :style="treeDataToggleStyle()"
+            @click="changeOpenState">
+      <v-icon class="chevronIcon" v-if="!params.node.data.open">mdi-chevron-right</v-icon>
+      <v-icon class="chevronIcon" v-else>mdi-chevron-down</v-icon>
+    </button>
     {{ params.value }}
   </div>
 </template>
@@ -15,6 +15,10 @@ import { usePaketeStore } from "@/stores/pakete";
 
 const props = defineProps(["params"]);
 
+function treeDataToggleStyle() {
+  if(props.params.node.data.children.length>0) return 'visibility:visible'
+  return 'visibility:hidden'
+}
 function changeOpenState() {
   const paketeStore = usePaketeStore();
   const aktuellesPaket = props.params.node.data;
@@ -23,9 +27,21 @@ function changeOpenState() {
   props.params.node.setData(aktuellesPaket);
   paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket);
   nextTick(() => {
-    props.params.api.setGridOption('rowData',paketeStore.paketeAsTreeView);
+    props.params.api.setGridOption("rowData", paketeStore.paketeAsTreeView);
     props.params.api.setFocusedCell(props.params.api.getRowNode(aktuellesPaket.id).rowIndex, props.params.column);
-    props.params.api.autoSizeColumns(['ticket_nr'])
+    props.params.api.autoSizeColumns(["ticket_nr"]);
   });
 }
 </script>
+<style scoped>
+#treeDataToggle {
+  display: flex; align-items: center;
+}
+.chevronIcon {
+
+}
+
+.chevronIcon:hover {
+
+}
+</style>
