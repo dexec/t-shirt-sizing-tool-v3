@@ -2,7 +2,6 @@
   <div style="height: 100%;display:flex;flex-direction: row;overflow: hidden; flex-grow: 1 ">
     <ag-grid-vue
         :animateRows="false"
-        :cacheQuickFilter="true"
         :columnDefs="columnDefs"
         :defaultColDef="defaultColDef"
         :getRowId="getRowId"
@@ -30,6 +29,7 @@
     <template #confirmText>Bestätigen</template>
     <template #cancelText>Abbrechen</template>
   </ConfirmDialog>
+<!--  <HelperComponent :entriesProp="entries"></HelperComponent>-->
 </template>
 <script lang="ts" setup>
 import "ag-grid-community/styles/ag-grid.css";
@@ -51,6 +51,8 @@ import type {Paket} from "@/models/Paket";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import {errorToastPaketNrEmpty, errorToastPaketNrNotUnique} from "@/models/Toasts";
 import WarningCellRenderer from "@/components/cellRenderers/WarningCellRenderer.vue";
+import HelperComponent from "@/components/HelperComponent.vue";
+import { useRoute } from "vue-router";
 
 const toast = useToast();
 const projektStore = useProjektStore();
@@ -59,6 +61,7 @@ let getRowId = (params: any): number => params.data._id;
 const paketeStore = usePaketeStore();
 const rowData = paketeStore.paketeAsTreeView;
 let duplicateTicketNrFound = false;
+const route = useRoute();
 
 function onGridReady(params: any) {
   gridApi.value = params.api;
@@ -74,10 +77,7 @@ function onGridReady(params: any) {
 
 const editableFlag = ref(false)
 const defaultColDef = reactive({
-  /* resizable: true,*/ /*filter: "agTextColumnFilter",*/
   suppressKeyboardEvent: (params: any) => {
-    const suppressedKeysArray="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!\"£$%^&amp;*()_+-=[];\\'#,./\\|<>?:@~{}".split("");
-
     let key = params.event.key;
     return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key);
   },
@@ -122,7 +122,6 @@ const columnDefs: ColDef[] = [
   {
     field: "beschreibung",
     headerName: "Beschreibung",
-
     flex:2
   },
   {
@@ -226,6 +225,12 @@ function cancelDeletePaket() {
     }
   });
 }
+const entries = ref([
+  "STRG + Pfeiltaste runter = Ausgewähltes Arbeitspaket mit dem unteren Arbeitspaket tauschen",
+  "a",
+  "b",
+  "c",
+])
 
 provide("addNewPaket", addNewPaket);
 provide("addNewKindPaket", addNewKindPaket);
@@ -270,7 +275,7 @@ function onCellEditingStopped() {
   editableFlag.value = false;
 }
 function onCellValueChanged(params: any) {
-    gridApi.value!.autoSizeColumns([params.colDef]);
+    //gridApi.value!.autoSizeColumns([params.colDef]);
 }
 
 function addNewPaket() {
@@ -444,8 +449,8 @@ function onCellKeyPress(e: any) {
               aktuellesPaket.open = !aktuellesPaket.open;
               e.node.setData(aktuellesPaket);
               nextTick(() => paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket));
-              gridApi.value!.autoSizeColumns(['ticket_nr'])
               refreshTable(colKey, e.data.id);
+              nextTick(() => gridApi.value!.autoSizeColumns(["ticket_nr"]));
             }
           }
           break;
