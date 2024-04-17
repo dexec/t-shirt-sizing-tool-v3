@@ -15,7 +15,7 @@
       <v-tab title="Projekt als Excel Tabelle runterladen" @click="downloadExcel">
         <v-icon icon="mdi-file-excel-outline"></v-icon>
       </v-tab>
-      <v-divider :thickness="15" class="border-opacity-100" color="#4df0b4" vertical></v-divider>
+      <v-divider class="border-opacity-100" color="white" vertical></v-divider>
       <v-tab class="text-capitalize" style="color: white" to="/projekt">Projektübersicht</v-tab>
       <v-tab class="text-capitalize" style="color: white" to="/pakete">Paketübersicht</v-tab>
       <v-tab v-if="projektStore.bucketmodus" class="text-capitalize" style="color: white" to="/vergleich">Vergleich
@@ -26,7 +26,8 @@
     </v-tabs>
     <!--    <v-text-field bg-color="white" class="searchfield" label="" placeholder="Paket suchen" readonly
                       @click="toggleSuche()"></v-text-field>-->
-    <input class="searchfield" placeholder="Paket suchen" readonly @click="toggleSuche()">
+    <v-spacer/>
+    <input class="searchfield mr-2 pl-1" placeholder="Paket suchen" readonly @click="toggleSuche()">
   </v-app-bar>
   <SuchComponent v-if="showSuche" :show-searched-paket="showSearchedPaket" :toggle-suche="toggleSuche"
                  style="height: 100%"></SuchComponent>
@@ -140,10 +141,8 @@ function handleFileUpload(event: any) {
 </script>
 <style scoped>
 .searchfield {
-  position: absolute;
   width: 200px;
   height: 80%;
-  right: 10px;
   background-color: white
 }
 
