@@ -14,7 +14,7 @@ export class ImportProject {
     private readonly _buckets: Bucket[] = []
     private readonly _pakete: Paket[] = []
     private readonly _eintraege: AbstrakterEintrag[] = []
-    private _projekt: Projekt = new Projekt("",  true,true,2)
+    private _projekt: Projekt = new Projekt("",  true,2)
     private _checkboxIds: number[] = []
 
     constructor(fileContents: string) {
@@ -120,7 +120,7 @@ export class ImportProject {
     }
 
     private fileToProjectData(projectData: any): void {
-        this._projekt = new Projekt(projectData.projektname, projectData.bucketmodus,projectData.aufschlaegeErklaeren,projectData.nachkommastellen);
+        this._projekt = new Projekt(projectData.projektname, projectData.bucketmodus,projectData.nachkommastellen);
     }
 
     private fileToCheckboxIdsArray(checkboxIds: any): void {
@@ -132,7 +132,6 @@ export class ImportProject {
         projektStore.projektname = this._projekt.projektname;
         projektStore.bucketmodus = this._projekt.bucketmodus;
         projektStore.nachkommastellen = this._projekt.nachkommastellen;
-        projektStore.aufschlaegeErklaeren = this._projekt.aufschlaegeErklaeren;
     }
 
     private writeEintraegeStore() {

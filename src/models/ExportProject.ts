@@ -23,7 +23,6 @@ export class ExportProject {
   private _projekt: {
     projektname: string,
     bucketmodus: boolean,
-    aufschlaegeErklaeren: boolean,
     nachkommastellen: number
   };
   private _checkboxIds:number[]=[]
@@ -32,7 +31,6 @@ export class ExportProject {
     this._projekt = {
       projektname: "",
       bucketmodus: true,
-      aufschlaegeErklaeren: true,
       nachkommastellen: 2
     };
     this.saveBuckets();
@@ -44,7 +42,7 @@ export class ExportProject {
 
   public createFile(): Blob {
     const mergedObjects: {
-      projekt: { projektname: string, bucketmodus: boolean, aufschlaegeErklaeren: boolean }
+      projekt: { projektname: string, bucketmodus: boolean}
       buckets: { name: string }[],
       checkboxIds: number[],
       pakete: {
@@ -125,7 +123,6 @@ export class ExportProject {
     this._projekt = {
       projektname: projektStore.projektname,
       bucketmodus: projektStore.bucketmodus,
-      aufschlaegeErklaeren: projektStore.aufschlaegeErklaeren,
       nachkommastellen: projektStore.nachkommastellen
     };
   }
