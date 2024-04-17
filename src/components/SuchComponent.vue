@@ -4,7 +4,7 @@
       <v-text-field v-model="suchString" autofocus placeholder="Paket suchen"
                     @update:modelValue="searchPaket"></v-text-field>
       <div v-for="foundPaket of foundPakete" :key="foundPaket.id" class="paket ma-4 mx-auto clickable-element"
-           @click="/*showSearchedPaket(foundPaket)*/redirect(foundPaket as Paket)">
+           @click="showSearchedPaket(foundPaket)/*redirect(foundPaket as Paket)*/">
         <div class="ticketnr">
           {{ foundPaket.ticket_nr }}
         </div>
@@ -82,6 +82,7 @@ function searchPaket() {
 }
 
 .paket {
+  overflow: hidden;
   width: 90%;
   height: 10%;
 }
