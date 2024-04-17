@@ -2,7 +2,7 @@
   <div class="wrapper">
     <v-list class="my-1 py-1" density="compact">
       <v-list-item v-for="providedFunction of providedFunctions" :key="providedFunctions.indexOf(providedFunction)"
-                   density="compact" @click="providedFunction.function">
+                   @click="providedFunction.function" height="5px">
         <span v-if="providedFunction.icon" class="item">
           <v-icon size="x-small">
             {{ providedFunction.icon }}
@@ -73,24 +73,23 @@ defineExpose({ showMenu });
   background: #fff;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
 }
-
-/*
-.wrapper .menu {
-  padding: 10px 12px;
-}
-
-.content .item {
+.item {
   list-style: none;
-  height: 20px;
   display: flex;
   width: 100%;
   cursor: pointer;
   align-items: center;
   border-radius: 5px;
   margin-bottom: 2px;
-  padding: 0 5px 0 10px;
+  padding-left:10px;
   font-size: 0.8rem;
 }
+/*
+.wrapper .menu {
+  padding: 10px 12px;
+}
+
+
 
 .content .item:hover {
   background: #f2f2f2;
