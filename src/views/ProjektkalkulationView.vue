@@ -18,22 +18,17 @@
       @cell-double-clicked="onCellDoubleClicked"
       @grid-ready="onGridReady"
     ></ag-grid-vue>
-
   </div>
-
   <context-menu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctions]"></context-menu>
-<!--
-  <EintragErklaerenComponent :erklaerungen="[erklaerungsText, erklaerungsTextZusatz, erklaerungsRechnung, erklaerungsRechnungZusatz]"></EintragErklaerenComponent>
--->
 </template>
 <script lang="ts" setup>
 import BezeichnungCellRenderer from "@/components/cellRenderers/BezeichnungCellRenderer.vue";
-import AufschlagCellRenderer from "@/components/cellRenderers/AufwandRelativCellRenderer.vue";
-import AufwandCellRenderer from "@/components/cellRenderers/AufwandAbsolutCellRenderer.vue";
+import AufwandRelativCellRenderer from "@/components/cellRenderers/AufwandRelativCellRenderer.vue";
+import AufwandAbsolutCellRenderer from "@/components/cellRenderers/AufwandAbsolutCellRenderer.vue";
 import AnteilAnZwischensummeCellRenderer from "@/components/cellRenderers/AnteilAnZwischensummeCellRenderer.vue";
 import AnteilAmGesamtprojektCellRenderer from "@/components/cellRenderers/AnteilAmGesamtprojektCellRenderer.vue";
 import { AgGridVue } from "ag-grid-vue3";
-import { nextTick, provide, reactive, ref } from "vue";
+import {nextTick, provide, reactive, ref, watch} from "vue";
 import type { ColDef } from "ag-grid-community";
 import { Column, GridApi } from "ag-grid-community";
 import { useEintraegeStore } from "@/stores/eintraege";
@@ -43,8 +38,13 @@ import { Zwischensumme } from "@/models/Zwischensumme";
 import { SummeET } from "@/enums/SummeET";
 import { ColumnET } from "@/enums/ColumnET";
 import { useProjektStore } from "@/stores/projekt";
-import EintragErklaerenComponent from "@/components/EintragErklaerenComponent.vue";
+import {useProjektkalkulationStore} from "@/stores/projektkalkulation";
 
+const projektkalkulationStore = useProjektkalkulationStore();
+watch(() => projektkalkulationStore.colorCells, (val) => {
+  if(val) colorCellsAndExplain();
+  else clearColorsAndErklaerungen();
+})
 provide("eintragErstellen", eintragErstellen);
 provide("eintragEntfernen", eintragEntfernen);
 provide("zwischensummeErstellen", zwischensummeErstellen);
@@ -63,7 +63,7 @@ const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 const eintragErklaeren = ref(false);
 
 function rightClickOnCell(e: any) {
-  clearColorsAndErklaerungen();
+  gridApi.value!.refreshCells({force:true})
   const focusedCell = gridApi.value!.getFocusedCell();
   if (focusedCell != null) {
     const focusedRowIndex = focusedCell.rowIndex;
@@ -89,7 +89,7 @@ const columnDefs: ColDef[] = [
   {
     field: "aufwandRelativ",
     headerName: "Aufschlag",
-    cellRenderer: AufschlagCellRenderer,
+    cellRenderer: AufwandRelativCellRenderer,
     cellStyle: {},
     valueSetter: (params: any): any => {
       const newValue = params.newValue.replace(",", ".");
@@ -105,7 +105,7 @@ const columnDefs: ColDef[] = [
   {
     field: "aufwandAbsolut",
     headerName: "Aufwand",
-    cellRenderer: AufwandCellRenderer,
+    cellRenderer: AufwandAbsolutCellRenderer,
     cellStyle: {},
     valueSetter: (params: any) => {
       const newValue = params.newValue.replace(",", ".");
@@ -144,24 +144,15 @@ const eintraegeStore = useEintraegeStore();
 eintraegeStore.berechne();
 const rowData = eintraegeStore.eintraege;
 
-const erklaerungsText = ref("");
-const erklaerungsTextZusatz = ref("");
-const erklaerungsRechnung = ref("");
-const erklaerungsRechnungZusatz = ref("");
-const currentSelectedRow = ref(-1);
-const currentSelectedColumn = ref("");
-
 function onCellClicked(e: any) {
-  if (currentSelectedRow.value == e.rowIndex && currentSelectedColumn.value == e.column.colId) return null;
-  clearColorsAndErklaerungen();
+  if (projektkalkulationStore.currentSelectedRow == e.rowIndex && projektkalkulationStore.currentSelectedColumn == e.column.colId) return null;
   columnDefs.forEach(column => column.editable = false);
   gridApi.value!.setGridOption("columnDefs", columnDefs);
-  currentSelectedColumn.value = e.column.colId;
-  currentSelectedRow.value = e.rowIndex;
+  projektkalkulationStore.currentSelectedColumn = e.column.colId;
+  projektkalkulationStore.currentSelectedRow = e.rowIndex;
 }
 
 function onCellDoubleClicked(e: any) {
-  clearColorsAndErklaerungen();
   columnDefs.forEach(column => column.editable = false);
   gridApi.value!.setGridOption("columnDefs", columnDefs);
   if (gridApi.value!.getEditingCells().length === 0 && ([ColumnET.BEZEICHNUNG, ColumnET.AUFSCHLAG, ColumnET.AUFWAND].includes(e.colDef.field) && !Object.values(SummeET).includes(e.data.bezeichnung))) {
@@ -177,10 +168,7 @@ function clearColorsAndErklaerungen() {
   });
   gridApi.value!.setGridOption("columnDefs", columnDefs);
   gridApi.value!.redrawRows();
-  erklaerungsText.value = "";
-  erklaerungsTextZusatz.value = "";
-  erklaerungsRechnung.value = "";
-  erklaerungsRechnungZusatz.value = "";
+  projektkalkulationStore.clearErklaerungen()
 }
 
 function colorCellsAndExplain() {
@@ -231,25 +219,26 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
       for (let i = rowIndex - 1; ![SummeET.STARTSUMME as string, SummeET.ZWISCHENSUMME as string].includes(rowData[i].bezeichnung); i--) {
         vorigerAbschnittEintraege.push(rowData[i] as Eintrag);
       }
-      erklaerungsText.value = "Der Aufschlag der Zwischensumme ist die Summe aller Aufschläge des vorigen Abschnitts.";
+      projektkalkulationStore.erklaerungsText = "Der Aufschlag der Zwischensumme ist die Summe aller Aufschläge des vorigen Abschnitts.";
       for (let i = vorigerAbschnittEintraege.length - 1; i >= 1; i--) {
         let aufschlag;
         if (vorigerAbschnittEintraege[i].isAufwandRelativBase) {
           aufschlag = vorigerAbschnittEintraege[i].aufwandRelativ;
         } else aufschlag = vorigerAbschnittEintraege[i].aufwandRelativ.toFixed(projektStore.nachkommastellen);
-        erklaerungsRechnung.value += aufschlag + "% + ";
+        projektkalkulationStore.erklaerungsRechnung += aufschlag + "% + ";
       }
       let startaufschlag;
       if (vorigerAbschnittEintraege[0].isAufwandRelativBase) {
         startaufschlag = vorigerAbschnittEintraege[0].aufwandRelativ;
       } else startaufschlag = vorigerAbschnittEintraege[0].aufwandRelativ.toFixed(projektStore.nachkommastellen);
-      erklaerungsRechnung.value += startaufschlag + "%";
-      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${erklaerungsRechnung.value}</span> = <span style=color:darkblue>${aktuellerEintrag.vorigerAbschnittAufwandRelativ.toFixed(projektStore.nachkommastellen)}%</span>`;
+      projektkalkulationStore.erklaerungsRechnung += startaufschlag + "%";
+      //projektkalkulationStore.erklaerungsRechnung = `Das ergibt <span style=color:lightgreen>${projektkalkulationStore.erklaerungsRechnung}</span> = <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandRelativ.toFixed(projektStore.nachkommastellen)}%</span>`;
+      projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${projektkalkulationStore.erklaerungsRechnung}</span> = <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandRelativ.toFixed(projektStore.nachkommastellen)}%</span>`;
       break;
     }
     default : {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
-      erklaerungsText.value = "Der Aufschlag errechnet sich durch das Dividieren des Aufwands durch die letzte Zwischensumme.";
+      projektkalkulationStore.erklaerungsText = "Der Aufschlag errechnet sich durch das Dividieren des Aufwands durch die letzte Zwischensumme.";
       let aufwand;
       let aufschlag;
       const Zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen);
@@ -260,7 +249,8 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
         aufwand = aktuellerEintrag.aufwandAbsolut;
         aufschlag = aktuellerEintrag.aufwandRelativ.toFixed(projektStore.nachkommastellen);
       }
-      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${aufwand}</span> / <span style=color:orange> ${Zwischensumme}</span> = <span style=color:darkblue>${aufschlag}%</span>`;
+      //projektkalkulationStore.erklaerungsRechnung = `Das ergibt <span style=color:lightgreen>${aufwand}</span> / <span style=color:orange> ${Zwischensumme}</span> = <span style=color:lightblue>${aufschlag}%</span>`;
+      projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${aufwand}</span> / <span style=color:orange> ${Zwischensumme}</span> = <span style=color:lightblue>${aufschlag}%</span>`;
       break;
     }
   }
@@ -269,8 +259,8 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
 function erklaereAufwand(bezeichnung: string, rowIndex: number) {
   switch (bezeichnung) {
     case SummeET.STARTSUMME: {
-      erklaerungsText.value = "Das ist die Startsumme, die sich aus der durschnittlichen Summe aller Pakete ergibt.";
-      erklaerungsRechnung.value = `Das ergibt hier <span style=color:orange>${(rowData[0] as Zwischensumme).zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
+      projektkalkulationStore.erklaerungsText = "Das ist die Startsumme, die sich aus der durschnittlichen Summe aller Pakete ergibt.";
+      //projektkalkulationStore.erklaerungsRechnung = `Das ergibt hier <span style=color:orange>${(rowData[0] as Zwischensumme).zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
       break;
     }
     case SummeET.ZWISCHENSUMME: {
@@ -279,22 +269,24 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
       for (let i = rowIndex - 1; ![SummeET.STARTSUMME as string, SummeET.ZWISCHENSUMME as string].includes(rowData[i].bezeichnung); i--) {
         vorigerAbschnittEintraege.push(rowData[i] as Eintrag);
       }
-      erklaerungsText.value = "Der Aufwand der Zwischensumme ist zweigeteilt. Der obere Wert ergibt sich aus der Summe aller Aufwände des vorigen Abschnitts. ";
-      erklaerungsTextZusatz.value = "Der untere Wert ergibt sich aus der Summe des oberen Wertes und der Startsumme.";
+      projektkalkulationStore.erklaerungsText = "Der Aufwand der Zwischensumme ist zweigeteilt. Der obere Wert ergibt sich aus der Summe aller Aufwände des vorigen Abschnitts. ";
+      projektkalkulationStore.erklaerungsTextZusatz = "Der untere Wert ergibt sich aus der Summe des oberen Wertes und der Startsumme.";
       for (let i = vorigerAbschnittEintraege.length - 1; i >= 1; i--) {
         let aufwand;
         if (vorigerAbschnittEintraege[i].isAufwandRelativBase) {
           aufwand = vorigerAbschnittEintraege[i].aufwandAbsolut.toFixed(projektStore.nachkommastellen);
         } else aufwand = vorigerAbschnittEintraege[i].aufwandAbsolut;
-        erklaerungsRechnung.value += "<span style=color:green>" + aufwand + " +</span> ";
+        projektkalkulationStore.erklaerungsRechnung += "<span style=color:lightgreen>" + aufwand + " +</span> ";
       }
       let startaufwand;
       if (vorigerAbschnittEintraege[0].isAufwandRelativBase) {
         startaufwand = vorigerAbschnittEintraege[0].aufwandAbsolut.toFixed(projektStore.nachkommastellen);
       } else startaufwand = vorigerAbschnittEintraege[0].aufwandAbsolut;
-      erklaerungsRechnung.value += +startaufwand;
-      erklaerungsRechnung.value = `Das ergibt für den oberen Wert <span style=color:green>${erklaerungsRechnung.value}</span> = <span style=color:darkblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span>`;
-      erklaerungsRechnungZusatz.value = `Für den unteren Wert ergibt das <span style=color:darkblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:orange>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:darkblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
+      projektkalkulationStore.erklaerungsRechnung += +startaufwand;
+      //projektkalkulationStore.erklaerungsRechnung = `Das ergibt für den oberen Wert <span style=color:lightgreen>${projektkalkulationStore.erklaerungsRechnung}</span> = <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span>`;
+      projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${projektkalkulationStore.erklaerungsRechnung}</span> = <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span>`;
+      //projektkalkulationStore.erklaerungsRechnungZusatz = `Für den unteren Wert ergibt das <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:orange>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
+      projektkalkulationStore.erklaerungsRechnungZusatz = `<span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:orange>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
       break;
     }
     case SummeET.ENDSUMME: {
@@ -305,18 +297,19 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
           alleEintraege.push((rowData[i] as Eintrag).aufwandAbsolut);
         }
       }
-      erklaerungsRechnung.value += gridApi.value!.getRowNode("0")!.data.zwischensummeAufwand;
+      projektkalkulationStore.erklaerungsRechnung += gridApi.value!.getRowNode("0")!.data.zwischensummeAufwand;
       for (let i = alleEintraege.length - 1; i >= 0; i--) {
-        erklaerungsRechnung.value += " + " + alleEintraege[i].toFixed(projektStore.nachkommastellen);
+        projektkalkulationStore.erklaerungsRechnung += " + " + alleEintraege[i].toFixed(projektStore.nachkommastellen);
       }
-      erklaerungsText.value = "Die Endsumme ergibt sich aus der Summe aller voriger Aufwände und der Startsumme.";
-      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${erklaerungsRechnung.value}</span> = <span style=color:darkblue>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
+      projektkalkulationStore.erklaerungsText = "Die Endsumme ergibt sich aus der Summe aller voriger Aufwände und der Startsumme.";
+      //projektkalkulationStore.erklaerungsRechnung = `Das ergibt <span style=color:lightgreen>${projektkalkulationStore.erklaerungsRechnung}</span> = <span style=color:lightblue>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
+      projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${projektkalkulationStore.erklaerungsRechnung}</span> = <span style=color:lightblue>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
       break;
     }
     default : {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
       const Zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen);
-      erklaerungsText.value = "Der Aufwand errechnet sich durch das Multiplizieren des Aufschlags mit der Zwischensumme.";
+      projektkalkulationStore.erklaerungsText = "Der Aufwand errechnet sich durch das Multiplizieren des Aufschlags mit der Zwischensumme.";
       let aufwand;
       let aufschlag;
       if (aktuellerEintrag.isAufwandRelativBase) {
@@ -326,7 +319,8 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
         aufwand = aktuellerEintrag.aufwandAbsolut;
         aufschlag = aktuellerEintrag.aufwandRelativ.toFixed(projektStore.nachkommastellen);
       }
-      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${aufschlag}%</span> * <span style=color:orange>${Zwischensumme}</span> = <span style=color:darkblue>${aufwand}</span>`;
+      //projektkalkulationStore.erklaerungsRechnung = `Das ergibt <span style=color:lightgreen>${aufschlag}%</span> * <span style=color:orange>${Zwischensumme}</span> = <span style=color:lightblue>${aufwand}</span>`;
+      projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${aufschlag}%</span> * <span style=color:orange>${Zwischensumme}</span> = <span style=color:lightblue>${aufwand}</span>`;
       break;
     }
   }
@@ -340,8 +334,9 @@ function erklaereAnteilAnZwischensumme(bezeichnung: string, rowIndex: number) {
     }
     case SummeET.ZWISCHENSUMME: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Zwischensumme;
-      erklaerungsText.value = "Der Anteil an nächster Zwischensumme bedeutet hier, wie viel Aufwand in Prozent der vorige Abschnitt für die aktuelle Zwischensumme ausmacht.";
-      erklaerungsRechnung.value = `Daraus ergibt sich <span style=color:green>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:darkblue>${aktuellerEintrag.anteilZwischensumme.toFixed(projektStore.nachkommastellen)}%</span>`;
+      projektkalkulationStore.erklaerungsText = "Der Anteil an nächster Zwischensumme bedeutet hier, wie viel Aufwand in Prozent der vorige Abschnitt für die aktuelle Zwischensumme ausmacht.";
+      //projektkalkulationStore.erklaerungsRechnung = `Daraus ergibt sich <span style=color:lightgreen>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilZwischensumme.toFixed(projektStore.nachkommastellen)}%</span>`;
+      projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilZwischensumme.toFixed(projektStore.nachkommastellen)}%</span>`;
       break;
     }
     default: {
@@ -353,8 +348,9 @@ function erklaereAnteilAnZwischensumme(bezeichnung: string, rowIndex: number) {
           break;
         }
       }
-      erklaerungsText.value = "Der Anteil an nächster Zwischensumme zeigt, wie viel Aufwand in Prozent der aktuelle Eintrag für die nächste Zwischensumme ausmacht.";
-      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${naechsteZwischensumme.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:darkblue>${aktuellerEintrag.anteilZwischensumme.toFixed(projektStore.nachkommastellen)}%</span>`;
+      projektkalkulationStore.erklaerungsText = "Der Anteil an nächster Zwischensumme zeigt, wie viel Aufwand in Prozent der aktuelle Eintrag für die nächste Zwischensumme ausmacht.";
+      //projektkalkulationStore.erklaerungsRechnung = `Das ergibt <span style=color:lightgreen>${aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${naechsteZwischensumme.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilZwischensumme.toFixed(projektStore.nachkommastellen)}%</span>`;
+      projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${naechsteZwischensumme.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilZwischensumme.toFixed(projektStore.nachkommastellen)}%</span>`;
     }
   }
 }
@@ -368,14 +364,16 @@ function erklaereAnteilAnGesamtprojekt(bezeichnung: string, rowIndex: number) {
     }
     case SummeET.ZWISCHENSUMME: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Zwischensumme;
-      erklaerungsText.value = "Der Anteil am Gesamtporjekt zeigt, wie viel Aufwand in Prozent der vorige Abschnitt für die Endsumme ausmacht.";
-      erklaerungsRechnung.value = `Daraus ergibt sich <span style=color:green>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:darkblue>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projektStore.nachkommastellen)}%</span>`;
+      projektkalkulationStore.erklaerungsText = "Der Anteil am Gesamtporjekt zeigt, wie viel Aufwand in Prozent der vorige Abschnitt für die Endsumme ausmacht.";
+      //projektkalkulationStore.erklaerungsRechnung = `Daraus ergibt sich <span style=color:lightgreen>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projektStore.nachkommastellen)}%</span>`;
+      projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projektStore.nachkommastellen)}%</span>`;
       break;
     }
     default: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
-      erklaerungsText.value = "Der Anteil am Gesamtprojekt zeigt, wie viel Aufwand in Prozent der aktuelle Eintrag für das Gesamtprojekt ausmacht.";
-      erklaerungsRechnung.value = `Das ergibt <span style=color:green>${aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:darkblue>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projektStore.nachkommastellen)}%</span>`;
+      projektkalkulationStore.erklaerungsText = "Der Anteil am Gesamtprojekt zeigt, wie viel Aufwand in Prozent der aktuelle Eintrag für das Gesamtprojekt ausmacht.";
+      //projektkalkulationStore.erklaerungsRechnung = `Das ergibt <span style=color:lightgreen>${aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projektStore.nachkommastellen)}%</span>`;
+      projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projektStore.nachkommastellen)}%</span>`;
     }
   }
 }
@@ -557,14 +555,13 @@ function onCellKeyPress(e: any) {
     const ctrl = e.event.ctrlKey;
     const shift = e.event.shiftKey;
     const colKey = e.column.colId;
-    //clearColorsAndErklaerungen();
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
         case "ArrowDown": {
           const focusedCell = gridApi.value!.getFocusedCell()!;
           const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
-          currentSelectedColumn.value = colKey;
-          currentSelectedRow.value = focusedCell.rowIndex;
+          projektkalkulationStore.currentSelectedColumn = colKey;
+          projektkalkulationStore.currentSelectedRow = focusedCell.rowIndex;
           if (e.data.bezeichnung == SummeET.STARTSUMME && (shift || ctrl)) {
             refreshTable(e.column, 1);
           } else if (shift || ctrl) {
@@ -579,8 +576,8 @@ function onCellKeyPress(e: any) {
         case "ArrowUp": {
           const focusedCell = gridApi.value!.getFocusedCell()!;
           const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
-          currentSelectedColumn.value = colKey;
-          currentSelectedRow.value = focusedCell.rowIndex;
+          projektkalkulationStore.currentSelectedColumn = colKey;
+          projektkalkulationStore.currentSelectedRow = focusedCell.rowIndex;
           if (e.data.bezeichnung == SummeET.ENDSUMME && (shift || ctrl)) {
             refreshTable(e.column, rowData.length - 2);
           } else if (shift || ctrl) {
@@ -596,8 +593,8 @@ function onCellKeyPress(e: any) {
         case "ArrowLeft": {
           const focusedCell = gridApi.value!.getFocusedCell()!;
           const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
-          currentSelectedColumn.value = focusedCell.column.getId();
-          currentSelectedRow.value = focusedCell.rowIndex;
+          projektkalkulationStore.currentSelectedColumn = focusedCell.column.getId();
+          projektkalkulationStore.currentSelectedRow = focusedCell.rowIndex;
           if (selectedPaket) {
             selectedPaket.setSelected(true);
           }
