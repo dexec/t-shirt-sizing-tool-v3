@@ -142,7 +142,7 @@ function endDrag() {
 function setNumberBucketsToShow() {
   const clientWidth = document.getElementById("container")?.clientWidth;
   if (clientWidth != null) {
-    const bucketTableWidth = clientWidth * 0.75;
+    const bucketTableWidth = clientWidth * 0.82;
     numberBucketsToShow.value = Math.trunc(bucketTableWidth / 200);
     while (selected.value.length > numberBucketsToShow.value) {
       selected.value.pop();
