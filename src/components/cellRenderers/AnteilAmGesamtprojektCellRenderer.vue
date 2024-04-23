@@ -7,13 +7,13 @@
     <div v-else>
       <p class="text-caption pt-2">{{ anteilGesamtprojekt }}%
         <EintragErklaerenComponent v-if="selectedColumn == ColumnET.GESAMTPROJEKT"
-                                   :node="props.params.node"></EintragErklaerenComponent>
+                                   :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
       </p>
       <p></p></div>
   </div>
   <div v-else>
     <p>{{ anteilGesamtprojekt }}%<EintragErklaerenComponent v-if="selectedColumn == ColumnET.GESAMTPROJEKT"
-                                                            :node="props.params.node"></EintragErklaerenComponent></p>
+                                                            :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent></p>
   </div>
 </template>
 

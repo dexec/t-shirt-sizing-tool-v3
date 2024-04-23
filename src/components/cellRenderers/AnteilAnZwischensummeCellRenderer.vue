@@ -8,7 +8,7 @@
     <div v-else>
       <p class="text-caption pt-2">{{ anteilZwischensumme }}%
         <EintragErklaerenComponent  v-if="selectedColumn == ColumnET.ZWISCHENSUMME"
-                                   :node="props.params.node"></EintragErklaerenComponent>
+                                   :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
       </p>
       <p></p>
     </div>
@@ -16,7 +16,7 @@
   <div v-else>
     <p>{{ anteilZwischensumme }}%
       <EintragErklaerenComponent v-if="selectedColumn == ColumnET.ZWISCHENSUMME"
-                                 :node="props.params.node"></EintragErklaerenComponent>
+                                 :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
     </p>
   </div>
 </template>

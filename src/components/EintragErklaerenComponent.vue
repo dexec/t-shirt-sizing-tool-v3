@@ -2,9 +2,10 @@
   <v-tooltip v-model="projektkalkulationStore.explain" v-if="props.node.selected" :open-on-hover="false">
     <template v-slot:activator="{props}">
       <v-icon icon="mdi-help" v-bind="props"
-               @click="projektkalkulationStore.explain=!projektkalkulationStore.explain"
-               @mouseenter="projektkalkulationStore.colorCells=true"
-               @mouseleave="projektkalkulationStore.colorCells=false; projektkalkulationStore.explain=false;">
+               @click="clickedIcon()"
+               @mouseenter="mouseEnter()"
+               @mouseleave="mouseLeave()"
+      >
       </v-icon>
     </template>
     <div v-html="projektkalkulationStore.erklaerungsRechnung"></div>
@@ -14,8 +15,34 @@
 
 <script setup lang="ts">
 import {useProjektkalkulationStore} from "@/stores/projektkalkulation";
-const props = defineProps(["node"]);
+import {onUnmounted} from "vue";
+const props = defineProps(["node","api"]);
 const projektkalkulationStore = useProjektkalkulationStore();
+//TODO Pfeiltasten machen Fehler
+onUnmounted(() => console.log("unmounted"))
+function clickedIcon() {
+  if(props.api!=undefined) {
+    const focusedCell = props.api.getFocusedCell();
+    if (focusedCell == null) return;
+    const column = focusedCell.column.getColId();
+    const rowIndex = focusedCell.rowIndex;
+    if (rowIndex != undefined && column != undefined) {
+      props.api.getRowNode(rowIndex + "")!.setSelected(true);
+      props.api.setFocusedCell(rowIndex, column);
+    }
+    props.api.refreshCells({ force: true });
+  }
+  projektkalkulationStore.explain=!projektkalkulationStore.explain
+}
+
+function mouseEnter() {
+  projektkalkulationStore.colorCells=true
+}
+
+function mouseLeave() {
+  projektkalkulationStore.colorCells=false;
+  projektkalkulationStore.explain=false;
+}
 </script>
 
 <style scoped>

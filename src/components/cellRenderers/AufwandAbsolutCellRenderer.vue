@@ -2,14 +2,13 @@
   <div v-if="props.params.data instanceof Zwischensumme">
     <div v-if="props.params.data.bezeichnung==='Startsumme' || props.params.data.bezeichnung==='Endsumme'">
       <p class="font-weight-bold">{{ zwischensummeAufwand }}
-        <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFWAND"
-                                   :node="props.params.node"></EintragErklaerenComponent>
+
       </p>
     </div>
     <div v-else>
       <p class="text-caption pt-2">{{ vorigerAbschnittAufwandAbsolut }}
         <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFWAND"
-                                   :node="props.params.node"></EintragErklaerenComponent>
+                                   :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
       </p>
       <p class="font-weight-bold">{{ zwischensummeAufwand }}</p>
 
@@ -17,16 +16,16 @@
   </div>
   <div v-else-if="!props.params.data.isAufwandRelativBase"> {{ aufwandAbsolut }} *
     <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFWAND"
-                               :node="props.params.node"></EintragErklaerenComponent>
+                               :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
   </div>
   <div v-else>
     <div v-if="!props.params.data.isAufwandRelativBase"> {{ aufwandAbsolut }} *
       <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFWAND"
-                                 :node="props.params.node"></EintragErklaerenComponent>
+                                 :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
     </div>
     <div v-else>{{ aufwandAbsolut }}
       <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFWAND"
-                                 :node="props.params.node"></EintragErklaerenComponent>
+                                 :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
     </div>
   </div>
 </template>

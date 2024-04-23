@@ -7,17 +7,17 @@
     <div v-else>
       <p class="text-caption pt-2">{{ vorigerAbschnittAufwandRelativ }}%
         <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFSCHLAG"
-                                   :node="props.params.node"></EintragErklaerenComponent>
+                                   :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
       </p>
       <p></p>
     </div>
   </div>
   <div v-else>
     <div v-if="props.params.data.isAufwandRelativBase"> {{ aufwandRelativ }}% *
-      <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFSCHLAG" :node="props.params.node"></EintragErklaerenComponent>
+      <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFSCHLAG" :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
     </div>
     <div v-else>{{ aufwandRelativ }}%
-      <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFSCHLAG" :node="props.params.node"></EintragErklaerenComponent>
+      <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFSCHLAG" :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
     </div>
   </div>
 </template>
