@@ -17,7 +17,8 @@
       </v-tab>
       <v-divider class="border-opacity-100" color="white" vertical></v-divider>
       <v-tab class="text-capitalize" style="color: white" to="/projekt">Projektübersicht</v-tab>
-      <v-tab class="text-capitalize" style="color: white" to="/pakete">Paketübersicht</v-tab>
+<!--      TODO Paket-URL so angeben, dass bei pakete/1 zb. der Tab auch ausgewählt wird-->
+      <v-tab class="text-capitalize" style="color: white" to="/pakete/">Paketübersicht</v-tab>
       <v-tab v-if="projektStore.bucketmodus" class="text-capitalize" style="color: white" to="/vergleich">Vergleich
       </v-tab>
       <v-tab class="text-capitalize" style="color: white" to="/buckets">Bucketübersicht</v-tab>
@@ -29,7 +30,7 @@
     <v-spacer/>
     <input class="searchfield mr-2 pl-1" placeholder="Paket suchen" readonly @click="toggleSuche()">
   </v-app-bar>
-  <SuchComponent v-if="showSuche" :show-searched-paket="showSearchedPaket" :toggle-suche="toggleSuche"
+  <SuchComponent v-if="showSuche" :toggle-suche="toggleSuche"
                  style="height: 100%"></SuchComponent>
 
 

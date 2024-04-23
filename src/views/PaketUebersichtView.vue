@@ -38,7 +38,7 @@ import {AgGridVue} from "ag-grid-vue3";
 import TreeDataCellRenderer from "@/components/TreeDataCellRenderer.vue";
 
 import {usePaketeStore} from "@/stores/pakete";
-import {nextTick, provide, reactive, ref} from "vue";
+import {nextTick, onMounted, onUpdated, provide, reactive, ref, watch} from "vue";
 import {useBucketsStore} from "@/stores/buckets";
 import {useToast} from "vue-toastification";
 import ContextMenu from "@/components/ContextMenu.vue";
@@ -61,10 +61,27 @@ let getRowId = (params: any): number => params.data._id;
 const paketeStore = usePaketeStore();
 const rowData = paketeStore.paketeAsTreeView;
 let duplicateTicketNrFound = false;
-const route = useRoute();
-
+const routeParamsId = ref("");
+onMounted(() => {
+  routeParamsId.value = useRoute().params.id as string;
+})
+onUpdated(() => {
+  const routeParamsIdNew = useRoute().params.id as string;
+  if(routeParamsId.value == routeParamsIdNew) return;
+  routeParamsId.value = routeParamsIdNew
+  const pathId = Number(routeParamsId.value);
+  if(pathId == null || isNaN(pathId)) return;
+  const selectedRow = gridApi.value!.getSelectedRows()[0]
+  if (selectedRow != null) {
+    if(selectedRow.id != pathId) showSearchedPaket(paketeStore.paketeAsMap.get(pathId) as Paket);
+  }
+})
 function onGridReady(params: any) {
   gridApi.value = params.api;
+  nextTick(() => gridApi.value!.autoSizeColumns(["ticket_nr"]));
+  const pathId = Number(routeParamsId.value);
+  if(pathId == null || isNaN(pathId)) return;
+  nextTick(() => showSearchedPaket(paketeStore.paketeAsMap.get(pathId) as Paket));
   //TODO Grid soll warten bis resiszed wude
 
 /*  window.addEventListener("resize", function () {
@@ -74,6 +91,7 @@ function onGridReady(params: any) {
     });
   });*/
 }
+
 
 const editableFlag = ref(false)
 const defaultColDef = reactive({

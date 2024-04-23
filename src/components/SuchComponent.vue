@@ -4,7 +4,7 @@
       <v-text-field v-model="suchString" autofocus placeholder="Paket suchen"
                     @update:modelValue="searchPaket"></v-text-field>
       <div v-for="foundPaket of foundPakete" :key="foundPaket.id" class="paket ma-4 mx-auto clickable-element"
-           @click="showSearchedPaket(foundPaket)/*redirect(foundPaket as Paket)*/">
+           @click="redirect(foundPaket as Paket)">
         <div class="ticketnr">
           {{ foundPaket.ticket_nr }}
         </div>
@@ -15,22 +15,23 @@
 </template>
 
 <script lang="ts" setup>
-import { nextTick, onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { usePaketeStore } from "@/stores/pakete";
 import { Paket } from "@/models/Paket";
 import router from "@/router";
 
 const paketeStore = usePaketeStore();
 const suchString = ref("");
-const props = defineProps(["toggleSuche", "showSearchedPaket"]);
+const props = defineProps(["toggleSuche"]);
 const foundPakete = ref<Paket[]>([]);
 
 //TODO Den gesuchten Text im gefundenen Ticket markieren, Größe der gefundenen Tickets anpassen an Text
 function redirect(paket: Paket) {
-  router.push("/pakete");
-  nextTick(() => props.showSearchedPaket(paket))
+  props.toggleSuche();
+  router.push("/pakete/" + paket.id);
 }
 onMounted(() => {
+  searchPaket()
   window.addEventListener("keyup", escapePressed, { capture: true });
 });
 onUnmounted(() => {
@@ -56,6 +57,7 @@ function searchPaket() {
     }
   } else {
     foundPakete.value.length = 0;
+    paketeStore.paketeAsMap.forEach((value) => foundPakete.value.push(value))
   }
 }
 </script>

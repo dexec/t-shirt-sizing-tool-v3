@@ -17,12 +17,7 @@ const router = createRouter({
             alias: '/projekt',
             name: 'projekt',
             component: ProjektUebersichtView
-        }/*,
-        {
-            path: '/projekt',
-            name: 'projekt',
-            component: ProjektUebersichtView,
-        },*/,
+        },
         {
             path: '/vergleich',
             name: 'vergleich',
@@ -34,7 +29,7 @@ const router = createRouter({
             component: BucketUebersichtView
         },
         {
-            path: '/pakete',
+            path: '/pakete/:id?',
             name: 'pakete',
             component: PaketUebersichtView
         },
