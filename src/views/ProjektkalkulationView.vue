@@ -558,6 +558,7 @@ function onCellKeyPress(e: any) {
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
         case "ArrowDown": {
+          clearColorsAndErklaerungen();
           const focusedCell = gridApi.value!.getFocusedCell()!;
           const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
           projektkalkulationStore.currentSelectedColumn = colKey;
@@ -574,6 +575,7 @@ function onCellKeyPress(e: any) {
           break;
         }
         case "ArrowUp": {
+          clearColorsAndErklaerungen();
           const focusedCell = gridApi.value!.getFocusedCell()!;
           const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
           projektkalkulationStore.currentSelectedColumn = colKey;
@@ -591,6 +593,7 @@ function onCellKeyPress(e: any) {
         }
         case "ArrowRight":
         case "ArrowLeft": {
+          clearColorsAndErklaerungen();
           const focusedCell = gridApi.value!.getFocusedCell()!;
           const selectedPaket = gridApi.value!.getRowNode(focusedCell.rowIndex + "");
           projektkalkulationStore.currentSelectedColumn = focusedCell.column.getId();
