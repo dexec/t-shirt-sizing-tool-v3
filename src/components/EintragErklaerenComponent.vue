@@ -1,7 +1,7 @@
 <template>
-  <v-tooltip v-model="projektkalkulationStore.explain" v-if="props.node.selected" :open-on-hover="false">
+  <v-tooltip v-model="projektkalkulationStore.explain" v-if="props.node.selected" :open-on-hover="false" location="bottom">
     <template v-slot:activator="{props}">
-      <v-icon icon="mdi-help" v-bind="props"
+      <v-icon class="pb-2" icon="mdi-help-circle-outline" v-bind="props"
                @click="clickedIcon()"
                @mouseenter="mouseEnter()"
                @mouseleave="mouseLeave()"
@@ -11,15 +11,14 @@
     <div v-html="projektkalkulationStore.erklaerungsRechnung"></div>
     <div v-html="projektkalkulationStore.erklaerungsRechnungZusatz"></div>
   </v-tooltip>
+
 </template>
 
 <script setup lang="ts">
+//TODO Wenn man scrollt, während der Tooltip angezeigt wird, flackert die Tabelle
 import {useProjektkalkulationStore} from "@/stores/projektkalkulation";
-import {onUnmounted} from "vue";
 const props = defineProps(["node","api"]);
 const projektkalkulationStore = useProjektkalkulationStore();
-//TODO Pfeiltasten machen Fehler
-onUnmounted(() => console.log("unmounted"))
 function clickedIcon() {
   if(props.api!=undefined) {
     const focusedCell = props.api.getFocusedCell();
