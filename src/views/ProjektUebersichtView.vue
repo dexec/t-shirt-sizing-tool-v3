@@ -249,6 +249,7 @@ function convertNachkommastelle() {
   display: inline-block;
   width: 60px;
   height: 34px;
+  margin-bottom: 50px;
 }
 
 .switch input {
