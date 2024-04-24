@@ -305,6 +305,7 @@ function addNewPaket() {
     newPaketID = paketeStore.addNew(-1);
     refreshTable(gridApi.value!.getColumns()![0].getColId(), newPaketID);
   }
+  nextTick(() => gridApi.value!.autoSizeColumns(["ticket_nr"]));
 }
 
 function addNewKindPaket() {
@@ -320,7 +321,6 @@ function deletePaket() {
     const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
     const focusedColumn = gridApi.value!.getFocusedCell()?.column!;
     paketeStore.deletePaket(gridApi.value!.getSelectedRows()[0].id);
-    //TODO Aktualisiert die Grid Size nicht irgendwie
     nextTick(() => {
       if (rowData[focusedRowIndex]) refreshTable(focusedColumn, rowData[focusedRowIndex].id);
       else if (rowData.length !== 0) {
@@ -328,6 +328,7 @@ function deletePaket() {
       } else {
         refreshTable(focusedColumn.getColId());
       }
+      nextTick(() => gridApi.value!.autoSizeColumns(["ticket_nr"]));
     });
   }
 }
