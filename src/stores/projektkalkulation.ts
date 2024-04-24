@@ -20,6 +20,8 @@ export const useProjektkalkulationStore = defineStore("projektkalkulation", () =
         erklaerungsTextZusatz.value = "";
         erklaerungsRechnung.value = "";
         erklaerungsRechnungZusatz.value = "";
+        explain.value = false;
+        colorCells.value = false;
     }
 
     return {
