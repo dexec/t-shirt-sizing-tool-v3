@@ -1,57 +1,83 @@
 <template>
-  <div v-if="props.params.data instanceof Zwischensumme">
-    <div v-if="props.params.data.bezeichnung==='Startsumme' || props.params.data.bezeichnung==='Endsumme'">
-      <p class="font-weight-bold">{{ zwischensummeAufwand }}
-
-      </p>
-    </div>
-    <div v-else>
-      <p class="text-caption pt-2">{{ vorigerAbschnittAufwandAbsolut }}
-        <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFWAND"
-                                   :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
-      </p>
-      <p class="font-weight-bold">{{ zwischensummeAufwand }}</p>
-
-    </div>
-  </div>
-  <div v-else-if="!props.params.data.isAufwandRelativBase"> {{ aufwandAbsolut }} *
-    <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFWAND"
-                               :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
-  </div>
-  <div v-else>
-    <div v-if="!props.params.data.isAufwandRelativBase"> {{ aufwandAbsolut }} *
-      <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFWAND"
-                                 :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
-    </div>
-    <div v-else>{{ aufwandAbsolut }}
-      <EintragErklaerenComponent v-if="selectedColumn == ColumnET.AUFWAND"
-                                 :node="props.params.node" :api="props.params.api"></EintragErklaerenComponent>
+  <!--  <span>
+    <span v-if="props.params.data instanceof Zwischensumme">
+        <span v-if="props.params.data.bezeichnung==='Startsumme' || props.params.data.bezeichnung==='Endsumme'"
+              class="font-weight-bold">{{ zwischensummeAufwand }}
+        </span>
+      <span v-else>
+        <span class="text-caption pt-2" style="display: block">{{ vorigerAbschnittAufwandAbsolut }}
+        </span>
+        <span class="font-weight-bold">{{ zwischensummeAufwand }}</span>
+      </span>
+    </span>
+      <span v-else>
+        {{ aufwandAbsolut }}
+        <span v-if="!props.params.data.isAufwandRelativBase">*</span>
+      </span>
+    <span>
+            <EintragErklaerenComponent
+              v-if="selectedColumn == ColumnET.AUFWAND && props.params.data.bezeichnung!='Startsumme' && props.params.data.bezeichnung!='Endsumme'"
+              :api="props.params.api" :node="props.params.node"></EintragErklaerenComponent>
+    </span>
+      </span>-->
+  <div class="d-flex flex-nowrap fill-height">
+    <template v-if="props.params.data instanceof Zwischensumme">
+      <template v-if="bezeichnung==='Startsumme' || bezeichnung==='Endsumme'">
+        <div class="flex-grow-1">
+          <span class="font-weight-bold"> {{ zwischensummeAufwand }} </span>
+        </div>
+      </template>
+      <template v-else>
+        <div class="flex-grow-1 pt-3">
+          <div class="text-caption">
+            {{ vorigerAbschnittAufwandAbsolut }}
+          </div>
+          <div class="font-weight-bold">
+            {{ zwischensummeAufwand }}
+          </div>
+        </div>
+      </template>
+    </template>
+    <template v-else>
+      <div class="flex-grow-1">
+        <div>
+          {{ aufwandAbsolut }}
+          <template v-if="!props.params.data.isAufwandRelativBase">*</template>
+        </div>
+      </div>
+    </template>
+    <div class="align-self-center">
+    <EintragErklaerenComponent
+      v-if="selectedColumn == ColumnET.AUFWAND && bezeichnung!='Startsumme' && bezeichnung!='Endsumme'"
+      :api="props.params.api" :node="props.params.node"></EintragErklaerenComponent>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
-import {Zwischensumme} from "@/models/Zwischensumme";
-import {computed} from "vue";
-import {useProjektStore} from "@/stores/projekt";
-import {ColumnET} from "@/enums/ColumnET";
+import { Zwischensumme } from "@/models/Zwischensumme";
+import { computed } from "vue";
+import { useProjektStore } from "@/stores/projekt";
 import EintragErklaerenComponent from "@/components/EintragErklaerenComponent.vue";
+import { ColumnET } from "@/enums/ColumnET";
 
 const projektStore = useProjektStore();
-const props = defineProps(['params']);
+const props = defineProps(["params"]);
 const selectedColumn = computed(() => {
-  const focusedCell = props.params.api.getFocusedCell()
+  const focusedCell = props.params.api.getFocusedCell();
   if (focusedCell != null) return focusedCell.column.getColId();
-  else return ""
-})
+  else return "";
+});
 const aufwandAbsolut = computed(() => {
   if (props.params.data.isAufwandRelativBase)
-    return Number(props.params.data.aufwandAbsolut).toLocaleString('de', {
+    return Number(props.params.data.aufwandAbsolut).toLocaleString("de", {
       minimumFractionDigits: projektStore.nachkommastellen,
       maximumFractionDigits: projektStore.nachkommastellen
-    })
-  else return Number(props.params.data.aufwandAbsolut).toLocaleString()
+    });
+  else return Number(props.params.data.aufwandAbsolut).toLocaleString();
 });
-const vorigerAbschnittAufwandAbsolut = computed(() => Number(props.params.data.vorigerAbschnittAufwandAbsolut).toLocaleString('de', {
+const bezeichnung = computed(() => props.params.data.bezeichnung);
+
+const vorigerAbschnittAufwandAbsolut = computed(() => Number(props.params.data.vorigerAbschnittAufwandAbsolut).toLocaleString("de", {
   minimumFractionDigits: projektStore.nachkommastellen,
   maximumFractionDigits: projektStore.nachkommastellen
 }));
