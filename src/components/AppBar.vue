@@ -2,7 +2,7 @@
 
   <v-app-bar color="#03787c" flat>
     <!--    TODO Icon einbauen-->
-    <v-tabs>
+    <v-tabs :model-value="tabs">
       <v-tab title="Projekt erstellen" @click="showDialogCreateNewProject=true">
         <v-icon icon="mdi-folder-plus"></v-icon>
       </v-tab>
@@ -17,16 +17,13 @@
       </v-tab>
       <v-divider class="border-opacity-100" color="white" vertical></v-divider>
       <v-tab class="text-capitalize" style="color: white" to="/projekt">Projektübersicht</v-tab>
-<!--      TODO Paket-URL so angeben, dass bei pakete/1 zb. der Tab auch ausgewählt wird-->
-      <v-tab class="text-capitalize" style="color: white" to="/pakete/">Paketübersicht</v-tab>
+      <v-tab value="/pakete" class="text-capitalize" style="color: white" to="/pakete">Paketübersicht</v-tab>
       <v-tab v-if="projektStore.bucketmodus" class="text-capitalize" style="color: white" to="/vergleich">Vergleich
       </v-tab>
       <v-tab class="text-capitalize" style="color: white" to="/buckets">Bucketübersicht</v-tab>
       <v-tab class="text-capitalize" style="color: white" to="/kalkulation">Projektkalkulation</v-tab>
       <v-tab class="text-capitalize" style="color: white" to="/test">Test</v-tab>
     </v-tabs>
-    <!--    <v-text-field bg-color="white" class="searchfield" label="" placeholder="Paket suchen" readonly
-                      @click="toggleSuche()"></v-text-field>-->
     <v-spacer/>
     <input class="searchfield mr-2 pl-1" placeholder="Paket suchen" readonly @click="toggleSuche()">
   </v-app-bar>
@@ -54,13 +51,16 @@ import { useProjektStore } from "@/stores/projekt";
 import { ExportProject } from "@/models/ExportProject";
 import { ExportAsExcel } from "@/models/ExportAsExcel";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ImportProject } from "@/models/ImportProject.js";
 import router from "@/router/index.js";
 import SuchComponent from "@/components/SuchComponent.vue";
+import { useRoute } from "vue-router";
 
 const projektStore = useProjektStore();
 const showSuche = ref(false);
+const route = useRoute();
+const tabs = computed(() => "/" + route.fullPath.split("/")[1]);
 
 function toggleSuche() {
   showSuche.value = !showSuche.value;
