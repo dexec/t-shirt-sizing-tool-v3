@@ -187,7 +187,7 @@ export const usePaketeStore = defineStore("pakete", () => {
     throw new Error("Unexpected code execution.");
   }
   function addNew(id: number): number {
-    const newPaket = new Paket("" , "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
+    const newPaket = new Paket("" , "beispiel", "beispiel", null, null, false, 0, null, []);
     newPaket.ticket_nr = createNewUniqueTicketNr();
     paketeAsMap.value.set(newPaket.id, newPaket);
     if (id == -1) {
@@ -219,7 +219,7 @@ export const usePaketeStore = defineStore("pakete", () => {
 
   function addNewChild(id: number): number {
     const parentOfNewPaket = paketeAsMap.value.get(id) as Paket;
-    const newPaket = new Paket("", "beispiel", "beispiel", "beispiel", null, null, false, 0, null, []);
+    const newPaket = new Paket("", "beispiel", "beispiel",  null, null, false, 0,   null, []);
     newPaket.ticket_nr = createNewUniqueTicketNr()
     newPaket.lvl = parentOfNewPaket.lvl + 1;
     newPaket.parent = parentOfNewPaket;
@@ -319,6 +319,7 @@ export const usePaketeStore = defineStore("pakete", () => {
   }
 
   function moveRightDown(id: number) {
+    //TODO Fehler in der Berechnung...
     const paketToMove = paketeAsMap.value.get(id) as Paket;
     if (paketToMove.parent && paketToMove.parent.children.indexOf(paketToMove) == paketToMove.parent.children.length - 1) return;
     const indexOfPaketToMove = paketeAsTreeView.value.indexOf(paketToMove);
@@ -338,11 +339,12 @@ export const usePaketeStore = defineStore("pakete", () => {
       if (newParent.schaetzung != null && paketToMove.schaetzung == null) paketToMove.schaetzung = newParent.schaetzung;
       else newParent.schaetzung = paketToMove.schaetzung;
     } else newParent.schaetzung = (newParent.schaetzung ?? 0) + (paketToMove.schaetzung ?? 0);
-    berechneSchaetzungen();
+
     newParent.children.unshift(paketToMove);
     updateBucket(newParent, null);
     paketToMove.parent = newParent;
     updateLvl(1, paketToMove);
+    berechneSchaetzungen();
     paketeAsTreeView.value.splice(indexOfPaketToMove, 1);
     if (!newParent.open) {
       newParent.open = true;

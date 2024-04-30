@@ -29,7 +29,6 @@
     <template #confirmText>Bestätigen</template>
     <template #cancelText>Abbrechen</template>
   </ConfirmDialog>
-<!--  <HelperComponent :entriesProp="entries"></HelperComponent>-->
 </template>
 <script lang="ts" setup>
 import "ag-grid-community/styles/ag-grid.css";
@@ -38,7 +37,7 @@ import {AgGridVue} from "ag-grid-vue3";
 import TreeDataCellRenderer from "@/components/TreeDataCellRenderer.vue";
 
 import {usePaketeStore} from "@/stores/pakete";
-import {nextTick, onMounted, onUpdated, provide, reactive, ref, watch} from "vue";
+import {nextTick, onMounted, onUpdated, provide, reactive, ref} from "vue";
 import {useBucketsStore} from "@/stores/buckets";
 import {useToast} from "vue-toastification";
 import ContextMenu from "@/components/ContextMenu.vue";
@@ -51,7 +50,6 @@ import type {Paket} from "@/models/Paket";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import {errorToastPaketNrEmpty, errorToastPaketNrNotUnique} from "@/models/Toasts";
 import WarningCellRenderer from "@/components/cellRenderers/WarningCellRenderer.vue";
-import HelperComponent from "@/components/HelperComponent.vue";
 import { useRoute } from "vue-router";
 
 const toast = useToast();
@@ -143,10 +141,6 @@ const columnDefs: ColDef[] = [
     flex:2
   },
   {
-    field: "komponente",
-    headerName: "Komponente"
-  },
-  {
     field: "bucket",
     headerName: "Bucket",
     valueSetter: (params: any): any => {
@@ -184,24 +178,25 @@ const columnDefs: ColDef[] = [
       else {
         params.data.schaetzung = Number(newValue);
         paketeStore.berechneSchaetzungen();
-        gridApi.value!.refreshCells({force: true});
+        nextTick(() => gridApi.value!.refreshCells({force: true}));
       }
     },
     valueGetter: (params: any) => {
-      if (params.data.schaetzung) {
+      if (params.data.schaetzung!=null) {
         if (params.data.children.length > 0) {
           return Number(params.data.schaetzung).toLocaleString('de', {
             minimumFractionDigits: projektStore.nachkommastellen,
             maximumFractionDigits: projektStore.nachkommastellen
           });
-        } else return params.data.schaetzung.toLocaleString();
+        } else {
+          return params.data.schaetzung.toLocaleString()
+        }
       }
     },
     cellStyle: (params: any): any => {
       if (params.data.children.length > 0) return {backgroundColor: "lightgrey"};
       else return {backgroundColor: "transparent"};
     },
-    filter: "agNumberColumnFilter",
     editable: (params: any) => {
       return params.data.children.length == 0 && editableFlag.value
     },
@@ -243,12 +238,6 @@ function cancelDeletePaket() {
     }
   });
 }
-const entries = ref([
-  "STRG + Pfeiltaste runter = Ausgewähltes Arbeitspaket mit dem unteren Arbeitspaket tauschen",
-  "a",
-  "b",
-  "c",
-])
 
 provide("addNewPaket", addNewPaket);
 provide("addNewKindPaket", addNewKindPaket);

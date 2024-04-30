@@ -132,7 +132,6 @@
       "ticket_nr": "123",
       "thema": "UI erstellen",
       "beschreibung": "Es soll eine UI erstellt werden",
-      "komponente": "A",
       "bucket": null,
       "schaetzung": null,
       "open": true
@@ -142,7 +141,6 @@
       "ticket_nr": "ANP-50",
       "thema": "Entwicklung eines Log-In-Systems",
       "beschreibung": "Es soll ein Log-In System für Nutzer und Manager entwickelt werden",
-      "komponente": "Komp-A",
       "bucket": null,
       "schaetzung": null,
       "open": false
@@ -152,7 +150,6 @@
       "ticket_nr": "P-5",
       "thema": "Implementieren",
       "beschreibung": "Implementieren, auf Basis der UI und des Prototypen",
-      "komponente": "Komp-B",
       "bucket": "XS",
       "schaetzung": null,
       "open": false
@@ -162,7 +159,6 @@
       "ticket_nr": "F-20",
       "thema": "Dokumentieren",
       "beschreibung": "Implementierung vollständig dokumentieren, um später den Code nachvollziehen zu können",
-      "komponente": "Komp-C",
       "bucket": "M",
       "schaetzung": null,
       "open": false
@@ -172,7 +168,6 @@
       "ticket_nr": "A-2",
       "thema": "Einen Prototypen bauen",
       "beschreibung": "Einen Protoypen bauen, um den Testern eine klickbare Oberfläche zu bieten",
-      "komponente": "Komp-A",
       "bucket": null,
       "schaetzung": null,
       "open": false
@@ -182,7 +177,6 @@
       "ticket_nr": "C-99",
       "thema": "Versionierung aufstellen",
       "beschreibung": "Eine Git-Verwaltung soll aufgesetzt werden, um eine Versionierung des Codes zu ermöglichen",
-      "komponente": "Komp-AB",
       "bucket": "XL",
       "schaetzung": 350,
       "open": false
@@ -192,7 +186,6 @@
       "ticket_nr": "D-90",
       "thema": "Use-Cases definieren",
       "beschreibung": "Es sollen Funktionen bestimmt werden, die von dem System erfüllt werden müssen",
-      "komponente": "Komp-ABC",
       "bucket": "XXL",
       "schaetzung": 150,
       "open": false
@@ -202,7 +195,6 @@
       "ticket_nr": "AD-970",
       "thema": "Testen",
       "beschreibung": "Es soll eine Testarchitektur entwickelt werden",
-      "komponente": "Komp-F",
       "bucket": "S",
       "schaetzung": null,
       "open": false
@@ -212,7 +204,6 @@
       "ticket_nr": "PN-50",
       "thema": "Lizenzen einkaufen",
       "beschreibung": "Lizenzen zur Entwicklung für das ganze Team einkaufen",
-      "komponente": "Komp-F",
       "bucket": null,
       "schaetzung": null,
       "open": false

@@ -59,12 +59,11 @@ export class ExportAsExcel {
             ticket_nr: string,
             thema: string,
             beschreibung: string,
-            komponente: string,
             bucket: string | null,
             schaetzung: number | null
         }
 
-        const headersForPakete = ["Hierarchie", "Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Bucket", "Schätzung"];
+        const headersForPakete = ["Hierarchie", "Ticket-Nr", "Thema", "Beschreibung", "Bucket", "Schätzung"];
         const arraySerializablePaket: SerializablePaket[] = [];
         for (const paket of pakete) {
             let currentHierarchy = "";
@@ -81,7 +80,6 @@ export class ExportAsExcel {
                 ticket_nr: paket.ticket_nr,
                 thema: paket.thema,
                 beschreibung: paket.beschreibung,
-                komponente: paket.komponente,
                 bucket: paket.bucket?.name ?? null,
                 schaetzung: paket.schaetzung ?? null
             };
@@ -113,11 +111,10 @@ export class ExportAsExcel {
             ticket_nr: string,
             thema: string,
             beschreibung: string,
-            komponente: string,
             schaetzung: number | null
         }
 
-        const headersForPakete = ["Hierarchie", "Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Schätzung"];
+        const headersForPakete = ["Hierarchie", "Ticket-Nr", "Thema", "Beschreibung", "Schätzung"];
         const arraySerializablePaket: SerializablePaket[] = [];
         for (const paket of pakete) {
             let currentHierarchy = "";
@@ -134,7 +131,6 @@ export class ExportAsExcel {
                 ticket_nr: paket.ticket_nr,
                 thema: paket.thema,
                 beschreibung: paket.beschreibung,
-                komponente: paket.komponente,
                 schaetzung: paket.schaetzung ?? null
             };
             for (let i = 0; i < paket.lvl; i++) {
@@ -164,18 +160,16 @@ export class ExportAsExcel {
             ticket_nr: string,
             thema: string,
             beschreibung: string,
-            komponente: string,
             schaetzung: number | null
         }
 
-        const headersForPakete = ["Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Schätzung"];
+        const headersForPakete = ["Ticket-Nr", "Thema", "Beschreibung", "Schätzung"];
         const arraySerializablePaket: SerializablePaket[] = [];
         for (const paket of pakete) {
             const serializablePaket: SerializablePaket = {
                 ticket_nr: paket.ticket_nr,
                 thema: paket.thema,
                 beschreibung: paket.beschreibung,
-                komponente: paket.komponente,
                 schaetzung: paket.schaetzung ?? null
             };
             arraySerializablePaket.push(serializablePaket);
@@ -202,11 +196,10 @@ export class ExportAsExcel {
             ticket_nr: string,
             thema: string,
             beschreibung: string,
-            komponente: string,
             schaetzung: number | null
         }
 
-        const headersForPakete = ["Ticket-Nr", "Thema", "Beschreibung", "Komponente", "Schätzung"];
+        const headersForPakete = ["Ticket-Nr", "Thema", "Beschreibung", "Schätzung"];
         map.forEach((value, key) => {
             const arraySerializablePaket: SerializablePaket[] = [];
             for (const paket of value) {
@@ -214,7 +207,6 @@ export class ExportAsExcel {
                     ticket_nr: paket.ticket_nr,
                     thema: paket.thema,
                     beschreibung: paket.beschreibung,
-                    komponente: paket.komponente,
                     schaetzung: paket.schaetzung ?? null
                 };
                 arraySerializablePaket.push(serializablePaket);

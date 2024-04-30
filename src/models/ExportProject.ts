@@ -13,7 +13,6 @@ export class ExportProject {
     ticket_nr: string,
     thema: string,
     beschreibung: string,
-    komponente: string,
     bucket: string | null,
     schaetzung: number | null,
     open: boolean
@@ -50,7 +49,6 @@ export class ExportProject {
         ticket_nr: string,
         thema: string,
         beschreibung: string,
-        komponente: string,
         bucket: string | null,
         schaetzung: number | null,
         open: boolean
@@ -103,7 +101,6 @@ export class ExportProject {
         ticket_nr: aktuellesPaket.ticket_nr,
         thema: aktuellesPaket.thema,
         beschreibung: aktuellesPaket.beschreibung,
-        komponente: aktuellesPaket.komponente,
         bucket: aktuellesPaket.bucket ? aktuellesPaket.bucket.name : null,
         schaetzung: aktuellesPaket.schaetzung,
         open: aktuellesPaket.open
