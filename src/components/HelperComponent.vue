@@ -1,24 +1,28 @@
 
 <template>
-  <div id="container">
+  <v-tooltip v-model="showHelp" :open-on-hover="false" location="bottom" >
+    <template #activator="{props}">
+      <v-icon class="mr-2" icon="mdi-help-circle-outline" v-bind="props"
+              @click="showHelp=!showHelp"
+              @mouseleave="showHelp=false"
+      >
+      </v-icon>
+
+    </template>
     <div v-for="entry of entriesProp" :key="entriesProp.indexOf(entry)">
       {{entry}}
     </div>
-  </div>
+  </v-tooltip>
 </template>
 
 <script setup lang="ts">
+import {ref} from "vue";
+
 const props = defineProps(["entriesProp"]);
+const showHelp = ref(false)
 </script>
 
 
 <style scoped>
-#container {
-  position: fixed;
-  height: 300px;
-  top: 100px;
-  right: 20px;
-  background-color: #8ee774;
-  z-index: 5;
-}
+
 </style>
