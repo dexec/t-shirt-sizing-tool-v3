@@ -37,7 +37,7 @@ export class ImportProject {
     private fileToPaketeArray(paketefromFile: any[], paketeTree: any[]): void {
         let highestId = 0
         for (const paketFromFile of paketefromFile) {
-            const newPaket = new Paket(paketFromFile.ticket_nr, paketFromFile.thema, paketFromFile.beschreibung, paketFromFile.komponente, paketFromFile.bucket ? this._buckets.find(bucket => bucket.name == paketFromFile.bucket)! : null, paketFromFile.schaetzung, paketFromFile.open, 0, null, [], paketFromFile.id)
+            const newPaket = new Paket(paketFromFile.ticket_nr, paketFromFile.thema, paketFromFile.beschreibung, paketFromFile.bucket ? this._buckets.find(bucket => bucket.name == paketFromFile.bucket)! : null, paketFromFile.schaetzung, paketFromFile.open, 0, null, [], paketFromFile.id)
             this._pakete.push(newPaket);
             if(newPaket.id > highestId) highestId = newPaket.id
         }
@@ -49,7 +49,7 @@ export class ImportProject {
 
     private generatePakete(numberPakete: number) {
         for (let i = 0; i < numberPakete; i++) {
-            const newPaket = new Paket("Ticket-Nr " + (i + numberPakete), "Testing " + i, "Ticket zum Testen", "Test", null, null, false, 0, null, []);
+            const newPaket = new Paket("Ticket-Nr " + (i + numberPakete), "Testing " + i, "Ticket zum Testen", null, null, false, 0, null, []);
             this._pakete.push(newPaket);
         }
     }
