@@ -1,24 +1,7 @@
 <template>
-  <v-container id="container">
+  <v-container fluid>
     <v-row>
-      <v-dialog v-model="dialog" width="auto">
-        <template v-slot:activator="{props}">
-          <v-btn class="mx-6 configBucketsButton clickable-element" v-bind="props">
-            <span class="bucketsButtonText">Konfig</span>
-          </v-btn>
-        </template>
-        <v-card style="width: 15vw">
-          <v-card-text class="d-flex flex-column justify-center align-center">
-            <span>{{ selected.length }}/{{ numberBucketsToShow }}</span>
-            <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :disabled="numberBucketsToShow==selected.length && !selected.includes(bucket.id)"
-                        :label=bucket.name
-                        :value="bucket.id" @change="sortSelectedBuckets()">
-            </v-checkbox>
-            <div v-if="buckets.length == 0">Es gibt keine Buckets</div>
-          </v-card-text>
-        </v-card>
-      </v-dialog>
-      <v-col :style="{visibility: (showPaketeWithoutBucket ? 'visible':'hidden')}" cols="2">
+      <v-col class="align-self-start" :style="{visibility: (showPaketeWithoutBucket ? 'visible':'hidden')}" cols="2">
         <v-text-field id="filterForPaketeList" class="filterClass" v-model="paketeListeFilter" clearable placeholder="Pakete filtern"
                       @click:clear="paketeListeFilter=''"></v-text-field>
         <draggable
@@ -44,7 +27,7 @@
           </template>
         </draggable>
       </v-col>
-      <v-col>
+      <v-col cols="10">
         <v-text-field id="filterForPakete" class="filterClass" v-model="paketeTabelleFilter" clearable placeholder="Pakete filtern"
                       @click:clear="paketeTabelleFilter=''"></v-text-field>
         <v-row style="margin-bottom: -30px">
@@ -56,7 +39,7 @@
             </div>
           </v-col>
         </v-row>
-        <v-row style="height:73vh; overflow-y:auto; overflow-x:hidden; ">
+        <v-row style="height:70vh; overflow-y:auto; overflow-x:hidden; ">
           <v-col class="d-flex flex-nowrap justify-start">
             <draggable
               v-for="bucketId of selected" :key="bucketId"
@@ -87,6 +70,23 @@
       </v-col>
     </v-row>
   </v-container>
+  <v-dialog v-model="dialog" width="auto">
+    <template v-slot:activator="{props}">
+      <v-btn class="mx-6 configBucketsButton clickable-element" v-bind="props">
+        <span class="bucketsButtonText">Konfig</span>
+      </v-btn>
+    </template>
+    <v-card style="width: 15vw">
+      <v-card-text class="d-flex flex-column justify-center align-center">
+        <span>{{ selected.length }}/{{ numberBucketsToShow }}</span>
+        <v-checkbox v-for="bucket in buckets" :key="bucket.id" v-model="selected" :disabled="numberBucketsToShow==selected.length && !selected.includes(bucket.id)"
+                    :label=bucket.name
+                    :value="bucket.id" @change="sortSelectedBuckets()">
+        </v-checkbox>
+        <div v-if="buckets.length == 0">Es gibt keine Buckets</div>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -140,7 +140,7 @@ function endDrag() {
 }
 
 function setNumberBucketsToShow() {
-  const clientWidth = document.getElementById("container")?.clientWidth;
+  const clientWidth = window.screen.width;
   if (clientWidth != null) {
     const bucketTableWidth = clientWidth * 0.82;
     numberBucketsToShow.value = Math.trunc(bucketTableWidth / 200);
@@ -289,7 +289,7 @@ function onEndDrag(e: any) {
   height: 50px;
   min-height: 50px;
   border: 1px solid #000;
-  margin: 24px
+  margin: 24px;
 }
 
 .paketContent {
@@ -337,5 +337,6 @@ function onEndDrag(e: any) {
 .filterClass {
   width:150px;
   height: 80px;
+  margin-left:24px
 }
 </style>
