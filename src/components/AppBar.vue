@@ -20,12 +20,14 @@
       <v-tab value="/pakete" class="text-capitalize" style="color: white" to="/pakete">Paketübersicht</v-tab>
       <v-tab v-if="projektStore.bucketmodus" class="text-capitalize" style="color: white" to="/vergleich">Vergleich
       </v-tab>
-      <v-tab class="text-capitalize" style="color: white" to="/buckets">Bucketübersicht</v-tab>
-      <v-tab class="text-capitalize" style="color: white" to="/kalkulation">Projektkalkulation</v-tab>
+      <v-tab class="text-capitalize" style="color: white" to="/statistiken">Statistiken</v-tab>
+      <v-tab class="text-capitalize" style="color: white" to="/aufschlaege">Projektaufschläge</v-tab>
       <v-tab class="text-capitalize" style="color: white" to="/test">Test</v-tab>
     </v-tabs>
     <v-spacer/>
+    <HelperComponent :entries-prop="entriesHelperComp"></HelperComponent>
     <input class="searchfield mr-2 pl-1" placeholder="Paket suchen" readonly @click="toggleSuche()">
+
   </v-app-bar>
   <SuchComponent v-if="showSuche" :toggle-suche="toggleSuche"
                  style="height: 100%"></SuchComponent>
@@ -43,6 +45,7 @@
     <template #confirmText>Bestätigen</template>
     <template #cancelText>Abbrechen</template>
   </ConfirmDialog>
+
   <input ref="fileRef" accept=".json" hidden type="file" @change="handleFileUpload">
 </template>
 
@@ -56,12 +59,21 @@ import { ImportProject } from "@/models/ImportProject.js";
 import router from "@/router/index.js";
 import SuchComponent from "@/components/SuchComponent.vue";
 import { useRoute } from "vue-router";
+import HelperComponent from "@/components/HelperComponent.vue";
+import {aufschlaege, pakete, projekt, statistiken, vergleich} from "@/stores/helperStrings";
 
 const projektStore = useProjektStore();
 const showSuche = ref(false);
 const route = useRoute();
 const tabs = computed(() => "/" + route.fullPath.split("/")[1]);
-
+const entriesHelperComp = computed(() => {
+  if(tabs.value=="/projekt") return projekt();
+  if(tabs.value=="/pakete") return pakete();
+  if(tabs.value=="/vergleich") return vergleich();
+  if(tabs.value=="/statistiken") return statistiken();
+  if(tabs.value=="/aufschlaege") return aufschlaege();
+  return "";
+})
 function toggleSuche() {
   showSuche.value = !showSuche.value;
 }
