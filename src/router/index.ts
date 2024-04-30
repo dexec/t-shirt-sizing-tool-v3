@@ -1,13 +1,13 @@
 // Composables
 import {createRouter, createWebHashHistory} from 'vue-router'
 import VergleichView from "@/views/VergleichView.vue";
-import BucketUebersichtView from "@/views/StatistikenView.vue";
 import PaketUebersichtView from "@/views/PaketUebersichtView.vue";
-import ProjektkalkulationView from "@/views/ProjektkalkulationView.vue";
+import ProjektaufschlaegeView from "@/views/ProjektaufschlaegeView.vue";
 import ProjektUebersichtView from "@/views/ProjektUebersichtView.vue";
 import testView from "@/views/testView.vue";
 import {useProjektStore} from "@/stores/projekt";
 import {ref} from "vue";
+import StatistikenView from "@/views/StatistikenView.vue";
 
 const router = createRouter({
     history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -24,9 +24,9 @@ const router = createRouter({
             component: VergleichView,
         },
         {
-            path: '/buckets',
-            name: 'buckets',
-            component: BucketUebersichtView
+            path: '/statistiken',
+            name: 'statistiken',
+            component: StatistikenView
         },
         {
             path: '/pakete/:id?',
@@ -34,9 +34,9 @@ const router = createRouter({
             component: PaketUebersichtView
         },
         {
-            path: '/kalkulation',
-            name: 'kalkulation',
-            component: ProjektkalkulationView
+            path: '/aufschlaege',
+            name: 'aufschlaege',
+            component: ProjektaufschlaegeView
         },
         {
             path: '/test',

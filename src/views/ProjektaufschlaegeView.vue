@@ -50,14 +50,12 @@ provide("eintragEntfernen", eintragEntfernen);
 provide("zwischensummeErstellen", zwischensummeErstellen);
 provide("moveZeileUp", moveZeileUp);
 provide("moveZeileDown", moveZeileDown);
-provide("colerCellsAndExplain", colorCellsAndExplain);
 const providedFunctions = ref([
   { functionName: "eintragErstellen", functionLabel: "Neuen Eintrag erstellen" },
   { functionName: "eintragEntfernen", functionLabel: "Eintrag entfernen" },
   { functionName: "zwischensummeErstellen", functionLabel: "Neue Zwischensumme erstellen" },
   { functionName: "moveZeileUp", functionLabel: "Eintrag eine Zeile nach oben verschieben", icon: "mdi-arrow-up" },
   { functionName: "moveZeileDown", functionLabel: "Eintrag eine Zeile nach unten verschieben", icon: "mdi-arrow-down" },
-  { functionName: "colerCellsAndExplain", functionLabel: "Färben" }
 ]);
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 const eintragErklaeren = ref(false);
@@ -88,7 +86,7 @@ const columnDefs: ColDef[] = [
   },
   {
     field: "aufwandRelativ",
-    headerName: "Aufschlag",
+    headerName: "Aufwand in %",
     cellRenderer: AufwandRelativCellRenderer,
     cellStyle: {},
     valueSetter: (params: any): any => {
@@ -104,7 +102,7 @@ const columnDefs: ColDef[] = [
   },
   {
     field: "aufwandAbsolut",
-    headerName: "Aufwand",
+    headerName: "Aufwand in PT",
     cellRenderer: AufwandAbsolutCellRenderer,
     cellStyle: {},
     valueSetter: (params: any) => {
@@ -601,11 +599,6 @@ function onCellKeyPress(e: any) {
           if (selectedPaket) {
             selectedPaket.setSelected(true);
           }
-          break;
-        }
-        case "_":
-        case "-": {
-          if (!ctrl) nextTick(() => eintragEntfernen());
           break;
         }
         case "Delete": {
