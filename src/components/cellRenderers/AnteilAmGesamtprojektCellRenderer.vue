@@ -31,10 +31,10 @@
 </template>
 
 <script lang="ts" setup>
-import { Zwischensumme } from "@/models/Zwischensumme";
-import { computed } from "vue";
-import { useProjektStore } from "@/stores/projekt";
-import { ColumnET } from "@/enums/ColumnET";
+import {Zwischensumme} from "@/models/Zwischensumme";
+import {computed} from "vue";
+import {useProjektStore} from "@/stores/projekt";
+import {ColumnET} from "@/enums/ColumnET";
 import EintragErklaerenComponent from "@/components/EintragErklaerenComponent.vue";
 
 const projektStore = useProjektStore();
@@ -44,7 +44,10 @@ const selectedColumn = computed(() => {
   if (focusedCell != null) return focusedCell.column.getColId();
   else return "";
 });
-const anteilGesamtprojekt = computed(() => Number(props.params.data.anteilGesamtprojekt).toLocaleString("de", { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }));
+const anteilGesamtprojekt = computed(() => Number(props.params.data.anteilGesamtprojekt).toLocaleString("de", {
+  minimumFractionDigits: projektStore.nachkommastellen,
+  maximumFractionDigits: projektStore.nachkommastellen
+}));
 const bezeichnung = computed(() => props.params.data.bezeichnung);
 
 </script>
