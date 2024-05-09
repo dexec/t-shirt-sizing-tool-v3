@@ -39,7 +39,11 @@ import { SummeET } from "@/enums/SummeET";
 import { ColumnET } from "@/enums/ColumnET";
 import { useProjektStore } from "@/stores/projekt";
 import {useProjektkalkulationStore} from "@/stores/projektkalkulation";
-
+document.addEventListener('keydown', (e) => {
+  if((e.key ==="ArrowUp" || e.key === "ArrowDown") && e.ctrlKey) {
+    e.preventDefault();
+  }
+})
 const projektkalkulationStore = useProjektkalkulationStore();
 watch(() => projektkalkulationStore.colorCells, (val) => {
   if(val) colorCellsAndExplain();
@@ -94,9 +98,6 @@ const columnDefs: ColDef[] = [
       if (!isNaN(newValue)) {
         eintraegeStore.updateAufwandRelativ(params.node.rowIndex, +newValue);
       } else params.data.aufwandRelativ = params.oldValue;
-      //TODO DAS IST DER GRUND, DASS WÄHREND DES EDITS EIN KLICK WOANDERS ABGEFANGEN WIRD!!
-      //gridApi.value!.refreshCells({ force: true });
-
     },
     editable: false
   },
@@ -131,6 +132,8 @@ const defaultColDef = reactive(
   {
     suppressKeyboardEvent: (params: any) => {
       let key = params.event.key;
+      /*if(key==="ArrowDown" && params.event.ctrlKey) console.log("event")
+      return key==="ArrowDown" && params.event.ctrlKey;*/
       return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key);
     },
     sortable: false,
@@ -165,8 +168,9 @@ function clearColorsAndErklaerungen() {
     column.cellStyle = {};
   });
   gridApi.value!.setGridOption("columnDefs", columnDefs);
+  //TODO Tooltip scroll flackert die Anwendung
   gridApi.value!.redrawRows();
-  projektkalkulationStore.clearErklaerungen()
+
 }
 
 function colorCellsAndExplain() {
@@ -553,6 +557,7 @@ function onCellKeyPress(e: any) {
     const ctrl = e.event.ctrlKey;
     const shift = e.event.shiftKey;
     const colKey = e.column.colId;
+
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
         case "ArrowDown": {
@@ -673,13 +678,12 @@ function onCellEditingStopped(e: any) {
 }
 
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
-
   gridApi.value!.stopEditing(cancel);
   nextTick(() => eintraegeStore.berechne());
   columnDefs.forEach(column => column.editable = false);
   gridApi.value!.setGridOption("columnDefs", columnDefs);
   gridApi.value!.setFocusedCell(rowIndex, colKey);
-  refreshTable(colKey, rowIndex);
+  //refreshTable(colKey, rowIndex);
 }
 
 function eintragErstellen() {
@@ -750,9 +754,9 @@ function moveZeileDown() {
     }
   }
 }
-
-//TODO Beim klick auf eine Zelle wird eine Erklärung eingeblendet. Dann aktualisiert die Seite und scrollt nach oben. Der Scroll soll nicht passieren.
+//TODO Automatisches Scrolling nach oben verhindern
 function refreshTable(colKey?: Column | string, rowIndex?: number) {
+  console.log("refreshed")
   nextTick(() => {
     gridApi.value!.setGridOption("rowData", eintraegeStore.eintraege);
     gridApi.value!.forEachNode(function(node) {
