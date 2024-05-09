@@ -237,6 +237,8 @@ export const useStatistikenStore = defineStore("statistiken", () => {
   return {
     statistiken,
     berechne,
+    min,
+    max,
     summeAlleBucketsGeschaetzt,
     summeAlleBucketsUngeschaetzt,
     summeAlleBucketsGesamt,
