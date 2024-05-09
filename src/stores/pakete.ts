@@ -319,7 +319,6 @@ export const usePaketeStore = defineStore("pakete", () => {
   }
 
   function moveRightDown(id: number) {
-    //TODO Fehler in der Berechnung...
     const paketToMove = paketeAsMap.value.get(id) as Paket;
     if (paketToMove.parent && paketToMove.parent.children.indexOf(paketToMove) == paketToMove.parent.children.length - 1) return;
     const indexOfPaketToMove = paketeAsTreeView.value.indexOf(paketToMove);
