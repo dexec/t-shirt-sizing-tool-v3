@@ -39,8 +39,7 @@ function mouseEnter() {
 }
 
 function mouseLeave() {
-  projektkalkulationStore.colorCells=false;
-  projektkalkulationStore.explain=false;
+  projektkalkulationStore.clearErklaerungen()
 }
 </script>
 
