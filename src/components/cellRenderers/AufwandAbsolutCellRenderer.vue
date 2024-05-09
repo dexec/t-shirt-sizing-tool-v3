@@ -42,7 +42,9 @@
       <div class="flex-grow-1">
         <div>
           {{ aufwandAbsolut }}
-          <template v-if="!props.params.data.isAufwandRelativBase">*</template>
+          <template v-if="!props.params.data.isAufwandRelativBase">
+            <v-icon class="ml-3" icon="mdi-pencil"></v-icon>
+          </template>
         </div>
       </div>
     </template>
