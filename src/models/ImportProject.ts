@@ -42,14 +42,14 @@ export class ImportProject {
             if(newPaket.id > highestId) highestId = newPaket.id
         }
         Paket.idCounter = highestId + 1;
-        this.generatePakete(0);//Nur dev-Zweck
+        this.generatePakete(50);//Nur dev-Zweck
         this.setPaketeTreeStructure(paketeTree);
         this.setPaketeLevelAndSchaetzung();
     }
 
     private generatePakete(numberPakete: number) {
         for (let i = 0; i < numberPakete; i++) {
-            const newPaket = new Paket("Ticket-Nr " + (i + numberPakete), "Testing " + i, "Ticket zum Testen", null, null, false, 0, null, []);
+            const newPaket = new Paket("Ticket-Nr " + (i + numberPakete), "Testing " + (i + numberPakete), "Ticket zum Testen", null, null, false, 0, null, []);
             this._pakete.push(newPaket);
         }
     }
