@@ -243,7 +243,7 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
       projektkalkulationStore.erklaerungsText = "Der Aufschlag errechnet sich durch das Dividieren des Aufwands durch die letzte Zwischensumme.";
       let aufwand;
       let aufschlag;
-      const Zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen);
+      const Zwischensumme = aktuellerEintrag.basisZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen);
       if (aktuellerEintrag.isAufwandRelativBase) {
         aufwand = aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen);
         aufschlag = aktuellerEintrag.aufwandRelativ;
@@ -287,8 +287,8 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
       projektkalkulationStore.erklaerungsRechnung += +startaufwand;
       //projektkalkulationStore.erklaerungsRechnung = `Das ergibt für den oberen Wert <span style=color:lightgreen>${projektkalkulationStore.erklaerungsRechnung}</span> = <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span>`;
       projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${projektkalkulationStore.erklaerungsRechnung}</span> = <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span>`;
-      //projektkalkulationStore.erklaerungsRechnungZusatz = `Für den unteren Wert ergibt das <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:orange>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
-      projektkalkulationStore.erklaerungsRechnungZusatz = `<span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:orange>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
+      //projektkalkulationStore.erklaerungsRechnungZusatz = `Für den unteren Wert ergibt das <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:orange>${vorigerAbschnittEintraege[0].basisZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
+      projektkalkulationStore.erklaerungsRechnungZusatz = `<span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:orange>${vorigerAbschnittEintraege[0].basisZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
       break;
     }
     case SummeET.ENDSUMME: {
@@ -310,7 +310,7 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
     }
     default : {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
-      const Zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen);
+      const Zwischensumme = aktuellerEintrag.basisZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen);
       projektkalkulationStore.erklaerungsText = "Der Aufwand errechnet sich durch das Multiplizieren des Aufschlags mit der Zwischensumme.";
       let aufwand;
       let aufschlag;
@@ -756,7 +756,6 @@ function moveZeileDown() {
 }
 //TODO Automatisches Scrolling nach oben verhindern
 function refreshTable(colKey?: Column | string, rowIndex?: number) {
-  console.log("refreshed")
   nextTick(() => {
     gridApi.value!.setGridOption("rowData", eintraegeStore.eintraege);
     gridApi.value!.forEachNode(function(node) {
