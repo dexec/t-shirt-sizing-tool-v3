@@ -1,50 +1,65 @@
-import {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
-import type {Zwischensumme} from "@/models/Zwischensumme";
+import { AbstrakterEintrag } from "@/models/AbstrakterEintrag";
+import { Zwischensumme } from "@/models/Zwischensumme";
 
 export class Eintrag extends AbstrakterEintrag {
-    private _aufwandRelativ: number;
-    private _aufwandAbsolut: number;
-    private _isAufwandRelativBase: boolean;
-    private _referenzierteZwischensumme: Zwischensumme;
+
+  private _aufwandRelativ: number;
+  private _aufwandAbsolut: number;
+  private _isAufwandRelativBase: boolean;
+  private _basisZwischensumme: Zwischensumme;
+  private _naechsteZwischensumme: Zwischensumme;
 
 
-    constructor(bezeichnung: string, anteilZwischensumme: number, anteilGesamtprojekt: number, aufwandRelativ: number, aufwandAbsolut: number, isAufwandRelativBase: boolean, referenzierteZwischensumme: Zwischensumme) {
-        super(bezeichnung, anteilZwischensumme, anteilGesamtprojekt);
-        this._aufwandRelativ = aufwandRelativ;
-        this._aufwandAbsolut = aufwandAbsolut;
-        this._isAufwandRelativBase = isAufwandRelativBase;
-        this._referenzierteZwischensumme = referenzierteZwischensumme;
-    }
+  constructor(bezeichnung: string, anteilZwischensumme: number, anteilGesamtprojekt: number, aufwandRelativ: number, aufwandAbsolut: number, isAufwandRelativBase: boolean, basisZwischensumme: Zwischensumme | null, naechsteZwischensumme: Zwischensumme | null) {
+    super(bezeichnung, anteilZwischensumme, anteilGesamtprojekt);
+    this._aufwandRelativ = aufwandRelativ;
+    this._aufwandAbsolut = aufwandAbsolut;
+    this._isAufwandRelativBase = isAufwandRelativBase;
+    if (basisZwischensumme == null) {
+      this._basisZwischensumme = new Zwischensumme("", 0, 0, 0, 0);
+    } else this._basisZwischensumme = basisZwischensumme;
+    if (naechsteZwischensumme == null) {
+      this._naechsteZwischensumme = new Zwischensumme("", 0, 0, 0, 0);
+    } else this._naechsteZwischensumme = naechsteZwischensumme;
+  }
 
-    get aufwandRelativ(): number {
-        return this._aufwandRelativ;
-    }
+  get aufwandRelativ(): number {
+    return this._aufwandRelativ;
+  }
 
-    set aufwandRelativ(value: number) {
-        this._aufwandRelativ = value;
-    }
+  set aufwandRelativ(value: number) {
+    this._aufwandRelativ = value;
+  }
 
-    get aufwandAbsolut(): number {
-        return this._aufwandAbsolut;
-    }
+  get aufwandAbsolut(): number {
+    return this._aufwandAbsolut;
+  }
 
-    set aufwandAbsolut(value: number) {
-        this._aufwandAbsolut = value;
-    }
+  set aufwandAbsolut(value: number) {
+    this._aufwandAbsolut = value;
+  }
 
-    get isAufwandRelativBase(): boolean {
-        return this._isAufwandRelativBase;
-    }
+  get isAufwandRelativBase(): boolean {
+    return this._isAufwandRelativBase;
+  }
 
-    set isAufwandRelativBase(value: boolean) {
-        this._isAufwandRelativBase = value;
-    }
+  set isAufwandRelativBase(value: boolean) {
+    this._isAufwandRelativBase = value;
+  }
 
-    get referenzierteZwischensumme(): Zwischensumme {
-        return this._referenzierteZwischensumme;
-    }
+  get basisZwischensumme(): Zwischensumme {
+    return this._basisZwischensumme;
+  }
 
-    set referenzierteZwischensumme(value: Zwischensumme) {
-        this._referenzierteZwischensumme = value;
-    }
+  set basisZwischensumme(value: Zwischensumme) {
+    this._basisZwischensumme = value;
+  }
+
+  get naechsteZwischensumme(): Zwischensumme {
+    return this._naechsteZwischensumme;
+  }
+
+  set naechsteZwischensumme(value: Zwischensumme) {
+    this._naechsteZwischensumme = value;
+  }
 }
