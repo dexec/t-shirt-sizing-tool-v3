@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
-import { Eintrag } from "@/models/Eintrag";
 import { Zwischensumme } from "@/models/Zwischensumme";
 import type { AbstrakterEintrag } from "@/models/AbstrakterEintrag";
 import { useStatistikenStore } from "@/stores/statistiken";
 import { ref } from "vue";
 import { useProjektStore } from "@/stores/projekt";
+import { Aufschlag } from "@/models/Aufschlag";
 
 export const useEintraegeStore = defineStore("eintraege", () => {
       const eintraege = ref<Array<AbstrakterEintrag>>([]);
@@ -37,11 +37,12 @@ export const useEintraegeStore = defineStore("eintraege", () => {
         let aktuelleZwischensumme = eintraege.value[0] as Zwischensumme;
         for (let i = 1; i < eintraege.value.length; i++) {
           const aktuellerEintrag = eintraege.value[i];
-          if (aktuellerEintrag instanceof Eintrag) {
+          if (aktuellerEintrag instanceof Aufschlag) {
             if (aktuellerEintrag.isAufwandRelativBase) {
               aktuellerEintrag.aufwandAbsolut = aktuellerEintrag.aufwandRelativ * aktuellerEintrag.basisZwischensumme.zwischensummeAufwand / 100;
             } else {
-              aktuellerEintrag.aufwandRelativ = aktuellerEintrag.aufwandAbsolut / aktuellerEintrag.basisZwischensumme.zwischensummeAufwand * 100;
+              if(aktuellerEintrag.basisZwischensumme.zwischensummeAufwand == 0) aktuellerEintrag.aufwandRelativ = 0
+              else aktuellerEintrag.aufwandRelativ = aktuellerEintrag.aufwandAbsolut / aktuellerEintrag.basisZwischensumme.zwischensummeAufwand * 100;
             }
             vorigerAbschnittAufwandAbsolut += aktuellerEintrag.aufwandAbsolut;
             vorigerAbschnittAufwandRelativ += aktuellerEintrag.aufwandRelativ;
@@ -60,7 +61,7 @@ export const useEintraegeStore = defineStore("eintraege", () => {
         let aktuelleZwischensumme = eintraege.value[0] as Zwischensumme;
         for (let i = 1; i < eintraege.value.length; i++) {
           const aktuellerEintrag = eintraege.value[i];
-          if (aktuellerEintrag instanceof Eintrag) {
+          if (aktuellerEintrag instanceof Aufschlag) {
             aktuellerEintrag.basisZwischensumme = aktuelleZwischensumme;
           } else if (aktuellerEintrag instanceof Zwischensumme) {
             aktuelleZwischensumme = aktuellerEintrag;
@@ -69,7 +70,7 @@ export const useEintraegeStore = defineStore("eintraege", () => {
         let naechsteZwischensumme = eintraege.value[eintraege.value.length - 1] as Zwischensumme;
         for (let i = eintraege.value.length - 2; i >= 1; i--) {
           const aktuellerEintrag = eintraege.value[i];
-          if (aktuellerEintrag instanceof Eintrag) {
+          if (aktuellerEintrag instanceof Aufschlag) {
             aktuellerEintrag.naechsteZwischensumme = naechsteZwischensumme;
           } else if (aktuellerEintrag instanceof Zwischensumme) {
             naechsteZwischensumme = aktuellerEintrag;
@@ -81,7 +82,7 @@ export const useEintraegeStore = defineStore("eintraege", () => {
         const endsumme = eintraege.value[eintraege.value.length - 1] as Zwischensumme;
         for (let i = 1; i < eintraege.value.length; i++) {
           const aktuellerEintrag = eintraege.value[i];
-          if (aktuellerEintrag instanceof Eintrag) {
+          if (aktuellerEintrag instanceof Aufschlag) {
             const naechsteZwischensumme = aktuellerEintrag.naechsteZwischensumme;
             if (naechsteZwischensumme.zwischensummeAufwand == 0) aktuellerEintrag.anteilZwischensumme = 0;
             else aktuellerEintrag.anteilZwischensumme = parseFloat((aktuellerEintrag.aufwandAbsolut / naechsteZwischensumme.zwischensummeAufwand * 100).toFixed(projektStore.nachkommastellen));
@@ -106,7 +107,7 @@ export const useEintraegeStore = defineStore("eintraege", () => {
       }
 
       function updateAufwandRelativ(rowDataIndex: number, newAufwandRelativ: number) {
-        const eintrag = eintraege.value[rowDataIndex] as Eintrag;
+        const eintrag = eintraege.value[rowDataIndex] as Aufschlag;
         if (eintrag) {
           eintrag.aufwandRelativ = newAufwandRelativ;
           eintrag.aufwandAbsolut = parseFloat((eintrag.aufwandRelativ * eintrag.basisZwischensumme.zwischensummeAufwand / 100).toFixed(projektStore.nachkommastellen));
@@ -116,7 +117,7 @@ export const useEintraegeStore = defineStore("eintraege", () => {
       }
 
       function updateAufwandAbsolut(rowDataIndex: number, newAufwandAbsolut: number) {
-        const eintrag = eintraege.value[rowDataIndex] as Eintrag;
+        const eintrag = eintraege.value[rowDataIndex] as Aufschlag;
         if (eintrag) {
           eintrag.aufwandAbsolut = newAufwandAbsolut;
           eintrag.aufwandRelativ = parseFloat((eintrag.aufwandAbsolut / eintrag.basisZwischensumme.zwischensummeAufwand * 100).toFixed(projektStore.nachkommastellen));
@@ -126,7 +127,7 @@ export const useEintraegeStore = defineStore("eintraege", () => {
       }
 
       function addNewEintrag(rowDataIndex: number) {
-        const newEintrag = new Eintrag("Neuer Aufschlag", 0, 0, 0, 0, false, null, null);
+        const newEintrag = new Aufschlag("Neuer Aufschlag", 0, 0, 0, 0, false, null, null);
         if (rowDataIndex == -1) eintraege.value.splice(rowDataIndex, 0, newEintrag);
         else eintraege.value.splice(rowDataIndex + 1, 0, newEintrag);
         berechne();

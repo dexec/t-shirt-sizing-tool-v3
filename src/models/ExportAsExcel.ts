@@ -5,7 +5,7 @@ import type {Statistik} from "@/models/Statistik";
 import type {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
 import type {Paket} from "@/models/Paket";
 import type {Bucket} from "@/models/Bucket";
-import {Eintrag} from "@/models/Eintrag";
+import {Aufschlag} from "@/models/Aufschlag";
 import {Zwischensumme} from "@/models/Zwischensumme";
 import {usePaketeStore} from "@/stores/pakete";
 import {useStatistikenStore} from "@/stores/statistiken";
@@ -670,7 +670,7 @@ export class ExportAsExcel {
         ];
         const arraySerializableEintraege: SerializableEintrag[] = [];
         for (const eintrag of eintraege) {
-            if (eintrag instanceof Eintrag) {
+            if (eintrag instanceof Aufschlag) {
                 const serializableEintrag: SerializableEintrag = {
                     bezeichnung: eintrag.bezeichnung,
                     aufschlag: eintrag.aufwandRelativ / 100,
@@ -787,9 +787,9 @@ export class ExportAsExcel {
                 }
             } else {
                 //Wenn die Basis Aufschlag ist, bekommt Aufwand die Formel und umgekehrt
-                if (eintraege[i - 1] instanceof Eintrag) {
+                if (eintraege[i - 1] instanceof Aufschlag) {
                     //Bei normalen Einträgen ist die Formel für den Aufwand: Aufschlag * aktuelle Zwischensumme
-                    if ((eintraege[i - 1] as Eintrag).isAufwandRelativBase) {
+                    if ((eintraege[i - 1] as Aufschlag).isAufwandRelativBase) {
                         sheet[XLSX.utils.encode_cell({
                             r: startzeilennummer + i,
                             c: 2

@@ -1,6 +1,6 @@
 import { useBucketsStore } from "@/stores/buckets";
 import { useEintraegeStore } from "@/stores/eintraege";
-import { Eintrag } from "@/models/Eintrag";
+import { Aufschlag } from "@/models/Aufschlag";
 import { Zwischensumme } from "@/models/Zwischensumme";
 import { usePaketeStore } from "@/stores/pakete";
 import { useProjektStore } from "@/stores/projekt";
@@ -79,7 +79,7 @@ export class ExportProject {
     const eintraegeStore = useEintraegeStore();
     eintraegeStore.eintraege.forEach(eintrag => {
       if (!["Startsumme", "Endsumme"].includes(eintrag.bezeichnung)) {
-        if (eintrag instanceof Eintrag) {
+        if (eintrag instanceof Aufschlag) {
           if (eintrag.isAufwandRelativBase)
             this._eintraege.push({ bezeichnung: eintrag.bezeichnung, aufwandRelativ: eintrag.aufwandRelativ });
           else this._eintraege.push({ bezeichnung: eintrag.bezeichnung, aufwandAbsolut: eintrag.aufwandAbsolut });

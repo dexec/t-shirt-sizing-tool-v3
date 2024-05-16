@@ -1,7 +1,7 @@
 import { AbstrakterEintrag } from "@/models/AbstrakterEintrag";
 import { Zwischensumme } from "@/models/Zwischensumme";
 
-export class Eintrag extends AbstrakterEintrag {
+export class Aufschlag extends AbstrakterEintrag {
 
   private _aufwandRelativ: number;
   private _aufwandAbsolut: number;

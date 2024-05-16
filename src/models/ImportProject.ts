@@ -2,7 +2,7 @@ import {Bucket} from "@/models/Bucket";
 import {Paket} from "@/models/Paket";
 import type {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
 import {Zwischensumme} from "@/models/Zwischensumme";
-import {Eintrag} from "@/models/Eintrag";
+import {Aufschlag} from "@/models/Aufschlag";
 import {Projekt} from "@/models/Projekt";
 import {useBucketsStore} from "@/stores/buckets";
 import {useProjektStore} from "@/stores/projekt";
@@ -110,8 +110,8 @@ export class ImportProject {
             if (eintrag.bezeichnung == "Zwischensumme") {
                 const newZwischsumme = new Zwischensumme(eintrag.bezeichnung, 0, 0, 0, 0)
                 this._eintraege.push(newZwischsumme)
-            } else if (eintrag.aufwandRelativ != undefined) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, eintrag.aufwandRelativ, 0, true, null,null));
-            else if (eintrag.aufwandAbsolut != undefined) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, 0, eintrag.aufwandAbsolut, false, null,null));
+            } else if (eintrag.aufwandRelativ != undefined) this._eintraege.push(new Aufschlag(eintrag.bezeichnung, 0, 0, eintrag.aufwandRelativ, 0, true, null,null));
+            else if (eintrag.aufwandAbsolut != undefined) this._eintraege.push(new Aufschlag(eintrag.bezeichnung, 0, 0, 0, eintrag.aufwandAbsolut, false, null,null));
         }
         this._eintraege.push(new Zwischensumme("Endsumme", 0, 0, 0, 0))
 

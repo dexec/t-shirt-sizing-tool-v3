@@ -24,17 +24,18 @@
       </template>
     </div>
     <div class="align-self-center">
-      <EintragErklaerenComponent v-if="selectedColumn == ColumnET.GESAMTPROJEKT"
-                                 :api="props.params.api" :node="props.params.node"></EintragErklaerenComponent>
+      <EintragErklaerenComponent
+        v-if="selectedColumn == ColumnET.GESAMTPROJEKT && bezeichnung!='Startsumme' && bezeichnung!='Endsumme'"
+        :api="props.params.api" :node="props.params.node"></EintragErklaerenComponent>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {Zwischensumme} from "@/models/Zwischensumme";
-import {computed} from "vue";
-import {useProjektStore} from "@/stores/projekt";
-import {ColumnET} from "@/enums/ColumnET";
+import { Zwischensumme } from "@/models/Zwischensumme";
+import { computed } from "vue";
+import { useProjektStore } from "@/stores/projekt";
+import { ColumnET } from "@/enums/ColumnET";
 import EintragErklaerenComponent from "@/components/EintragErklaerenComponent.vue";
 
 const projektStore = useProjektStore();
