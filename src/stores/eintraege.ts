@@ -5,6 +5,7 @@ import { useStatistikenStore } from "@/stores/statistiken";
 import { ref } from "vue";
 import { useProjektStore } from "@/stores/projekt";
 import { Aufschlag } from "@/models/Aufschlag";
+import {SummeET} from "@/enums/SummeET";
 
 export const useEintraegeStore = defineStore("eintraege", () => {
       const eintraege = ref<Array<AbstrakterEintrag>>([]);
@@ -127,9 +128,9 @@ export const useEintraegeStore = defineStore("eintraege", () => {
       }
 
       function addNewEintrag(rowDataIndex: number) {
-        const newEintrag = new Aufschlag("Neuer Aufschlag", 0, 0, 0, 0, false, null, null);
-        if (rowDataIndex == -1) eintraege.value.splice(rowDataIndex, 0, newEintrag);
-        else eintraege.value.splice(rowDataIndex + 1, 0, newEintrag);
+        const newAufschlag = new Aufschlag("Neuer Aufschlag", 0, 0, 0, 0, false, null, null);
+        if (rowDataIndex == -1) eintraege.value.splice(rowDataIndex, 0, newAufschlag);
+        else eintraege.value.splice(rowDataIndex + 1, 0, newAufschlag);
         berechne();
       }
 
@@ -143,11 +144,12 @@ export const useEintraegeStore = defineStore("eintraege", () => {
       function deleteEintrag(rowDataIndex: number) {
         eintraege.value.splice(rowDataIndex, 1);
         if (eintraege.value[rowDataIndex] instanceof Zwischensumme &&
-          eintraege.value[rowDataIndex].bezeichnung != "Endsumme" &&
-          eintraege.value[rowDataIndex].bezeichnung != "Startsumme" &&
-          eintraege.value[rowDataIndex - 1] instanceof Zwischensumme
-        )
+            eintraege.value[rowDataIndex].bezeichnung != SummeET.STARTSUMME &&
+            eintraege.value[rowDataIndex].bezeichnung != SummeET.ENDSUMME &&
+            eintraege.value[rowDataIndex - 1] instanceof Zwischensumme
+        ) {
           deleteEintrag(rowDataIndex);
+        }
         berechne();
       }
 

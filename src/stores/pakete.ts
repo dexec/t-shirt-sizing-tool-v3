@@ -79,15 +79,15 @@ export const usePaketeStore = defineStore("pakete", () => {
     }
   }
   function updateBucket(paket: Paket, bucket: Bucket | null) {
-    if (paket.bucket) {
+    if (paket.bucket!=null && paket.bucket!=bucket) {
       const indexOfPaket = unsortedPaketeListsSortedByBucketsMap.value.get(paket.bucket)!.indexOf(paket);
       unsortedPaketeListsSortedByBucketsMap.value.get(paket.bucket)!.splice(indexOfPaket, 1);
     }
-    if (bucket) {
+    if (bucket!=null) {
       unsortedPaketeListsSortedByBucketsMap.value.get(bucket)!.push(paket);
     }
-    //Um computed Properties zu triggern, die die Map nutzen
-    paketeAsMap.value.get(paket.id)!.bucket = bucket;
+    const paketFromMap = paketeAsMap.value.get(paket.id);
+    if(paketFromMap!=null) paket.bucket = bucket;
   }
 
   function updateTreeViewAfterChangedOpenState(changedPaket: Paket): number {
