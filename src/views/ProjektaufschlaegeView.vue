@@ -33,29 +33,33 @@ import type { ColDef } from "ag-grid-community";
 import { Column, GridApi } from "ag-grid-community";
 import { useEintraegeStore } from "@/stores/eintraege";
 import ContextMenu from "@/components/ContextMenu.vue";
-import { Eintrag } from "@/models/Eintrag";
+import { Aufschlag } from "@/models/Aufschlag";
 import { Zwischensumme } from "@/models/Zwischensumme";
 import { SummeET } from "@/enums/SummeET";
 import { ColumnET } from "@/enums/ColumnET";
 import { useProjektStore } from "@/stores/projekt";
 import {useProjektkalkulationStore} from "@/stores/projektkalkulation";
-
+document.addEventListener('keydown', (e) => {
+  if((e.key ==="ArrowUp" || e.key === "ArrowDown") && e.ctrlKey) {
+    e.preventDefault();
+  }
+})
 const projektkalkulationStore = useProjektkalkulationStore();
 watch(() => projektkalkulationStore.colorCells, (val) => {
   if(val) colorCellsAndExplain();
   else clearColorsAndErklaerungen();
 })
-provide("eintragErstellen", eintragErstellen);
+provide("aufschlagErstellen", aufschlagErstellen);
 provide("eintragEntfernen", eintragEntfernen);
 provide("zwischensummeErstellen", zwischensummeErstellen);
 provide("moveZeileUp", moveZeileUp);
 provide("moveZeileDown", moveZeileDown);
 const providedFunctions = ref([
-  { functionName: "eintragErstellen", functionLabel: "Neuen Eintrag erstellen" },
-  { functionName: "eintragEntfernen", functionLabel: "Eintrag entfernen" },
+  { functionName: "aufschlagErstellen", functionLabel: "Neuen Aufschlag erstellen" },
+  { functionName: "eintragEntfernen", functionLabel: "Aufschlag entfernen" },
   { functionName: "zwischensummeErstellen", functionLabel: "Neue Zwischensumme erstellen" },
-  { functionName: "moveZeileUp", functionLabel: "Eintrag eine Zeile nach oben verschieben", icon: "mdi-arrow-up" },
-  { functionName: "moveZeileDown", functionLabel: "Eintrag eine Zeile nach unten verschieben", icon: "mdi-arrow-down" },
+  { functionName: "moveZeileUp", functionLabel: "Aufschlag eine Zeile nach oben verschieben", icon: "mdi-arrow-up" },
+  { functionName: "moveZeileDown", functionLabel: "Aufschlag eine Zeile nach unten verschieben", icon: "mdi-arrow-down" },
 ]);
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 const eintragErklaeren = ref(false);
@@ -94,9 +98,6 @@ const columnDefs: ColDef[] = [
       if (!isNaN(newValue)) {
         eintraegeStore.updateAufwandRelativ(params.node.rowIndex, +newValue);
       } else params.data.aufwandRelativ = params.oldValue;
-      //TODO DAS IST DER GRUND, DASS WÄHREND DES EDITS EIN KLICK WOANDERS ABGEFANGEN WIRD!!
-      //gridApi.value!.refreshCells({ force: true });
-
     },
     editable: false
   },
@@ -131,6 +132,8 @@ const defaultColDef = reactive(
   {
     suppressKeyboardEvent: (params: any) => {
       let key = params.event.key;
+      /*if(key==="ArrowDown" && params.event.ctrlKey) console.log("event")
+      return key==="ArrowDown" && params.event.ctrlKey;*/
       return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key);
     },
     sortable: false,
@@ -165,8 +168,9 @@ function clearColorsAndErklaerungen() {
     column.cellStyle = {};
   });
   gridApi.value!.setGridOption("columnDefs", columnDefs);
+  //TODO Tooltip scroll flackert die Anwendung
   gridApi.value!.redrawRows();
-  projektkalkulationStore.clearErklaerungen()
+
 }
 
 function colorCellsAndExplain() {
@@ -213,9 +217,9 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
     }
     case SummeET.ZWISCHENSUMME: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Zwischensumme;
-      const vorigerAbschnittEintraege: Eintrag[] = [];
+      const vorigerAbschnittEintraege: Aufschlag[] = [];
       for (let i = rowIndex - 1; ![SummeET.STARTSUMME as string, SummeET.ZWISCHENSUMME as string].includes(rowData[i].bezeichnung); i--) {
-        vorigerAbschnittEintraege.push(rowData[i] as Eintrag);
+        vorigerAbschnittEintraege.push(rowData[i] as Aufschlag);
       }
       projektkalkulationStore.erklaerungsText = "Der Aufschlag der Zwischensumme ist die Summe aller Aufschläge des vorigen Abschnitts.";
       for (let i = vorigerAbschnittEintraege.length - 1; i >= 1; i--) {
@@ -235,11 +239,11 @@ function erklaereAufschlag(bezeichnung: string, rowIndex: number) {
       break;
     }
     default : {
-      const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
+      const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Aufschlag;
       projektkalkulationStore.erklaerungsText = "Der Aufschlag errechnet sich durch das Dividieren des Aufwands durch die letzte Zwischensumme.";
       let aufwand;
       let aufschlag;
-      const Zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen);
+      const Zwischensumme = aktuellerEintrag.basisZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen);
       if (aktuellerEintrag.isAufwandRelativBase) {
         aufwand = aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen);
         aufschlag = aktuellerEintrag.aufwandRelativ;
@@ -263,9 +267,9 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
     }
     case SummeET.ZWISCHENSUMME: {
       const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Zwischensumme;
-      const vorigerAbschnittEintraege: Eintrag[] = [];
+      const vorigerAbschnittEintraege: Aufschlag[] = [];
       for (let i = rowIndex - 1; ![SummeET.STARTSUMME as string, SummeET.ZWISCHENSUMME as string].includes(rowData[i].bezeichnung); i--) {
-        vorigerAbschnittEintraege.push(rowData[i] as Eintrag);
+        vorigerAbschnittEintraege.push(rowData[i] as Aufschlag);
       }
       projektkalkulationStore.erklaerungsText = "Der Aufwand der Zwischensumme ist zweigeteilt. Der obere Wert ergibt sich aus der Summe aller Aufwände des vorigen Abschnitts. ";
       projektkalkulationStore.erklaerungsTextZusatz = "Der untere Wert ergibt sich aus der Summe des oberen Wertes und der Startsumme.";
@@ -283,16 +287,16 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
       projektkalkulationStore.erklaerungsRechnung += +startaufwand;
       //projektkalkulationStore.erklaerungsRechnung = `Das ergibt für den oberen Wert <span style=color:lightgreen>${projektkalkulationStore.erklaerungsRechnung}</span> = <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span>`;
       projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${projektkalkulationStore.erklaerungsRechnung}</span> = <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span>`;
-      //projektkalkulationStore.erklaerungsRechnungZusatz = `Für den unteren Wert ergibt das <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:orange>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
-      projektkalkulationStore.erklaerungsRechnungZusatz = `<span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:orange>${vorigerAbschnittEintraege[0].referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
+      //projektkalkulationStore.erklaerungsRechnungZusatz = `Für den unteren Wert ergibt das <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:orange>${vorigerAbschnittEintraege[0].basisZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
+      projektkalkulationStore.erklaerungsRechnungZusatz = `<span style=color:orange>${vorigerAbschnittEintraege[0].basisZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> + <span style=color:lightblue>${aktuellerEintrag.vorigerAbschnittAufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span>`;
       break;
     }
     case SummeET.ENDSUMME: {
       const endsumme = gridApi.value!.getRowNode(rowData.length - 1 + "")!.data as Zwischensumme;
       const alleEintraege: number[] = [];
       for (let i = rowIndex - 1; i >= 1; i--) {
-        if (rowData[i] instanceof Eintrag) {
-          alleEintraege.push((rowData[i] as Eintrag).aufwandAbsolut);
+        if (rowData[i] instanceof Aufschlag) {
+          alleEintraege.push((rowData[i] as Aufschlag).aufwandAbsolut);
         }
       }
       projektkalkulationStore.erklaerungsRechnung += gridApi.value!.getRowNode("0")!.data.zwischensummeAufwand;
@@ -305,8 +309,8 @@ function erklaereAufwand(bezeichnung: string, rowIndex: number) {
       break;
     }
     default : {
-      const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
-      const Zwischensumme = aktuellerEintrag.referenzierteZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen);
+      const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Aufschlag;
+      const Zwischensumme = aktuellerEintrag.basisZwischensumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen);
       projektkalkulationStore.erklaerungsText = "Der Aufwand errechnet sich durch das Multiplizieren des Aufschlags mit der Zwischensumme.";
       let aufwand;
       let aufschlag;
@@ -338,7 +342,7 @@ function erklaereAnteilAnZwischensumme(bezeichnung: string, rowIndex: number) {
       break;
     }
     default: {
-      const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
+      const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Aufschlag;
       let naechsteZwischensumme = (gridApi.value!.getRowNode(rowData.length - 1 + "")!.data as Zwischensumme).zwischensummeAufwand;
       for (let i = rowIndex; i < rowData.length; i++) {
         if (rowData[i] instanceof Zwischensumme) {
@@ -346,7 +350,7 @@ function erklaereAnteilAnZwischensumme(bezeichnung: string, rowIndex: number) {
           break;
         }
       }
-      projektkalkulationStore.erklaerungsText = "Der Anteil an nächster Zwischensumme zeigt, wie viel Aufwand in Prozent der aktuelle Eintrag für die nächste Zwischensumme ausmacht.";
+      projektkalkulationStore.erklaerungsText = "Der Anteil an nächster Zwischensumme zeigt, wie viel Aufwand in Prozent der aktuelle Aufschlag für die nächste Zwischensumme ausmacht.";
       //projektkalkulationStore.erklaerungsRechnung = `Das ergibt <span style=color:lightgreen>${aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${naechsteZwischensumme.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilZwischensumme.toFixed(projektStore.nachkommastellen)}%</span>`;
       projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${naechsteZwischensumme.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilZwischensumme.toFixed(projektStore.nachkommastellen)}%</span>`;
     }
@@ -368,8 +372,8 @@ function erklaereAnteilAnGesamtprojekt(bezeichnung: string, rowIndex: number) {
       break;
     }
     default: {
-      const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Eintrag;
-      projektkalkulationStore.erklaerungsText = "Der Anteil am Gesamtprojekt zeigt, wie viel Aufwand in Prozent der aktuelle Eintrag für das Gesamtprojekt ausmacht.";
+      const aktuellerEintrag = gridApi.value!.getRowNode(rowIndex + "")!.data as Aufschlag;
+      projektkalkulationStore.erklaerungsText = "Der Anteil am Gesamtprojekt zeigt, wie viel Aufwand in Prozent der aktuelle Aufschlag für das Gesamtprojekt ausmacht.";
       //projektkalkulationStore.erklaerungsRechnung = `Das ergibt <span style=color:lightgreen>${aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projektStore.nachkommastellen)}%</span>`;
       projektkalkulationStore.erklaerungsRechnung = `<span style=color:lightgreen>${aktuellerEintrag.aufwandAbsolut.toFixed(projektStore.nachkommastellen)}</span> / <span style=color:orange>${endsumme.zwischensummeAufwand.toFixed(projektStore.nachkommastellen)}</span> = <span style=color:lightblue>${aktuellerEintrag.anteilGesamtprojekt.toFixed(projektStore.nachkommastellen)}%</span>`;
     }
@@ -409,7 +413,7 @@ function colorAufschlagUndAufwand(rowIndex: number, column: string) {
       if (column == ColumnET.AUFWAND) {
         const alleEintraege: number[] = [0];
         for (let i = 1; i < rowData.length - 1; i++) {
-          if (rowData[i] instanceof Eintrag) {
+          if (rowData[i] instanceof Aufschlag) {
             alleEintraege.push(i);
           }
           columnDefs.find(columnOfColumnDefs => columnOfColumnDefs.field == ColumnET.AUFWAND)!.cellStyle = (params: any) => {
@@ -554,6 +558,7 @@ function onCellKeyPress(e: any) {
     const ctrl = e.event.ctrlKey;
     const shift = e.event.shiftKey;
     const colKey = e.column.colId;
+
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
         case "ArrowDown": {
@@ -619,7 +624,7 @@ function onCellKeyPress(e: any) {
         }
         case "+" : {
           if (!ctrl)
-            nextTick(() => eintragErstellen());
+            nextTick(() => aufschlagErstellen());
           break;
         }
         case "*": {
@@ -674,16 +679,15 @@ function onCellEditingStopped(e: any) {
 }
 
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
-
   gridApi.value!.stopEditing(cancel);
   nextTick(() => eintraegeStore.berechne());
   columnDefs.forEach(column => column.editable = false);
   gridApi.value!.setGridOption("columnDefs", columnDefs);
   gridApi.value!.setFocusedCell(rowIndex, colKey);
-  refreshTable(colKey, rowIndex);
+  //refreshTable(colKey, rowIndex);
 }
 
-function eintragErstellen() {
+function aufschlagErstellen() {
   if (gridApi.value!.getSelectedRows()[0] && gridApi.value!.getSelectedRows()[0].bezeichnung !== SummeET.ENDSUMME) {
     const rowIndexSelectedRow = rowData.indexOf(gridApi.value!.getSelectedRows()[0]);
     eintraegeStore.addNewEintrag(rowIndexSelectedRow);
@@ -751,8 +755,7 @@ function moveZeileDown() {
     }
   }
 }
-
-//TODO Beim klick auf eine Zelle wird eine Erklärung eingeblendet. Dann aktualisiert die Seite und scrollt nach oben. Der Scroll soll nicht passieren.
+//TODO Automatisches Scrolling nach oben verhindern
 function refreshTable(colKey?: Column | string, rowIndex?: number) {
   nextTick(() => {
     gridApi.value!.setGridOption("rowData", eintraegeStore.eintraege);

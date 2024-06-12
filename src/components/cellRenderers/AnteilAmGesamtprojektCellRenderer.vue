@@ -24,8 +24,9 @@
       </template>
     </div>
     <div class="align-self-center">
-      <EintragErklaerenComponent v-if="selectedColumn == ColumnET.GESAMTPROJEKT"
-                                 :api="props.params.api" :node="props.params.node"></EintragErklaerenComponent>
+      <EintragErklaerenComponent
+        v-if="selectedColumn == ColumnET.GESAMTPROJEKT && bezeichnung!='Startsumme' && bezeichnung!='Endsumme'"
+        :api="props.params.api" :node="props.params.node"></EintragErklaerenComponent>
     </div>
   </div>
 </template>
@@ -44,7 +45,10 @@ const selectedColumn = computed(() => {
   if (focusedCell != null) return focusedCell.column.getColId();
   else return "";
 });
-const anteilGesamtprojekt = computed(() => Number(props.params.data.anteilGesamtprojekt).toLocaleString("de", { minimumFractionDigits: projektStore.nachkommastellen, maximumFractionDigits: projektStore.nachkommastellen }));
+const anteilGesamtprojekt = computed(() => Number(props.params.data.anteilGesamtprojekt).toLocaleString("de", {
+  minimumFractionDigits: projektStore.nachkommastellen,
+  maximumFractionDigits: projektStore.nachkommastellen
+}));
 const bezeichnung = computed(() => props.params.data.bezeichnung);
 
 </script>

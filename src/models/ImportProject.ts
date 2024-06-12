@@ -2,7 +2,7 @@ import {Bucket} from "@/models/Bucket";
 import {Paket} from "@/models/Paket";
 import type {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
 import {Zwischensumme} from "@/models/Zwischensumme";
-import {Eintrag} from "@/models/Eintrag";
+import {Aufschlag} from "@/models/Aufschlag";
 import {Projekt} from "@/models/Projekt";
 import {useBucketsStore} from "@/stores/buckets";
 import {useProjektStore} from "@/stores/projekt";
@@ -42,14 +42,14 @@ export class ImportProject {
             if(newPaket.id > highestId) highestId = newPaket.id
         }
         Paket.idCounter = highestId + 1;
-        this.generatePakete(0);//Nur dev-Zweck
+        this.generatePakete(50);//Nur dev-Zweck
         this.setPaketeTreeStructure(paketeTree);
         this.setPaketeLevelAndSchaetzung();
     }
 
     private generatePakete(numberPakete: number) {
         for (let i = 0; i < numberPakete; i++) {
-            const newPaket = new Paket("Ticket-Nr " + (i + numberPakete), "Testing " + i, "Ticket zum Testen", null, null, false, 0, null, []);
+            const newPaket = new Paket("Ticket-Nr " + (i + numberPakete), "Testing " + (i + numberPakete), "Ticket zum Testen", null, null, false, 0, null, []);
             this._pakete.push(newPaket);
         }
     }
@@ -106,14 +106,12 @@ export class ImportProject {
 
     private fileToEintrageArray(eintrageFromFile: any[]): void {
         this._eintraege.unshift(new Zwischensumme("Startsumme", 0, 0, 0, 0));
-        let aktuelleZwischensumme = this._eintraege[0] as Zwischensumme;
         for (const eintrag of eintrageFromFile) {
             if (eintrag.bezeichnung == "Zwischensumme") {
                 const newZwischsumme = new Zwischensumme(eintrag.bezeichnung, 0, 0, 0, 0)
-                aktuelleZwischensumme = newZwischsumme;
                 this._eintraege.push(newZwischsumme)
-            } else if (eintrag.aufwandRelativ != undefined) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, eintrag.aufwandRelativ, 0, true, aktuelleZwischensumme));
-            else if (eintrag.aufwandAbsolut != undefined) this._eintraege.push(new Eintrag(eintrag.bezeichnung, 0, 0, 0, eintrag.aufwandAbsolut, false, aktuelleZwischensumme));
+            } else if (eintrag.aufwandRelativ != undefined) this._eintraege.push(new Aufschlag(eintrag.bezeichnung, 0, 0, eintrag.aufwandRelativ, 0, true, null,null));
+            else if (eintrag.aufwandAbsolut != undefined) this._eintraege.push(new Aufschlag(eintrag.bezeichnung, 0, 0, 0, eintrag.aufwandAbsolut, false, null,null));
         }
         this._eintraege.push(new Zwischensumme("Endsumme", 0, 0, 0, 0))
 

@@ -1,5 +1,4 @@
 <template>
-<!--  TODO Scroll-Bar in der ganzen Anwendung entfernen!-->
   <v-app>
     <v-main>
       <AppBar></AppBar>

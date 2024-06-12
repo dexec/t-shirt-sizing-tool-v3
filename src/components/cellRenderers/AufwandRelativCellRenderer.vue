@@ -26,7 +26,9 @@
     </template>
     <template v-else>
       <div class="flex-grow-1"> {{ aufwandRelativ }}%
-        <template v-if="props.params.data.isAufwandRelativBase"> *</template>
+        <template v-if="props.params.data.isAufwandRelativBase">
+          <v-icon class="ml-3" icon="mdi-pencil"></v-icon>
+        </template>
       </div>
     </template>
     <div class="align-self-center">

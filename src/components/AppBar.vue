@@ -2,7 +2,7 @@
 
   <v-app-bar color="#03787c" flat>
     <!--    TODO Icon einbauen-->
-    <v-tabs :model-value="tabs">
+    <v-tabs>
       <v-tab title="Projekt erstellen" @click="showDialogCreateNewProject=true">
         <v-icon icon="mdi-folder-plus"></v-icon>
       </v-tab>
@@ -66,6 +66,7 @@ const projektStore = useProjektStore();
 const showSuche = ref(false);
 const route = useRoute();
 const tabs = computed(() => "/" + route.fullPath.split("/")[1]);
+
 const entriesHelperComp = computed(() => {
   if(tabs.value=="/projekt") return projekt();
   if(tabs.value=="/pakete") return pakete();

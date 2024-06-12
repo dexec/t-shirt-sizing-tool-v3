@@ -21,8 +21,6 @@
     </ag-grid-vue>
   </div>
   <v-btn v-if="rowData.length==0" class="centeredButton" @click="addNewPaket">Neues Paket erstellen</v-btn>
-  <SuchComponent v-if="showSuche" :show-searched-paket="showSearchedPaket" :toggle-suche="toggleSuche"
-                 style="height: 100%"></SuchComponent>
   <ContextMenu ref="contextMenuRef" :providedFunctionsProp="[...providedFunctionsContextMenu]"></ContextMenu>
   <ConfirmDialog v-model="showDialog" @cancel="cancelDeletePaket" @confirm="deletePaket">
     <template #question>Möchten Sie das Paket wirklich löschen?</template>
@@ -45,13 +43,17 @@ import {useProjektStore} from "@/stores/projekt";
 import type {ColDef} from "ag-grid-community";
 import {Column, GridApi} from "ag-grid-community";
 import type {Bucket} from "@/models/Bucket";
-import SuchComponent from "@/components/SuchComponent.vue";
 import type {Paket} from "@/models/Paket";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import {errorToastPaketNrEmpty, errorToastPaketNrNotUnique} from "@/models/Toasts";
 import WarningCellRenderer from "@/components/cellRenderers/WarningCellRenderer.vue";
-import { useRoute } from "vue-router";
-
+import {useRoute, useRouter} from "vue-router";
+import router from "@/router";
+document.addEventListener('keydown', (e) => {
+  if((e.key ==="ArrowUp" || e.key === "ArrowDown") && e.ctrlKey) {
+    e.preventDefault();
+  }
+})
 const toast = useToast();
 const projektStore = useProjektStore();
 const gridApi = ref<GridApi>();
@@ -62,10 +64,11 @@ let duplicateTicketNrFound = false;
 const routeParamsId = ref("");
 onMounted(() => {
   routeParamsId.value = useRoute().params.id as string;
+  router.push("/pakete/")
 })
 onUpdated(() => {
   const routeParamsIdNew = useRoute().params.id as string;
-  if(routeParamsId.value == routeParamsIdNew) return;
+  if(routeParamsIdNew=="") return;
   routeParamsId.value = routeParamsIdNew
   const pathId = Number(routeParamsId.value);
   if(pathId == null || isNaN(pathId)) return;
@@ -73,6 +76,7 @@ onUpdated(() => {
   if (selectedRow != null) {
     if(selectedRow.id != pathId) showSearchedPaket(paketeStore.paketeAsMap.get(pathId) as Paket);
   }
+  router.push("/pakete/")
 })
 function onGridReady(params: any) {
   gridApi.value = params.api;
@@ -80,6 +84,7 @@ function onGridReady(params: any) {
   const pathId = Number(routeParamsId.value);
   if(pathId == null || isNaN(pathId)) return;
   nextTick(() => showSearchedPaket(paketeStore.paketeAsMap.get(pathId) as Paket));
+
   //TODO Grid soll warten bis resiszed wude
 
 /*  window.addEventListener("resize", function () {
@@ -105,7 +110,7 @@ const columnDefs: ColDef[] = [
     field: "ticket_nr",
     headerName: "Ticket-NR",
     valueSetter: (params: any): any => {
-      if (params.newValue == "") {
+      if (params.newValue==null || params.newValue == "") {
         params.data.ticket_nr = params.oldValue;
         errorToastPaketNrEmpty();
       } else {
@@ -210,15 +215,13 @@ const columnDefs: ColDef[] = [
     editable: false
   }
 ];
-const showSuche = ref(false);
-
-function toggleSuche() {
-  showSuche.value = !showSuche.value;
-}
 
 function showSearchedPaket(paket: Paket) {
-  showSuche.value = false;
+  console.log("hier")
   paketeStore.showPaket(paket);
+  gridApi.value!.setGridOption('rowData', paketeStore.paketeAsTreeView);
+  const rowNodeIndex = gridApi.value!.getRowNode(paket.id + "")!.rowIndex
+  if(rowNodeIndex!=null) gridApi.value!.ensureIndexVisible(rowNodeIndex)
   refreshTable(gridApi.value!.getColumns()![0].getColId(), paket.id);
 }
 
@@ -269,7 +272,6 @@ function rightClickOnCell(e: any) {
     gridApi.value!.getDisplayedRowAtIndex(focusedRowIndex)!.setSelected(true);
   }
 }
-
 
 function onCellDoubleClicked(e: any) {
   if (gridApi.value!.getEditingCells().length === 0) {
@@ -384,14 +386,15 @@ function refreshTable(colKey?: Column | string, paketId?: number) {
 }
 
 function onCellKeyPress(e: any) {
+
   if (e.event) {
+
     const key = e.event.key;
     const ctrl = e.event.ctrlKey;
     const shift = e.event.shiftKey;
     const colKey = e.column.colId;
     if (gridApi.value!.getEditingCells().length === 0) {
       switch (key) {
-          //TODO Bei strg + runter/hoch scroll auch die seite nach maximal runter/hoch, preventdefault fehlt
         case "ArrowUp":
           if (ctrl || shift) {
             nextTick(() => movePaketUp());
