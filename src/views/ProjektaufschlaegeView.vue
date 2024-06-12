@@ -548,6 +548,7 @@ function onCellValueChanged(e: any) {
 }
 
 function onCellKeyPress(e: any) {
+  //TODO TAB muss abgefangen werden, da dadurch die Endsumme geändert und kaputt gemacht werden kann
   if (e.event) {
     const key = e.event.key;
     const ctrl = e.event.ctrlKey;
