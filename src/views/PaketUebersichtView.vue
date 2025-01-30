@@ -34,14 +34,13 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import {AgGridVue} from "ag-grid-vue3";
 import TreeDataCellRenderer from "@/components/TreeDataCellRenderer.vue";
 
-import {usePaketeStore} from "@/stores/pakete";
+import {usePaketContainer} from "@/stores/paketContainer";
+import {useBucketContainer} from "@/stores/bucketContainer";
+import {useKonfigContainer} from "@/stores/konfigContainer";
 import {nextTick, onMounted, onUpdated, provide, reactive, ref} from "vue";
-import {useBucketsStore} from "@/stores/buckets";
 import {useToast} from "vue-toastification";
 import ContextMenu from "@/components/ContextMenu.vue";
-import {useProjektStore} from "@/stores/projekt";
-import type {ColDef} from "ag-grid-community";
-import {Column, GridApi} from "ag-grid-community";
+import type {ColDef, GridApi, Column} from "ag-grid-community";
 import type {Bucket} from "@/models/Bucket";
 import type {Paket} from "@/models/Paket";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -55,11 +54,13 @@ document.addEventListener('keydown', (e) => {
   }
 })
 const toast = useToast();
-const projektStore = useProjektStore();
+const konfigContainer = useKonfigContainer();
 const gridApi = ref<GridApi>();
-let getRowId = (params: any): number => params.data._id;
-const paketeStore = usePaketeStore();
-const rowData = paketeStore.paketeAsTreeView;
+function getRowId(params: any): string {
+  return params.data._id + ""
+}
+const paketContainer = usePaketContainer();
+const rowData = paketContainer.paketeAsTreeView;
 let duplicateTicketNrFound = false;
 const routeParamsId = ref("");
 onMounted(() => {
@@ -74,7 +75,7 @@ onUpdated(() => {
   if(pathId == null || isNaN(pathId)) return;
   const selectedRow = gridApi.value!.getSelectedRows()[0]
   if (selectedRow != null) {
-    if(selectedRow.id != pathId) showSearchedPaket(paketeStore.paketeAsMap.get(pathId) as Paket);
+    if(selectedRow.id != pathId) showSearchedPaket(paketContainer.paketeAsMap.get(pathId) as Paket);
   }
   router.push("/pakete/")
 })
@@ -83,7 +84,7 @@ function onGridReady(params: any) {
   nextTick(() => gridApi.value!.autoSizeColumns(["ticket_nr"]));
   const pathId = Number(routeParamsId.value);
   if(pathId == null || isNaN(pathId)) return;
-  nextTick(() => showSearchedPaket(paketeStore.paketeAsMap.get(pathId) as Paket));
+  nextTick(() => showSearchedPaket(paketContainer.paketeAsMap.get(pathId) as Paket));
 
   //TODO Grid soll warten bis resiszed wude
 
@@ -115,7 +116,7 @@ const columnDefs: ColDef[] = [
         errorToastPaketNrEmpty();
       } else {
         duplicateTicketNrFound = false;
-        const everyTicketNrArray = Array.from(paketeStore.paketeAsMap.values()).map(paket => paket.ticket_nr);
+        const everyTicketNrArray = Array.from(paketContainer.paketeAsMap.values()).map(paket => paket.ticket_nr);
         for (const ticketnr of everyTicketNrArray) {
           if (params.newValue.toUpperCase() == ticketnr.toUpperCase()) {
             duplicateTicketNrFound = true;
@@ -149,10 +150,10 @@ const columnDefs: ColDef[] = [
     field: "bucket",
     headerName: "Bucket",
     valueSetter: (params: any): any => {
-      if (params.newValue === "") paketeStore.updateBucket(params.data, null);
+      if (params.newValue === "") paketContainer.updateBucket(params.data, null);
       else {
-        const bucket = useBucketsStore().bucketsAsSortedArray.find(bucket => bucket.name === params.newValue) as Bucket;
-        paketeStore.updateBucket(params.data, bucket);
+        const bucket = useBucketContainer().bucketsAsSortedArray.find(bucket => bucket.name === params.newValue) as Bucket;
+        paketContainer.updateBucket(params.data, bucket);
       }
       gridApi.value!.refreshCells({force: true})
     },
@@ -162,13 +163,13 @@ const columnDefs: ColDef[] = [
     },
     cellEditor: "agSelectCellEditor",
     cellEditorParams: {
-      values: ["", ...useBucketsStore().getBucketNamesSorted()]
+      values: ["", ...useBucketContainer().getBucketNamesSorted()]
     },
     cellStyle: (params: any): any => {
       if (params.data.children.length > 0) return {backgroundColor: "lightgrey"};
       else return {backgroundColor: "transparent"};
     },
-    hide: !projektStore.bucketmodus,
+    hide: !konfigContainer.bucketmodus,
     editable: (params: any) => {
       return params.data.children.length == 0 && editableFlag.value
     },
@@ -182,7 +183,7 @@ const columnDefs: ColDef[] = [
       if (isNaN(newValue)) params.data.schaetzung = params.oldValue;
       else {
         params.data.schaetzung = Number(newValue);
-        paketeStore.berechneSchaetzungen();
+        paketContainer.berechneSchaetzungen();
         nextTick(() => gridApi.value!.refreshCells({force: true}));
       }
     },
@@ -190,8 +191,8 @@ const columnDefs: ColDef[] = [
       if (params.data.schaetzung!=null) {
         if (params.data.children.length > 0) {
           return Number(params.data.schaetzung).toLocaleString('de', {
-            minimumFractionDigits: projektStore.nachkommastellen,
-            maximumFractionDigits: projektStore.nachkommastellen
+            minimumFractionDigits: konfigContainer.nachkommastellen,
+            maximumFractionDigits: konfigContainer.nachkommastellen
           });
         } else {
           return params.data.schaetzung.toLocaleString()
@@ -217,9 +218,8 @@ const columnDefs: ColDef[] = [
 ];
 
 function showSearchedPaket(paket: Paket) {
-  console.log("hier")
-  paketeStore.showPaket(paket);
-  gridApi.value!.setGridOption('rowData', paketeStore.paketeAsTreeView);
+  paketContainer.showPaket(paket);
+  gridApi.value!.setGridOption('rowData', paketContainer.paketeAsTreeView);
   const rowNodeIndex = gridApi.value!.getRowNode(paket.id + "")!.rowIndex
   if(rowNodeIndex!=null) gridApi.value!.ensureIndexVisible(rowNodeIndex)
   refreshTable(gridApi.value!.getColumns()![0].getColId(), paket.id);
@@ -290,10 +290,10 @@ function onCellValueChanged(params: any) {
 function addNewPaket() {
   let newPaketID;
   if (gridApi.value!.getSelectedRows()[0]) {
-    newPaketID = paketeStore.addNew(gridApi.value!.getSelectedRows()[0].id);
+    newPaketID = paketContainer.addNew(gridApi.value!.getSelectedRows()[0].id);
     refreshTable(gridApi.value!.getFocusedCell()!.column, newPaketID);
   } else {
-    newPaketID = paketeStore.addNew(-1);
+    newPaketID = paketContainer.addNew(-1);
     refreshTable(gridApi.value!.getColumns()![0].getColId(), newPaketID);
   }
   nextTick(() => gridApi.value!.autoSizeColumns(["ticket_nr"]));
@@ -301,7 +301,7 @@ function addNewPaket() {
 
 function addNewKindPaket() {
   if (gridApi.value!.getSelectedRows()[0]) {
-    const newPaketID = paketeStore.addNewChild(gridApi.value!.getSelectedRows()[0].id);
+    const newPaketID = paketContainer.addNewChild(gridApi.value!.getSelectedRows()[0].id);
     refreshTable(gridApi.value!.getFocusedCell()!.column, newPaketID);
     nextTick(() => gridApi.value!.autoSizeColumns(["ticket_nr"]));
   }
@@ -311,7 +311,7 @@ function deletePaket() {
   if (gridApi.value!.getSelectedRows()[0]) {
     const focusedRowIndex = gridApi.value!.getFocusedCell()!.rowIndex;
     const focusedColumn = gridApi.value!.getFocusedCell()?.column!;
-    paketeStore.deletePaket(gridApi.value!.getSelectedRows()[0].id);
+    paketContainer.deletePaket(gridApi.value!.getSelectedRows()[0].id);
     nextTick(() => {
       if (rowData[focusedRowIndex]) refreshTable(focusedColumn, rowData[focusedRowIndex].id);
       else if (rowData.length !== 0) {
@@ -327,7 +327,7 @@ function deletePaket() {
 function movePaketUp() {
   if (gridApi.value!.getSelectedRows()[0]) {
     let paketID = gridApi.value!.getSelectedRows()[0].id;
-    paketeStore.moveUp(paketID);
+    paketContainer.moveUp(paketID);
     refreshTable(gridApi.value!.getFocusedCell()!.column, paketID);
   }
 }
@@ -335,7 +335,7 @@ function movePaketUp() {
 function movePaketDown() {
   if (gridApi.value!.getSelectedRows()[0]) {
     let paketID = gridApi.value!.getSelectedRows()[0].id;
-    paketeStore.moveDown(paketID);
+    paketContainer.moveDown(paketID);
     refreshTable(gridApi.value!.getFocusedCell()!.column, paketID);
   }
 }
@@ -343,7 +343,7 @@ function movePaketDown() {
 function movePaketLeftUp() {
   if (gridApi.value!.getSelectedRows()[0]) {
     let paketID = gridApi.value!.getSelectedRows()[0].id;
-    paketeStore.moveLeftUp(paketID);
+    paketContainer.moveLeftUp(paketID);
     refreshTable(gridApi.value!.getFocusedCell()!.column, paketID);
   }
 }
@@ -351,7 +351,7 @@ function movePaketLeftUp() {
 function movePaketLeftDown() {
   if (gridApi.value!.getSelectedRows()[0]) {
     let paketID = gridApi.value!.getSelectedRows()[0].id;
-    paketeStore.moveLeftDown(paketID);
+    paketContainer.moveLeftDown(paketID);
     refreshTable(gridApi.value!.getFocusedCell()!.column, paketID);
   }
 }
@@ -359,7 +359,7 @@ function movePaketLeftDown() {
 function movePaketRightDown() {
   if (gridApi.value!.getSelectedRows()[0]) {
     let paketID = gridApi.value!.getSelectedRows()[0].id;
-    paketeStore.moveRightDown(paketID);
+    paketContainer.moveRightDown(paketID);
     refreshTable(gridApi.value!.getFocusedCell()!.column, paketID);
   }
 }
@@ -367,14 +367,14 @@ function movePaketRightDown() {
 function movePaketRightUp() {
   if (gridApi.value!.getSelectedRows()[0]) {
     let paketID = gridApi.value!.getSelectedRows()[0].id;
-    paketeStore.moveRightUp(paketID);
+    paketContainer.moveRightUp(paketID);
     refreshTable(gridApi.value!.getFocusedCell()!.column, paketID);
   }
 }
 
 function refreshTable(colKey?: Column | string, paketId?: number) {
   nextTick(() => {
-    gridApi.value!.setGridOption('rowData', paketeStore.paketeAsTreeView);
+    gridApi.value!.setGridOption('rowData', paketContainer.paketeAsTreeView);
     /*columnDefs.forEach(column => column.editable = false);
     gridApi.value!.setGridOption("columnDefs", columnDefs);*/
     if (paketId != undefined && colKey != undefined) {
@@ -433,9 +433,9 @@ function onCellKeyPress(e: any) {
               if (colKey === "schaetzung") {
                 const oldValue = e.data.schaetzung;
                 e.data.schaetzung = null;
-                nextTick(() => paketeStore.berechneSchaetzungen());
+                nextTick(() => paketContainer.berechneSchaetzungen());
               } else if (colKey === "bucket") {
-                nextTick(() => paketeStore.updateBucket(e.data, null));
+                nextTick(() => paketContainer.updateBucket(e.data, null));
               } else if (!(colKey === "ticket_nr")) e.data[colKey] = null;
               refreshTable(colKey, e.data.id);
             }
@@ -459,7 +459,7 @@ function onCellKeyPress(e: any) {
               const aktuellesPaket = e.data;
               aktuellesPaket.open = !aktuellesPaket.open;
               e.node.setData(aktuellesPaket);
-              nextTick(() => paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket));
+              nextTick(() => paketContainer.updateTreeViewAfterChangedOpenState(aktuellesPaket));
               refreshTable(colKey, e.data.id);
               nextTick(() => gridApi.value!.autoSizeColumns(["ticket_nr"]));
             }

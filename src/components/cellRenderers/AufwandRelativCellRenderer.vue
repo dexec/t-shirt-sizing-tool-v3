@@ -41,12 +41,12 @@
 </template>
 <script lang="ts" setup>
 import { computed } from "vue";
-import { useProjektStore } from "@/stores/projekt";
+import { useKonfigContainer } from "@/stores/konfigContainer";
 import { Zwischensumme } from "@/models/Zwischensumme";
 import EintragErklaerenComponent from "@/components/EintragErklaerenComponent.vue";
 import { ColumnET } from "@/enums/ColumnET";
 
-const projektStore = useProjektStore();
+const konfigContainer = useKonfigContainer();
 const props = defineProps(["params"]);
 const selectedColumn = computed(() => {
   const focusedCell = props.params.api.getFocusedCell();
@@ -57,13 +57,13 @@ const aufwandRelativ = computed(() => {
   if (props.params.data.isAufwandRelativBase)
     return Number(props.params.data.aufwandRelativ).toLocaleString();
   else return Number(props.params.data.aufwandRelativ).toLocaleString("de", {
-    minimumFractionDigits: projektStore.nachkommastellen,
-    maximumFractionDigits: projektStore.nachkommastellen
+    minimumFractionDigits: konfigContainer.nachkommastellen,
+    maximumFractionDigits: konfigContainer.nachkommastellen
   });
 });
 const vorigerAbschnittAufwandRelativ = computed(() => Number(props.params.data.vorigerAbschnittAufwandRelativ).toLocaleString("de", {
-  minimumFractionDigits: projektStore.nachkommastellen,
-  maximumFractionDigits: projektStore.nachkommastellen
+  minimumFractionDigits: konfigContainer.nachkommastellen,
+  maximumFractionDigits: konfigContainer.nachkommastellen
 }));
 const bezeichnung = computed(() => props.params.data.bezeichnung);
 

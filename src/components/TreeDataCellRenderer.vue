@@ -11,7 +11,7 @@
 <script lang="ts" setup>
 
 import { nextTick } from "vue";
-import { usePaketeStore } from "@/stores/pakete";
+import { usePaketContainer } from "@/stores/paketContainer";
 
 const props = defineProps(["params"]);
 
@@ -20,14 +20,14 @@ function treeDataToggleStyle() {
   return 'visibility:hidden'
 }
 function changeOpenState() {
-  const paketeStore = usePaketeStore();
+  const paketContainer = usePaketContainer();
   const aktuellesPaket = props.params.node.data;
   aktuellesPaket.open = !aktuellesPaket.open;
   props.params.node.setSelected(true);
   props.params.node.setData(aktuellesPaket);
-  paketeStore.updateTreeViewAfterChangedOpenState(aktuellesPaket);
+  paketContainer.updateTreeViewAfterChangedOpenState(aktuellesPaket);
   nextTick(() => {
-    props.params.api.setGridOption("rowData", paketeStore.paketeAsTreeView);
+    props.params.api.setGridOption("rowData", paketContainer.paketeAsTreeView);
     props.params.api.setFocusedCell(props.params.api.getRowNode(aktuellesPaket.id).rowIndex, props.params.column);
     props.params.api.autoSizeColumns(["ticket_nr"]);
   });

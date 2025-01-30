@@ -7,42 +7,42 @@ import type {Paket} from "@/models/Paket";
 import type {Bucket} from "@/models/Bucket";
 import {Aufschlag} from "@/models/Aufschlag";
 import {Zwischensumme} from "@/models/Zwischensumme";
-import {usePaketeStore} from "@/stores/pakete";
-import {useStatistikenStore} from "@/stores/statistiken";
-import {useProjektStore} from "@/stores/projekt";
-import {useEintraegeStore} from "@/stores/eintraege";
+import {usePaketContainer} from "@/stores/paketContainer";
+import {useStatistikenStore} from "@/stores/statistikenService";
+import {useKonfigContainer} from "@/stores/konfigContainer";
+import {useEintragContainer} from "@/stores/eintragContainer";
 
 export class ExportAsExcel {
-    private paketeStore;
-    private projektStore;
-    private eintraegeStore;
+    private paketContainer;
+    private konfigContainer;
+    private eintragContainer;
     private statistikenStore;
 
     constructor() {
-        const paketeStore = usePaketeStore();
+        const paketContainer = usePaketContainer();
         const statistikenStore = useStatistikenStore();
-        const projektStore = useProjektStore();
-        const eintraegeStore = useEintraegeStore();
+        const konfigContainer = useKonfigContainer();
+        const eintragContainer = useEintragContainer();
         statistikenStore.berechne();
-        eintraegeStore.berechne();
-        this.paketeStore = paketeStore;
-        this.projektStore = projektStore;
-        this.eintraegeStore = eintraegeStore;
+        eintragContainer.berechne();
+        this.paketContainer = paketContainer;
+        this.konfigContainer = konfigContainer;
+        this.eintragContainer = eintragContainer;
         this.statistikenStore = statistikenStore;
     }
 
     public downloadExcelSheet() {
         const wb = XLSX.utils.book_new();
-        const sheetKalkulation = this.createSheetForKalkulation(this.statistikenStore.statistiken as Statistik[], this.eintraegeStore.eintraege as AbstrakterEintrag[], this.projektStore.bucketmodus);
-        const sheetAllePakete = this.createSheetForPakete(this.paketeStore.paketeFullTreeView(), this.projektStore.bucketmodus);
+        const sheetKalkulation = this.createSheetForKalkulation(this.statistikenStore.statistiken as Statistik[], this.eintragContainer.eintraege as AbstrakterEintrag[], this.konfigContainer.bucketmodus);
+        const sheetAllePakete = this.createSheetForPakete(this.paketContainer.paketeFullTreeView(), this.konfigContainer.bucketmodus);
         XLSX.utils.book_append_sheet(wb, sheetKalkulation, "Projektkalkulation");
         XLSX.utils.book_append_sheet(wb, sheetAllePakete, "Alle Pakete");
-        if (this.projektStore.bucketmodus) {
-            const sheetAllePaketeOhneBucket = this.createSheetForAllePaketeOhneBucket(this.paketeStore.paketeChildrenWithNoBucket());
+        if (this.konfigContainer.bucketmodus) {
+            const sheetAllePaketeOhneBucket = this.createSheetForAllePaketeOhneBucket(this.paketContainer.paketeChildrenWithNoBucket());
             XLSX.utils.book_append_sheet(wb, sheetAllePaketeOhneBucket, "Alle Pakete ohne Bucket");
-            this.createSheetsForBuckets(wb, this.paketeStore.unsortedPaketeListsSortedByBucketsMap as Map<Bucket,Paket[]>);
+            this.createSheetsForBuckets(wb, this.paketContainer.unsortedPaketeListsSortedByBucketsMap as Map<Bucket,Paket[]>);
         } else {
-            const sheetAlleKindPakete = this.createSheetForAllePaketeOhneBucket(this.paketeStore.paketeChildren());
+            const sheetAlleKindPakete = this.createSheetForAllePaketeOhneBucket(this.paketContainer.paketeChildren());
             XLSX.utils.book_append_sheet(wb, sheetAlleKindPakete, "Alle Kind Pakete");
         }
         XLSX.writeFile(wb, "demo.xlsx");
@@ -342,27 +342,27 @@ export class ExportAsExcel {
         //Für jedes Bucket
         for (let i = 0; i < arraySerializableStatistik.length - 1; i++) {
             //Min
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 4})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 4})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
             //Max
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 5})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 5})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
             //Anteil Anzahl in Prozent
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 6})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}%`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 6})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}%`;
             //Durschnitt
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 7})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 7})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
             //Median
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 8})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 8})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
             //Summe Schätzungen PT
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 9})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 9})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
             //Summe Schätzungen in Prozent
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 10})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}%`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 10})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}%`;
             //Durchschnittliche Summe PT
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 11})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 11})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
             //Durchschnittliche Summe in Prozent
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 12})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}%`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 12})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}%`;
             //Mediane Summe PT
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 13})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 13})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
             //Mediane Summe in Prozent
-            sheet[XLSX.utils.encode_cell({r: i + 2, c: 14})].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}%`;
+            sheet[XLSX.utils.encode_cell({r: i + 2, c: 14})].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}%`;
             const sheetName = "Bucket " + arraySerializableStatistik[i].bucket;
             //Anzahl geschätzt
             sheet[XLSX.utils.encode_cell({
@@ -454,7 +454,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: arraySerializableStatistik.length + 1,
             c: 4
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: arraySerializableStatistik.length + 1,
             c: 4
@@ -463,7 +463,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: arraySerializableStatistik.length + 1,
             c: 5
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: arraySerializableStatistik.length + 1,
             c: 5
@@ -472,7 +472,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: arraySerializableStatistik.length + 1,
             c: 9
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: arraySerializableStatistik.length + 1,
             c: 9
@@ -481,7 +481,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: arraySerializableStatistik.length + 1,
             c: 11
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: arraySerializableStatistik.length + 1,
             c: 11
@@ -490,7 +490,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: arraySerializableStatistik.length + 1,
             c: 13
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: arraySerializableStatistik.length + 1,
             c: 13
@@ -590,7 +590,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 3
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 3
@@ -599,7 +599,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 4
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 4
@@ -608,7 +608,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 5
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 5
@@ -617,7 +617,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 6
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 6
@@ -626,7 +626,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 7
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 7
@@ -635,7 +635,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 8
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 8
@@ -644,7 +644,7 @@ export class ExportAsExcel {
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 9
-        })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
         sheet[XLSX.utils.encode_cell({
             r: 1,
             c: 9
@@ -722,7 +722,7 @@ export class ExportAsExcel {
         }
         //Startsummenzelle in Abhängigkeit des Bucketmodus
         let startsummenzelle;
-        if (this.projektStore.bucketmodus) startsummenzelle = XLSX.utils.encode_cell({r: startzeilennummer - 3, c: 11});
+        if (this.konfigContainer.bucketmodus) startsummenzelle = XLSX.utils.encode_cell({r: startzeilennummer - 3, c: 11});
         else startsummenzelle = XLSX.utils.encode_cell({r: startzeilennummer - 3, c: 8});
         sheet[XLSX.utils.encode_cell({r: startzeilennummer + 1, c: 2})].f = startsummenzelle;
         //Endsummenzelle
@@ -736,22 +736,22 @@ export class ExportAsExcel {
             sheet[XLSX.utils.encode_cell({
                 r: startzeilennummer + i,
                 c: 1
-            })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}%`;
+            })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}%`;
             //Aufwände als Zahl
             sheet[XLSX.utils.encode_cell({
                 r: startzeilennummer + i,
                 c: 2
-            })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+            })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
             //Anteil an Zwischensumme in Prozent
             sheet[XLSX.utils.encode_cell({
                 r: startzeilennummer + i,
                 c: 3
-            })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}%`;
+            })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}%`;
             //Anteil am Gesamtprojekt in Prozent
             sheet[XLSX.utils.encode_cell({
                 r: startzeilennummer + i,
                 c: 4
-            })].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}%`;
+            })].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}%`;
             if (["Startsumme", "Zwischensumme", "Endsumme"].includes(sheet[XLSX.utils.encode_cell({
                 r: startzeilennummer + i,
                 c: 0
@@ -844,6 +844,6 @@ export class ExportAsExcel {
             startsummeCellsAsString += "+" + arrayEintraegeCells[i];
         }
         sheet[endsummenzelle].f = `${startsummeCellsAsString}`;
-        sheet[endsummenzelle].z = `0.${'0'.repeat(this.projektStore.nachkommastellen)}`;
+        sheet[endsummenzelle].z = `0.${'0'.repeat(this.konfigContainer.nachkommastellen)}`;
     }
 }

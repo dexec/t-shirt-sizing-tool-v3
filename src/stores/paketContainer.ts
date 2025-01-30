@@ -2,9 +2,9 @@ import { defineStore } from "pinia";
 import { Paket } from "@/models/Paket";
 import { ref } from "vue";
 import type { Bucket } from "@/models/Bucket";
-import { useProjektStore } from "@/stores/projekt";
+import { useKonfigContainer } from "@/stores/konfigContainer";
 
-export const usePaketeStore = defineStore("pakete", () => {
+export const usePaketContainer = defineStore("pakete", () => {
   const paketeAsTreeView = ref<Array<Paket>>([]);
   const paketeAsMap = ref(new Map<number, Paket>());
   const unsortedPaketeListsSortedByBucketsMap = ref(new Map<Bucket, Paket[]>());
@@ -433,7 +433,7 @@ export const usePaketeStore = defineStore("pakete", () => {
         parentOfPaketToMove.schaetzung = null;
       } else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) {
         parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
-        parentOfPaketToMove.schaetzung = parseFloat(parentOfPaketToMove.schaetzung.toFixed(useProjektStore().nachkommastellen));
+        parentOfPaketToMove.schaetzung = parseFloat(parentOfPaketToMove.schaetzung.toFixed(useKonfigContainer().nachkommastellen));
       }
       if (paketToMove.lvl >= 2 && parentOfPaketToMove.parent) {
         const indexOfParentAsChild = parentOfPaketToMove.parent.children.indexOf(parentOfPaketToMove);
@@ -475,7 +475,7 @@ export const usePaketeStore = defineStore("pakete", () => {
         parentOfPaketToMove.schaetzung = null;
       } else if (parentOfPaketToMove.schaetzung != null && paketToMove.schaetzung != null) {
         parentOfPaketToMove.schaetzung -= paketToMove.schaetzung;
-        parentOfPaketToMove.schaetzung = parseFloat(parentOfPaketToMove.schaetzung.toFixed(useProjektStore().nachkommastellen));
+        parentOfPaketToMove.schaetzung = parseFloat(parentOfPaketToMove.schaetzung.toFixed(useKonfigContainer().nachkommastellen));
       }
       if (paketToMove.lvl >= 2 && parentOfPaketToMove.parent) {
         const indexOfParentAsChild = parentOfPaketToMove.parent.children.indexOf(parentOfPaketToMove);

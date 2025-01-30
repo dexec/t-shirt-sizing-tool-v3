@@ -37,13 +37,13 @@
 </template>
 
 <script lang="ts" setup>
-import {useProjektStore} from "@/stores/projekt";
+import {useKonfigContainer} from "@/stores/konfigContainer";
 import {Zwischensumme} from "@/models/Zwischensumme";
 import {computed} from "vue";
 import {ColumnET} from "@/enums/ColumnET";
 import EintragErklaerenComponent from "@/components/EintragErklaerenComponent.vue";
 
-const projektStore = useProjektStore();
+const konfigContainer = useKonfigContainer();
 const props = defineProps(['params']);
 const selectedColumn = computed(() => {
   const focusedCell = props.params.api.getFocusedCell()
@@ -51,8 +51,8 @@ const selectedColumn = computed(() => {
   else return ""
 })
 const anteilZwischensumme = computed(() => Number(props.params.data.anteilZwischensumme).toLocaleString('de', {
-  minimumFractionDigits: projektStore.nachkommastellen,
-  maximumFractionDigits: projektStore.nachkommastellen
+  minimumFractionDigits: konfigContainer.nachkommastellen,
+  maximumFractionDigits: konfigContainer.nachkommastellen
 }));
 const bezeichnung = computed(() => props.params.data.bezeichnung);
 </script>

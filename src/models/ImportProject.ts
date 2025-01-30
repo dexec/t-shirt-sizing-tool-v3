@@ -4,33 +4,33 @@ import type {AbstrakterEintrag} from "@/models/AbstrakterEintrag";
 import {Zwischensumme} from "@/models/Zwischensumme";
 import {Aufschlag} from "@/models/Aufschlag";
 import {Projekt} from "@/models/Projekt";
-import {useBucketsStore} from "@/stores/buckets";
-import {useProjektStore} from "@/stores/projekt";
-import {useEintraegeStore} from "@/stores/eintraege";
-import {usePaketeStore} from "@/stores/pakete";
+import {useBucketContainer} from "@/stores/bucketContainer";
+import {useKonfigContainer} from "@/stores/konfigContainer";
+import {useEintragContainer} from "@/stores/eintragContainer";
+import {usePaketContainer} from "@/stores/paketContainer";
 import {useVergleicheStore} from "@/stores/vergleiche";
 
 export class ImportProject {
     private readonly _buckets: Bucket[] = []
     private readonly _pakete: Paket[] = []
     private readonly _eintraege: AbstrakterEintrag[] = []
-    private _projekt: Projekt = new Projekt("",  true,2)
+    private _projektKonfig: Projekt = new Projekt("",  true,2)
     private _checkboxIds: number[] = []
 
     constructor(fileContents: string) {
         const jsonfile = JSON.parse(fileContents);
-        this.fileToProjectData(jsonfile.projekt)
+        this.fileToProjektKonfig(jsonfile.projektKonfig)
         this.fileToBucketArray(jsonfile.buckets);
         this.fileToPaketeArray(jsonfile.pakete, jsonfile.paketeTree);
         this.fileToEintrageArray(jsonfile.eintraege);
         this.fileToCheckboxIdsArray(jsonfile.checkboxIds)
-        this.writeprojektStore();
-        this.writeEintraegeStore();
-        this.writeBucketStoreBucketArray();
-        this.writeBucketStoreBucketMap();
-        this.writePaketeStorePaketeMap();
-        this.writePaketeStorePaketeTreeView();
-        this.writePaketeStoreUnsortedPaketeListsSortedByBucketsMap();
+        this.writeKonfigContainer();
+        this.writeEintragContainer();
+        this.writeBucketContainerBucketArray();
+        this.writeBucketContainerBucketMap();
+        this.writePaketContainerPaketeMap();
+        this.writePaketContainerPaketeTreeView();
+        this.writePaketContainerUnsortedPaketeListsSortedByBucketsMap();
         this.writeCheckboxIds();
     }
 
@@ -42,7 +42,7 @@ export class ImportProject {
             if(newPaket.id > highestId) highestId = newPaket.id
         }
         Paket.idCounter = highestId + 1;
-        this.generatePakete(50);//Nur dev-Zweck
+        this.generatePakete(0);//Nur dev-Zweck
         this.setPaketeTreeStructure(paketeTree);
         this.setPaketeLevelAndSchaetzung();
     }
@@ -93,15 +93,12 @@ export class ImportProject {
     }
 
     private fileToBucketArray(bucketsFromFile: any[]): void {
-        let highestId = 0;
         for (const bucketFromFile of bucketsFromFile) {
-            const newBucket = new Bucket(bucketFromFile.name,bucketFromFile.id);
+            const newBucket = new Bucket(bucketFromFile.name);
             this._buckets.push(newBucket);
-            if(newBucket.id > highestId) highestId = newBucket.id
         }
-        Bucket.idCounter = highestId+1;
-        const useBucketStore = useBucketsStore();
-        useBucketStore.bucketsAsSortedArray = this._buckets;
+        const usebucketContainer = useBucketContainer();
+        usebucketContainer.bucketsAsSortedArray = this._buckets;
     }
 
     private fileToEintrageArray(eintrageFromFile: any[]): void {
@@ -117,51 +114,51 @@ export class ImportProject {
 
     }
 
-    private fileToProjectData(projectData: any): void {
-        this._projekt = new Projekt(projectData.projektname, projectData.bucketmodus,projectData.nachkommastellen);
+    private fileToProjektKonfig(projectData: any): void {
+        this._projektKonfig = new Projekt(projectData.projektname, projectData.bucketmodus,projectData.nachkommastellen);
     }
 
     private fileToCheckboxIdsArray(checkboxIds: any): void {
         this._checkboxIds=checkboxIds
     }
 
-    private writeprojektStore() {
-        const projektStore = useProjektStore();
-        projektStore.projektname = this._projekt.projektname;
-        projektStore.bucketmodus = this._projekt.bucketmodus;
-        projektStore.nachkommastellen = this._projekt.nachkommastellen;
+    private writeKonfigContainer() {
+        const konfigContainer = useKonfigContainer();
+        konfigContainer.projektname = this._projektKonfig.projektname;
+        konfigContainer.bucketmodus = this._projektKonfig.bucketmodus;
+        konfigContainer.nachkommastellen = this._projektKonfig.nachkommastellen;
     }
 
-    private writeEintraegeStore() {
-        const eintraegeStore = useEintraegeStore();
-        eintraegeStore.eintraege = this._eintraege;
+    private writeEintragContainer() {
+        const eintragContainer = useEintragContainer();
+        eintragContainer.eintraege = this._eintraege;
     }
 
-    private writeBucketStoreBucketMap() {
-        const bucketStore = useBucketsStore();
+    private writeBucketContainerBucketMap() {
+        const bucketContainer = useBucketContainer();
         const bucketsAsMap = new Map<number, Bucket>();
         for (const bucket of this._buckets) {
             bucketsAsMap.set(bucket.id, bucket);
         }
-        bucketStore.bucketsAsMap = bucketsAsMap;
+        bucketContainer.bucketsAsMap = bucketsAsMap;
     }
 
-    private writeBucketStoreBucketArray() {
-        const bucketStore = useBucketsStore();
-        bucketStore.bucketsAsSortedArray = this._buckets
+    private writeBucketContainerBucketArray() {
+        const bucketContainer = useBucketContainer();
+        bucketContainer.bucketsAsSortedArray = this._buckets
     }
 
-    private writePaketeStorePaketeMap() {
-        const paketeStore = usePaketeStore();
+    private writePaketContainerPaketeMap() {
+        const paketContainer = usePaketContainer();
         const paketeMap = new Map<number, Paket>();
         for (const paket of this._pakete) {
             paketeMap.set(paket.id, paket)
         }
-        paketeStore.paketeAsMap = paketeMap;
+        paketContainer.paketeAsMap = paketeMap;
     }
 
-    private writePaketeStorePaketeTreeView() {
-        const paketeStore = usePaketeStore();
+    private writePaketContainerPaketeTreeView() {
+        const paketContainer = usePaketContainer();
         const paketeAsTreeView: Paket[] = [];
         const stackForTreeView: Paket[] = []
         for (const paket of this._pakete) {
@@ -179,11 +176,11 @@ export class ImportProject {
                 paketeAsTreeView.push(aktuellesPaket);
             }
         }
-        paketeStore.paketeAsTreeView = paketeAsTreeView;
+        paketContainer.paketeAsTreeView = paketeAsTreeView;
     }
 
-    private writePaketeStoreUnsortedPaketeListsSortedByBucketsMap() {
-        const paketeStore = usePaketeStore();
+    private writePaketContainerUnsortedPaketeListsSortedByBucketsMap() {
+        const paketContainer = usePaketContainer();
         const unsortedPaketeListsSortedByBucketsMap = new Map<Bucket, Paket[]>()
         for (const bucket of this._buckets) {
             unsortedPaketeListsSortedByBucketsMap.set(bucket as Bucket, []);
@@ -192,7 +189,7 @@ export class ImportProject {
             if (paket.bucket)
                 unsortedPaketeListsSortedByBucketsMap.get(paket.bucket)!.push(paket);
         });
-        paketeStore.unsortedPaketeListsSortedByBucketsMap = unsortedPaketeListsSortedByBucketsMap;
+        paketContainer.unsortedPaketeListsSortedByBucketsMap = unsortedPaketeListsSortedByBucketsMap;
     }
     private writeCheckboxIds():void {
         const vergleichStore = useVergleicheStore();

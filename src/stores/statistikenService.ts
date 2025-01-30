@@ -1,16 +1,16 @@
 import { defineStore } from "pinia";
-import { useBucketsStore } from "@/stores/buckets";
-import { usePaketeStore } from "@/stores/pakete";
+import { useBucketContainer } from "@/stores/bucketContainer";
+import { usePaketContainer } from "@/stores/paketContainer";
 import type { Bucket } from "@/models/Bucket";
 import { Statistik } from "@/models/Statistik";
 import type { Paket } from "@/models/Paket";
 import { ref } from "vue";
-import { useProjektStore } from "@/stores/projekt";
+import { useKonfigContainer } from "@/stores/konfigContainer";
 
 export const useStatistikenStore = defineStore("statistiken", () => {
-  const buckets = useBucketsStore();
-  const pakete = usePaketeStore();
-  const projekt = useProjektStore();
+  const buckets = useBucketContainer();
+  const pakete = usePaketContainer();
+  const projekt = useKonfigContainer();
   const statistiken = ref<Array<Statistik>>([]);
   berechne();
 

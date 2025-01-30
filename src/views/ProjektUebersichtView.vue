@@ -1,20 +1,20 @@
 <template>
   <div class="d-flex flex-column justify-center ma-10">
     <h1>Konfiguration</h1>
-    <v-text-field v-model="projektStore.projektname" label="Projektname" outlined solo
+    <v-text-field v-model="konfigContainer.projektname" label="Projektname" outlined solo
                   style="width:20vw"></v-text-field>
     <v-text-field v-model.number="nachkommastellen" label="Nachkommastellen" style="width:20vw"
                   @blur="convertNachkommastelle"></v-text-field>
 
       <label class="switch">
-        <input v-model="projektStore.bucketmodus" checked type="checkbox">
+        <input v-model="konfigContainer.bucketmodus" checked type="checkbox">
         <span class="slider"></span>
         <span class="text">Buckets aktivieren</span>
       </label>
 
-      <h2 v-if="projektStore.bucketmodus">Buckets</h2>
-      <div v-if="projektStore.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
-        <div v-for="(bucket,index) in bucketStore.bucketsAsSortedArray" :key="bucket.id">
+      <h2 v-if="konfigContainer.bucketmodus">Buckets</h2>
+      <div v-if="konfigContainer.bucketmodus" class="d-flex flex-wrap" style="height: 100%; width: 100%">
+        <div v-for="(bucket,index) in bucketContainer.bucketsAsSortedArray" :key="bucket.id">
           <v-container class="mb-4" style="width: 300px;height: 150px">
             <v-row>
               <v-col>
@@ -45,7 +45,7 @@
                 <v-btn :style="showButtons(bucket as Bucket)" class="mb-4 button" @click="addNewBucketAfter()">
                   <v-icon icon="mdi-plus"></v-icon>
                 </v-btn>
-                <v-btn :disabled="!(index < bucketStore.bucketsAsSortedArray.length - 1)"
+                <v-btn :disabled="!(index < bucketContainer.bucketsAsSortedArray.length - 1)"
                        :style="showArrowRight(bucket as Bucket)"
                        class="button" @click="swapWithBucketAfter()">
                   <v-icon icon="mdi-arrow-right"></v-icon>
@@ -61,7 +61,7 @@
             </v-row>
           </v-container>
         </div>
-        <div v-if="bucketStore.bucketsAsSortedArray.length===0">
+        <div v-if="bucketContainer.bucketsAsSortedArray.length===0">
           <v-btn @click="addFirstBucket()">
             <v-icon icon="mdi-plus"></v-icon>
           </v-btn>
@@ -76,8 +76,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useProjektStore } from "@/stores/projekt";
-import { useBucketsStore } from "@/stores/buckets";
+import { useKonfigContainer } from "@/stores/konfigContainer";
+import { useBucketContainer } from "@/stores/bucketContainer";
 import {nextTick, ref, watch} from "vue";
 import type { Bucket } from "@/models/Bucket";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -92,8 +92,8 @@ import {
 const newBucketName = ref("");
 const currentSelectedBucket = ref(-1);
 const currentEditBucket = ref(-1);
-const projektStore = useProjektStore();
-const bucketStore = useBucketsStore();
+const konfigContainer = useKonfigContainer();
+const bucketContainer = useBucketContainer();
 const showDialog = ref(false);
 const currentEditBucketRef = ref<HTMLElement | null>(null);
 watch(currentEditBucket, (value: Number) => {
@@ -145,31 +145,31 @@ function showArrowRight(bucket: Bucket): string {
 }
 
 function swapWithBucketBefore() {
-  bucketStore.swapWithBucket(currentSelectedBucket.value, true);
+  bucketContainer.swapWithBucket(currentSelectedBucket.value, true);
   successToastBucketsSwapped();
 }
 
 function swapWithBucketAfter() {
-  bucketStore.swapWithBucket(currentSelectedBucket.value, false);
+  bucketContainer.swapWithBucket(currentSelectedBucket.value, false);
   successToastBucketsSwapped();
 }
 
 function addFirstBucket() {
-  const newBucket = bucketStore.addNewBucket(0, true);
+  const newBucket = bucketContainer.addNewBucket(0, true);
   currentEditBucket.value = newBucket.id;
   newBucketName.value = newBucket.name;
   successToastBucketAdded();
 }
 
 function addNewBucketBefore() {
-  const newBucket = bucketStore.addNewBucket(currentSelectedBucket.value, true);
+  const newBucket = bucketContainer.addNewBucket(currentSelectedBucket.value, true);
   currentEditBucket.value = newBucket.id;
   newBucketName.value = newBucket.name;
   successToastBucketAdded();
 }
 
 function addNewBucketAfter() {
-  const newBucket = bucketStore.addNewBucket(currentSelectedBucket.value, false);
+  const newBucket = bucketContainer.addNewBucket(currentSelectedBucket.value, false);
   currentEditBucket.value = newBucket.id;
   newBucketName.value = newBucket.name;
   successToastBucketAdded();
@@ -180,11 +180,11 @@ function editBucket(e: KeyboardEvent) {
     if (newBucketName.value == "") {
       errorToastBucketEmptyName();
     } else {
-      const foundBucket = bucketStore.bucketsAsSortedArray.find(bucket => bucket.name == newBucketName.value);
+      const foundBucket = bucketContainer.bucketsAsSortedArray.find(bucket => bucket.name == newBucketName.value);
       if (foundBucket != undefined && foundBucket.id != currentEditBucket.value) {
         errorToastBucketDuplicateName(newBucketName.value);
       } else {
-        bucketStore.updateBucketName(currentEditBucket.value, newBucketName.value);
+        bucketContainer.updateBucketName(currentEditBucket.value, newBucketName.value);
         successToastBucketRenamed();
         clearData();
       }
@@ -195,8 +195,8 @@ function editBucket(e: KeyboardEvent) {
 }
 
 function deleteBucket() {
-  const name = bucketStore.bucketsAsMap.get(currentSelectedBucket.value)?.name;
-  bucketStore.deleteBucket(currentSelectedBucket.value);
+  const name = bucketContainer.bucketsAsMap.get(currentSelectedBucket.value)?.name;
+  bucketContainer.deleteBucket(currentSelectedBucket.value);
   clearData();
   successToastBucketDeleted(name ?? "");
 }
@@ -207,11 +207,11 @@ function clearData() {
   currentEditBucket.value = -1;
 }
 
-const nachkommastellen = ref(projektStore.nachkommastellen);
+const nachkommastellen = ref(konfigContainer.nachkommastellen);
 function convertNachkommastelle() {
   if (!isNaN(parseFloat(nachkommastellen.value.toString()))) {
-    projektStore.nachkommastellen = Math.floor(nachkommastellen.value);
-  } else projektStore.nachkommastellen = nachkommastellen.value = 0;
+    konfigContainer.nachkommastellen = Math.floor(nachkommastellen.value);
+  } else konfigContainer.nachkommastellen = nachkommastellen.value = 0;
 }
 </script>
 

@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 //TODO Wenn man scrollt, während der Tooltip angezeigt wird, flackert die Tabelle
-import {useProjektkalkulationStore} from "@/stores/projektkalkulation";
+import {useProjektkalkulationStore} from "@/stores/projektkalkulationContainer";
 const props = defineProps(["node","api"]);
 const projektkalkulationStore = useProjektkalkulationStore();
 function clickedIcon() {

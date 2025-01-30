@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-export const useProjektStore = defineStore("projekt", () => {
+export const useKonfigContainer = defineStore("projekt", () => {
 
   const projektname = ref<string>("");
   const bucketmodus = ref<boolean>(true);
