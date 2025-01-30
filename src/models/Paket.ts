@@ -1,8 +1,8 @@
 import type {Bucket} from "@/models/Bucket";
 
 export class Paket {
-    private static _idCounter: number = 0
     private readonly _id: number
+    private static _idCounter: number = 0
     private _ticket_nr: string
     private _thema: string
     private _beschreibung: string

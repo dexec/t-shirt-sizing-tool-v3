@@ -18,11 +18,11 @@
 
 <script lang="ts" setup>
 import {onMounted, onUnmounted, ref} from "vue";
-import {usePaketeStore} from "@/stores/pakete";
+import {usePaketContainer} from "@/stores/paketContainer";
 import {Paket} from "@/models/Paket";
 import router from "@/router";
 
-const paketeStore = usePaketeStore();
+const paketContainer = usePaketContainer();
 const suchString = ref("");
 const props = defineProps(["toggleSuche"]);
 const foundPakete = ref<Paket[]>([]);
@@ -50,14 +50,14 @@ function escapePressed(event: any) {
 function searchPaket() {
   if (suchString.value != "") {
     foundPakete.value.length = 0;
-    for (let paket of paketeStore.paketeAsMap.values()) {
-      if (paketeStore.applyFilterOnPaket(paket as Paket, suchString.value) && !foundPakete.value.includes(paket)) {
+    for (let paket of paketContainer.paketeAsMap.values()) {
+      if (paketContainer.applyFilterOnPaket(paket as Paket, suchString.value) && !foundPakete.value.includes(paket)) {
         foundPakete.value.push(paket);
       }
     }
   } else {
     foundPakete.value.length = 0;
-    paketeStore.paketeAsMap.forEach((value) => foundPakete.value.push(value))
+    paketContainer.paketeAsMap.forEach((value) => foundPakete.value.push(value))
   }
 }
 </script>

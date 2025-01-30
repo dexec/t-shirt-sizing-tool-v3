@@ -23,7 +23,7 @@ import "@/styles/hoverLink.css";
 
 function createNewProject() {
   const emptyProject = "{\n" +
-    "  \"projekt\": {\n" +
+    "  \"projektKonfig\": {\n" +
     "    \"projektname\": \"\",\n" +
     "    \"bucketmodus\": true,\n" +
     "    \"aufschlaegeErklaeren\": false,\n" +
@@ -47,12 +47,12 @@ function createNewProject() {
     "  \"paketeTree\": []\n" +
     "}";
   new ImportProject(emptyProject);
-  router.push("/projekt");
+  router.push("/projektKonfig");
 }
 
 function createNewSample() {
   new ImportProject(JSON.stringify(saveFile));
-  router.push("/projekt");
+  router.push("/projektKonfig");
 }
 
 const fileRef = ref<HTMLInputElement | null>(null);
@@ -70,7 +70,7 @@ function handleFileUpload(event: any) {
       const jsonFile = JSON.parse(fileContents as string);
       if (jsonFile.buckets && jsonFile.eintraege && jsonFile.pakete && jsonFile.paketeTree) {
         new ImportProject(JSON.stringify(jsonFile));
-        router.push("/projekt");
+        router.push("/projektKonfig");
       }
     };
     reader.readAsText(file);

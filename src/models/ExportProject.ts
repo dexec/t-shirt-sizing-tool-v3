@@ -1,13 +1,13 @@
-import { useBucketsStore } from "@/stores/buckets";
-import { useEintraegeStore } from "@/stores/eintraege";
+import { useBucketContainer } from "@/stores/bucketContainer";
+import { useEintragContainer } from "@/stores/eintragContainer";
 import { Aufschlag } from "@/models/Aufschlag";
 import { Zwischensumme } from "@/models/Zwischensumme";
-import { usePaketeStore } from "@/stores/pakete";
-import { useProjektStore } from "@/stores/projekt";
+import { usePaketContainer } from "@/stores/paketContainer";
+import { useKonfigContainer } from "@/stores/konfigContainer";
 import {useVergleicheStore} from "@/stores/vergleiche";
 
 export class ExportProject {
-  private readonly _buckets: { id:number, name: string }[] = [];
+  private readonly _buckets: { name: string }[] = [];
   private readonly _pakete: {
     id: number,
     ticket_nr: string,
@@ -19,7 +19,7 @@ export class ExportProject {
   }[] = [];
   private readonly _paketeTree: { key: number, children: number[] }[] = [];
   private readonly _eintraege: { bezeichnung: string, aufwandRelativ?: number, aufwandAbsolut?: number }[] = [];
-  private _projekt: {
+  private projektKonfig: {
     projektname: string,
     bucketmodus: boolean,
     nachkommastellen: number
@@ -27,7 +27,7 @@ export class ExportProject {
   private _checkboxIds:number[]=[]
 
   constructor() {
-    this._projekt = {
+    this.projektKonfig = {
       projektname: "",
       bucketmodus: true,
       nachkommastellen: 2
@@ -41,7 +41,7 @@ export class ExportProject {
 
   public createFile(): Blob {
     const mergedObjects: {
-      projekt: { projektname: string, bucketmodus: boolean}
+      projektKonfig: { projektname: string, bucketmodus: boolean, nachkommastellen: number}
       buckets: { name: string }[],
       checkboxIds: number[],
       pakete: {
@@ -57,7 +57,7 @@ export class ExportProject {
       eintraege: { bezeichnung: string, aufwandRelativ?: number, aufwandAbsolut?: number }[]
     }
       = {
-      projekt: this._projekt,
+      projektKonfig: this.projektKonfig,
       buckets: this._buckets,
       checkboxIds: this._checkboxIds,
       pakete: this._pakete,
@@ -69,15 +69,15 @@ export class ExportProject {
 
 
   private saveBuckets() {
-    const bucketStore = useBucketsStore();
-    bucketStore.bucketsAsSortedArray.forEach(bucket => {
-      this._buckets.push({ id:bucket.id, name: bucket.name });
+    const bucketContainer = useBucketContainer();
+    bucketContainer.bucketsAsSortedArray.forEach(bucket => {
+      this._buckets.push({ name: bucket.name });
     });
   }
 
   private saveEintraege() {
-    const eintraegeStore = useEintraegeStore();
-    eintraegeStore.eintraege.forEach(eintrag => {
+    const eintragContainer = useEintragContainer();
+    eintragContainer.eintraege.forEach(eintrag => {
       if (!["Startsumme", "Endsumme"].includes(eintrag.bezeichnung)) {
         if (eintrag instanceof Aufschlag) {
           if (eintrag.isAufwandRelativBase)
@@ -92,8 +92,8 @@ export class ExportProject {
   }
 
   private savePakete() {
-    const paketeStore = usePaketeStore();
-    const stack = [...paketeStore.paketeAsTreeView];
+    const paketContainer = usePaketContainer();
+    const stack = [...paketContainer.paketeAsTreeView];
     while (stack.length > 0) {
       const aktuellesPaket = stack.shift()!;
       this._pakete.push({
@@ -116,11 +116,11 @@ export class ExportProject {
   }
 
   private saveProjekt() {
-    const projektStore = useProjektStore();
-    this._projekt = {
-      projektname: projektStore.projektname,
-      bucketmodus: projektStore.bucketmodus,
-      nachkommastellen: projektStore.nachkommastellen
+    const konfigContainer = useKonfigContainer();
+    this.projektKonfig = {
+      projektname: konfigContainer.projektname,
+      bucketmodus: konfigContainer.bucketmodus,
+      nachkommastellen: konfigContainer.nachkommastellen
     };
   }
 

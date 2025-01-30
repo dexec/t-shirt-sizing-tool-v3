@@ -1,7 +1,7 @@
 export class Bucket {
 
     private readonly _id: number
-    private static _idCounter: number = 0
+    private static  _idCounter: number = 0
     constructor(name: string, id?: number) {
         if (id != null) this._id = id;
         else this._id = Bucket._idCounter++;
@@ -9,14 +9,6 @@ export class Bucket {
     }
 
     private _name: string
-
-    static get idCounter(): number {
-        return this._idCounter;
-    }
-
-    static set idCounter(value: number) {
-        this._idCounter = value;
-    }
 
     get name(): string {
         return this._name;

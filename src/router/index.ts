@@ -2,10 +2,10 @@
 import {createRouter, createWebHashHistory} from 'vue-router'
 import VergleichView from "@/views/VergleichView.vue";
 import PaketUebersichtView from "@/views/PaketUebersichtView.vue";
-import ProjektaufschlaegeView from "@/views/ProjektaufschlaegeView.vue";
+import ProjektaufschlaegeView from "@/views/EintraegeView.vue";
 import ProjektUebersichtView from "@/views/ProjektUebersichtView.vue";
 import testView from "@/views/testView.vue";
-import {useProjektStore} from "@/stores/projekt";
+import {useKonfigContainer} from "@/stores/konfigContainer";
 import {ref} from "vue";
 import StatistikenView from "@/views/StatistikenView.vue";
 
@@ -14,7 +14,7 @@ const router = createRouter({
     routes: [
         {
             path: '/',
-            alias: '/projekt',
+            alias: '/projektKonfig',
             name: 'projekt',
             component: ProjektUebersichtView
         },
@@ -24,7 +24,7 @@ const router = createRouter({
             component: VergleichView,
         },
         {
-            path: '/statistiken',
+            path: '/statistikenService',
             name: 'statistiken',
             component: StatistikenView
         },
@@ -54,8 +54,8 @@ router.beforeEach((to) => {
         return {name: 'projekt'}
     }
     if (to.path === '/vergleich') {
-        const projektStore = useProjektStore();
-        if (!projektStore.bucketmodus) return false
+        const konfigContainer = useKonfigContainer();
+        if (!konfigContainer.bucketmodus) return false
     }
 })
 

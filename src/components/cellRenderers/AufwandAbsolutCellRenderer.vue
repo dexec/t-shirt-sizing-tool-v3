@@ -58,11 +58,11 @@
 <script lang="ts" setup>
 import { Zwischensumme } from "@/models/Zwischensumme";
 import { computed } from "vue";
-import { useProjektStore } from "@/stores/projekt";
+import { useKonfigContainer } from "@/stores/konfigContainer";
 import EintragErklaerenComponent from "@/components/EintragErklaerenComponent.vue";
 import { ColumnET } from "@/enums/ColumnET";
 
-const projektStore = useProjektStore();
+const konfigContainer = useKonfigContainer();
 const props = defineProps(["params"]);
 const selectedColumn = computed(() => {
   const focusedCell = props.params.api.getFocusedCell();
@@ -72,19 +72,19 @@ const selectedColumn = computed(() => {
 const aufwandAbsolut = computed(() => {
   if (props.params.data.isAufwandRelativBase)
     return Number(props.params.data.aufwandAbsolut).toLocaleString("de", {
-      minimumFractionDigits: projektStore.nachkommastellen,
-      maximumFractionDigits: projektStore.nachkommastellen
+      minimumFractionDigits: konfigContainer.nachkommastellen,
+      maximumFractionDigits: konfigContainer.nachkommastellen
     });
   else return Number(props.params.data.aufwandAbsolut).toLocaleString();
 });
 const bezeichnung = computed(() => props.params.data.bezeichnung);
 
 const vorigerAbschnittAufwandAbsolut = computed(() => Number(props.params.data.vorigerAbschnittAufwandAbsolut).toLocaleString("de", {
-  minimumFractionDigits: projektStore.nachkommastellen,
-  maximumFractionDigits: projektStore.nachkommastellen
+  minimumFractionDigits: konfigContainer.nachkommastellen,
+  maximumFractionDigits: konfigContainer.nachkommastellen
 }));
 const zwischensummeAufwand = computed(() => Number(props.params.data.zwischensummeAufwand).toLocaleString("de", {
-  minimumFractionDigits: projektStore.nachkommastellen,
-  maximumFractionDigits: projektStore.nachkommastellen
+  minimumFractionDigits: konfigContainer.nachkommastellen,
+  maximumFractionDigits: konfigContainer.nachkommastellen
 }));
 </script>

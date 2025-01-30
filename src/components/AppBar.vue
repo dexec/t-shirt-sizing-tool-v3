@@ -1,5 +1,4 @@
 <template>
-
   <v-app-bar color="#03787c" flat>
     <!--    TODO Icon einbauen-->
     <v-tabs>
@@ -16,13 +15,15 @@
         <v-icon icon="mdi-file-excel-outline"></v-icon>
       </v-tab>
       <v-divider class="border-opacity-100" color="white" vertical></v-divider>
-      <v-tab class="text-capitalize" style="color: white" to="/projekt">Projektübersicht</v-tab>
+      <v-tab class="text-capitalize" style="color: white" to="/projektKonfig">Projektübersicht</v-tab>
       <v-tab value="/pakete" class="text-capitalize" style="color: white" to="/pakete">Paketübersicht</v-tab>
-      <v-tab v-if="projektStore.bucketmodus" class="text-capitalize" style="color: white" to="/vergleich">Vergleich
+      <v-tab v-if="konfigContainer.bucketmodus" class="text-capitalize" style="color: white" to="/vergleich">Vergleich
       </v-tab>
-      <v-tab class="text-capitalize" style="color: white" to="/statistiken">Statistiken</v-tab>
+      <v-tab class="text-capitalize" style="color: white" to="/statistikenService">Statistiken</v-tab>
       <v-tab class="text-capitalize" style="color: white" to="/aufschlaege">Projektaufschläge</v-tab>
+<!--
       <v-tab class="text-capitalize" style="color: white" to="/test">Test</v-tab>
+-->
     </v-tabs>
     <v-spacer/>
     <HelperComponent :entries-prop="entriesHelperComp"></HelperComponent>
@@ -50,7 +51,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useProjektStore } from "@/stores/projekt";
+import { useKonfigContainer } from "@/stores/konfigContainer";
 import { ExportProject } from "@/models/ExportProject";
 import { ExportAsExcel } from "@/models/ExportAsExcel";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -62,16 +63,16 @@ import { useRoute } from "vue-router";
 import HelperComponent from "@/components/HelperComponent.vue";
 import {aufschlaege, pakete, projekt, statistiken, vergleich} from "@/stores/helperStrings";
 
-const projektStore = useProjektStore();
+const konfigContainer = useKonfigContainer();
 const showSuche = ref(false);
 const route = useRoute();
 const tabs = computed(() => "/" + route.fullPath.split("/")[1]);
 
 const entriesHelperComp = computed(() => {
-  if(tabs.value=="/projekt") return projekt();
+  if(tabs.value=="/projektKonfig") return projekt();
   if(tabs.value=="/pakete") return pakete();
   if(tabs.value=="/vergleich") return vergleich();
-  if(tabs.value=="/statistiken") return statistiken();
+  if(tabs.value=="/statistikenService") return statistiken();
   if(tabs.value=="/aufschlaege") return aufschlaege();
   return "";
 })
@@ -103,7 +104,7 @@ const showDialogLoadProject = ref(false);
 
 function createNewProject() {
   const emptyProject = "{\n" +
-    "  \"projekt\": {\n" +
+    "  \"projektKonfig\": {\n" +
     "    \"projektname\": \"Neues Projekt\",\n" +
     "    \"bucketmodus\": true,\n" +
     "    \"aufschlaegeErklaeren\": false,\n" +
@@ -127,7 +128,7 @@ function createNewProject() {
     "  \"paketeTree\": []\n" +
     "}";
   new ImportProject(emptyProject);
-  router.push("/projekt");
+  router.push("/projektKonfig");
 }
 
 
@@ -146,7 +147,7 @@ function handleFileUpload(event: any) {
       const jsonFile = JSON.parse(fileContents as string);
       if (jsonFile.buckets && jsonFile.eintraege && jsonFile.pakete && jsonFile.paketeTree) {
         new ImportProject(JSON.stringify(jsonFile));
-        router.push("/projekt");
+        router.push("/projektKonfig");
       }
     };
     reader.readAsText(file);

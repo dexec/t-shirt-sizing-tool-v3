@@ -5,17 +5,17 @@
 </template>
 
 <script lang="ts" setup>
-import { useStatistikenStore } from "@/stores/statistiken";
+import { useStatistikenStore } from "@/stores/statistikenService";
 import type { Paket } from "@/models/Paket";
-import {useBucketsStore} from "@/stores/buckets";
+import {useBucketContainer} from "@/stores/bucketContainer";
 import type {Bucket} from "@/models/Bucket";
-const bucketStore = useBucketsStore();
+const bucketContainer = useBucketContainer();
 const statistikenStore = useStatistikenStore();
 const props = defineProps(["params"]);
 const paket = props.params.data as Paket;
 let showWarning: boolean = false;
 if (paket.bucket != null && paket.schaetzung != null && paket.zurRechnungFreigegeben()) {
-  for (const bucket of bucketStore.bucketsAsSortedArray) {
+  for (const bucket of bucketContainer.bucketsAsSortedArray) {
     if(bucket.id == paket.bucket.id) continue
     const min = statistikenStore.min(bucket as Bucket);
     const max = statistikenStore.max(bucket as Bucket);

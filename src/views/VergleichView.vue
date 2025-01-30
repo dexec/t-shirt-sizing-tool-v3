@@ -90,8 +90,8 @@
 </template>
 
 <script lang="ts" setup>
-import { usePaketeStore } from "@/stores/pakete";
-import { useBucketsStore } from "@/stores/buckets";
+import { usePaketContainer } from "@/stores/paketContainer";
+import { useBucketContainer } from "@/stores/bucketContainer";
 import { computed, nextTick, onUnmounted, ref } from "vue";
 import { Bucket } from "@/models/Bucket";
 import { Paket } from "@/models/Paket";
@@ -99,16 +99,16 @@ import draggable from "vuedraggable";
 import "@/styles/hoverLink.css";
 import { useVergleicheStore } from "@/stores/vergleiche";
 
-const paketeStore = usePaketeStore();
-const bucketStore = useBucketsStore();
+const paketContainer = usePaketContainer();
+const bucketContainer = useBucketContainer();
 
 const dialog = ref(false);
-const unsortedPaketeListsSortedByBucketsMap = paketeStore.unsortedPaketeListsSortedByBucketsMap;
+const unsortedPaketeListsSortedByBucketsMap = paketContainer.unsortedPaketeListsSortedByBucketsMap;
 const showPaketeWithoutBucket = ref(true);
 const searchedPaket = ref(0);
-const paketeWithoutBucket = computed(() => paketeStore.paketeChildrenWithNoBucket());
-const buckets = bucketStore.bucketsAsSortedArray as Bucket[];
-const bucketsAsMap = bucketStore.bucketsAsMap;
+const paketeWithoutBucket = computed(() => paketContainer.paketeChildrenWithNoBucket());
+const buckets = bucketContainer.bucketsAsSortedArray as Bucket[];
+const bucketsAsMap = bucketContainer.bucketsAsMap;
 
 const vergleichStore = useVergleicheStore();
 const numberBucketsToShow = ref(4);
@@ -169,7 +169,7 @@ window.addEventListener("resize", function() {
 
 function getTitleForPaket(paket: Paket): string {
   let result: string = "";
-  const parents = paketeStore.parentsOfPaket(paket).reverse();
+  const parents = paketContainer.parentsOfPaket(paket).reverse();
   for (const paket of parents) {
     result += paket.ticket_nr + " " + paket.thema + "\n";
     for (let i = 0; i < paket.lvl + 1; i++) {
@@ -208,7 +208,7 @@ function changeBucketOfPaket(evt: any, bucket: Bucket) {
   // um zu sehen, in welchem Bucket das Paket landen wird sobald man loslässt
   if (evt.added) {
     const updatePaket = evt.added.element;
-    updatePaket.bucket = bucketStore.bucketsAsMap.get(bucket.id);
+    updatePaket.bucket = bucketContainer.bucketsAsMap.get(bucket.id);
   }
 }
 
@@ -221,7 +221,7 @@ function searchPaket(paket: Paket) {
 /*
 
 function rootParentThemaOfPaket(paket: Paket): string {
-  const result = paketeStore.rootParentOfPaket(paket);
+  const result = paketContainer.rootParentOfPaket(paket);
   if (result) return result.thema;
   else return paket.thema;
 }

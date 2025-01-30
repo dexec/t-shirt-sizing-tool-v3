@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
 import { Bucket } from "@/models/Bucket";
-import { usePaketeStore } from "@/stores/pakete";
+import { usePaketContainer } from "@/stores/paketContainer";
 import { ref } from "vue";
 
-export const useBucketsStore = defineStore("buckets", () => {
+export const useBucketContainer = defineStore("buckets", () => {
   const bucketsAsSortedArray = ref<Bucket[]>([]);
 
   const bucketsAsMap = ref(new Map<number, Bucket>());
@@ -20,7 +20,7 @@ export const useBucketsStore = defineStore("buckets", () => {
   }
 
   function addNewBucket(id: number, before: boolean): Bucket {
-    const pakete = usePaketeStore();
+    const pakete = usePaketContainer();
     let newBucketName = "neu";
     for (let i = 1; ; i++) {
       if (getBucketNamesSorted().includes(newBucketName)) {
@@ -39,7 +39,7 @@ export const useBucketsStore = defineStore("buckets", () => {
   }
 
   function deleteBucket(id: number) {
-    const pakete = usePaketeStore();
+    const pakete = usePaketContainer();
     const bucketToDelete = bucketsAsMap.value.get(id);
     if (bucketToDelete && bucketToDelete instanceof Bucket) {
       const indexOfBucketToDelete = bucketsAsSortedArray.value.findIndex(bucket => bucketToDelete == bucket);
