@@ -131,11 +131,13 @@ const columnDefs: ColDef[] = [
     },
     cellRenderer: TreeDataCellRenderer
   },
-  {
+  /*
+    {
     field: "id",
     headerName: "id",
     editable: false
   },
+   */
   {
     field: "thema",
     headerName: "Thema",
