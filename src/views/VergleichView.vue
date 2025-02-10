@@ -113,7 +113,6 @@ const bucketsAsMap = bucketContainer.bucketsAsMap;
 const vergleichStore = useVergleicheStore();
 const numberBucketsToShow = ref(4);
 const selected = ref<number[]>(vergleichStore.checkboxSelectedIds);
-
 nextTick(() => {
   setNumberBucketsToShow();
   sortSelectedBuckets();
