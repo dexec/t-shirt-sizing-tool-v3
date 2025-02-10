@@ -176,16 +176,18 @@ export const usePaketContainer = defineStore("pakete", () => {
   }
 
   function createNewUniqueTicketNr(): string {
-    if(paketeAsMap.value.size==0) return "Ticket-Nr 1"
-    const highestPaketId = Array.from(paketeAsMap.value.values()).reduce((a,b) => a.id > b.id ? a:b).id;
-    for(let i = 1; i++;) {
-      const newPaketTicketNr = "Ticket-Nr " + (highestPaketId + i);
-      if (!Array.from(paketeAsMap.value.values()).find(paket => paket.ticket_nr == newPaketTicketNr)) {
-        return newPaketTicketNr;
+    let result:string = "Neues Ticket";
+    let iterations:number = 1;
+    for (let i = 0; i < paketeAsTreeView.value.length; i++) {
+      if(paketeAsTreeView.value[i].ticket_nr.toUpperCase()===result.toUpperCase()) {
+        result = "Neues Ticket ("+iterations+")"
+        iterations++;
+        i = 0;
       }
     }
-    throw new Error("Unexpected code execution.");
+    return result;
   }
+
   function addNew(id: number): number {
     const newPaket = new Paket("" , "beispiel", "beispiel", null, null, false, 0, null, []);
     newPaket.ticket_nr = createNewUniqueTicketNr();
