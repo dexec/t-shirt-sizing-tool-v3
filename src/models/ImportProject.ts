@@ -94,7 +94,9 @@ export class ImportProject {
 
     private fileToBucketArray(bucketsFromFile: any[]): void {
         for (const bucketFromFile of bucketsFromFile) {
-            const newBucket = new Bucket(bucketFromFile.name);
+            let newBucket ;
+            if(bucketFromFile.id!==null) newBucket = new Bucket(bucketFromFile.name,bucketFromFile.id);
+            else newBucket = new Bucket(bucketFromFile.name)
             this._buckets.push(newBucket);
         }
         const usebucketContainer = useBucketContainer();
@@ -194,7 +196,9 @@ export class ImportProject {
     private writeCheckboxIds():void {
         const vergleichStore = useVergleicheStore();
         vergleichStore.checkboxSelectedIds.length=0;
-        for(const id of this._checkboxIds)
-        vergleichStore.checkboxSelectedIds.push(id)
+
+        for(const id of this._checkboxIds) {
+            vergleichStore.checkboxSelectedIds.push(id)
+        }
     }
 }
