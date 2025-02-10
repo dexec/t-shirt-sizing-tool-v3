@@ -7,14 +7,14 @@
         :getRowId="getRowId"
         :rowData="rowData"
         :stopEditingWhenCellsLoseFocus="false"
-        :suppressMovableColumns="true"
         :suppressClickEdit="true"
+        :suppressMovableColumns="true"
         class="ag-theme-alpine"
         rowSelection="single"
         style="width: 100%;height: 100%"
-        @cell-editing-stopped="onCellEditingStopped"
         @cellValueChanged="onCellValueChanged"
         @contextmenu="rightClickOnCell"
+        @cell-editing-stopped="onCellEditingStopped"
         @cell-key-down="onCellKeyPress"
         @cell-double-clicked="onCellDoubleClicked"
         @grid-ready="onGridReady">
@@ -40,25 +40,28 @@ import {useKonfigContainer} from "@/stores/konfigContainer";
 import {nextTick, onMounted, onUpdated, provide, reactive, ref} from "vue";
 import {useToast} from "vue-toastification";
 import ContextMenu from "@/components/ContextMenu.vue";
-import type {ColDef, GridApi, Column} from "ag-grid-community";
+import type {ColDef, Column, GridApi} from "ag-grid-community";
 import type {Bucket} from "@/models/Bucket";
 import type {Paket} from "@/models/Paket";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import {errorToastPaketNrEmpty, errorToastPaketNrNotUnique} from "@/models/Toasts";
 import WarningCellRenderer from "@/components/cellRenderers/WarningCellRenderer.vue";
-import {useRoute, useRouter} from "vue-router";
+import {useRoute} from "vue-router";
 import router from "@/router";
+
 document.addEventListener('keydown', (e) => {
-  if((e.key ==="ArrowUp" || e.key === "ArrowDown") && e.ctrlKey) {
+  if ((e.key === "ArrowUp" || e.key === "ArrowDown") && e.ctrlKey) {
     e.preventDefault();
   }
 })
 const toast = useToast();
 const konfigContainer = useKonfigContainer();
 const gridApi = ref<GridApi>();
+
 function getRowId(params: any): string {
   return params.data._id + ""
 }
+
 const paketContainer = usePaketContainer();
 const rowData = paketContainer.paketeAsTreeView;
 let duplicateTicketNrFound = false;
@@ -69,31 +72,30 @@ onMounted(() => {
 })
 onUpdated(() => {
   const routeParamsIdNew = useRoute().params.id as string;
-  if(routeParamsIdNew=="") return;
+  if (routeParamsIdNew == "") return;
   routeParamsId.value = routeParamsIdNew
   const pathId = Number(routeParamsId.value);
-  if(pathId == null || isNaN(pathId)) return;
-  const selectedRow = gridApi.value!.getSelectedRows()[0]
-  if (selectedRow != null) {
-    if(selectedRow.id != pathId) showSearchedPaket(paketContainer.paketeAsMap.get(pathId) as Paket);
-  }
+  if (pathId == null || isNaN(pathId)) return;
+  showSearchedPaket(paketContainer.paketeAsMap.get(pathId) as Paket);
   router.push("/pakete/")
 })
+
 function onGridReady(params: any) {
   gridApi.value = params.api;
   nextTick(() => gridApi.value!.autoSizeColumns(["ticket_nr"]));
+  if(routeParamsId.value === "") return;
   const pathId = Number(routeParamsId.value);
-  if(pathId == null || isNaN(pathId)) return;
+  if (pathId == null || isNaN(pathId) || paketContainer.paketeAsMap.size === 0) return;
   nextTick(() => showSearchedPaket(paketContainer.paketeAsMap.get(pathId) as Paket));
 
   //TODO Grid soll warten bis resiszed wude
 
-/*  window.addEventListener("resize", function () {
-    setTimeout(function () {
-      const columns = gridApi.value!.getColumns()
-      if(columns) gridApi.value!.autoSizeColumns(columns);
-    });
-  });*/
+  /*  window.addEventListener("resize", function () {
+      setTimeout(function () {
+        const columns = gridApi.value!.getColumns()
+        if(columns) gridApi.value!.autoSizeColumns(columns);
+      });
+    });*/
 }
 
 
@@ -104,14 +106,16 @@ const defaultColDef = reactive({
     return (params.event.ctrlKey || params.event.shiftKey) && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Delete", "Enter", "F2"].includes(key) || ["Delete", "Enter", "F2", "Escape"].includes(key);
   },
   sortable: false,
-  editable: () => {return editableFlag.value}
+  editable: () => {
+    return editableFlag.value
+  }
 });
 const columnDefs: ColDef[] = [
   {
     field: "ticket_nr",
     headerName: "Ticket-NR",
     valueSetter: (params: any): any => {
-      if (params.newValue==null || params.newValue == "") {
+      if (params.newValue == null || params.newValue == "") {
         params.data.ticket_nr = params.oldValue;
         errorToastPaketNrEmpty();
       } else {
@@ -141,12 +145,12 @@ const columnDefs: ColDef[] = [
   {
     field: "thema",
     headerName: "Thema",
-    flex:1
+    flex: 1
   },
   {
     field: "beschreibung",
     headerName: "Beschreibung",
-    flex:2
+    flex: 2
   },
   {
     field: "bucket",
@@ -190,7 +194,7 @@ const columnDefs: ColDef[] = [
       }
     },
     valueGetter: (params: any) => {
-      if (params.data.schaetzung!=null) {
+      if (params.data.schaetzung != null) {
         if (params.data.children.length > 0) {
           return Number(params.data.schaetzung).toLocaleString('de', {
             minimumFractionDigits: konfigContainer.nachkommastellen,
@@ -223,7 +227,7 @@ function showSearchedPaket(paket: Paket) {
   paketContainer.showPaket(paket);
   gridApi.value!.setGridOption('rowData', paketContainer.paketeAsTreeView);
   const rowNodeIndex = gridApi.value!.getRowNode(paket.id + "")!.rowIndex
-  if(rowNodeIndex!=null) gridApi.value!.ensureIndexVisible(rowNodeIndex)
+  if (rowNodeIndex != null) gridApi.value!.ensureIndexVisible(rowNodeIndex)
   refreshTable(gridApi.value!.getColumns()![0].getColId(), paket.id);
 }
 
@@ -277,7 +281,7 @@ function rightClickOnCell(e: any) {
 
 function onCellDoubleClicked(e: any) {
   if (gridApi.value!.getEditingCells().length === 0) {
-    editableFlag.value=true
+    editableFlag.value = true
     startEditingCell(e, e.column.colId);
   }
 }
@@ -285,8 +289,9 @@ function onCellDoubleClicked(e: any) {
 function onCellEditingStopped() {
   editableFlag.value = false;
 }
+
 function onCellValueChanged(params: any) {
-    //gridApi.value!.autoSizeColumns([params.colDef]);
+  //gridApi.value!.autoSizeColumns([params.colDef]);
 }
 
 function addNewPaket() {
@@ -496,9 +501,9 @@ function startEditingCell(e: any, colKey: string) {
 }
 
 function stopEiditingAndSetFocus(cancel: boolean, rowIndex: number, colKey: string) {
-  editableFlag.value=false;
-  gridApi.value!.setFocusedCell(rowIndex, colKey);
+  editableFlag.value = false;
   gridApi.value!.stopEditing(cancel);
+  gridApi.value!.setFocusedCell(rowIndex, colKey);
 }
 </script>
 
