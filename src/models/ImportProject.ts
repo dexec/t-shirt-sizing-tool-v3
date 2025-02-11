@@ -94,7 +94,7 @@ export class ImportProject {
 
     private fileToBucketArray(bucketsFromFile: any[]): void {
         for (const bucketFromFile of bucketsFromFile) {
-            let newBucket ;
+            let newBucket;
             if(bucketFromFile.id!==null) newBucket = new Bucket(bucketFromFile.name,bucketFromFile.id);
             else newBucket = new Bucket(bucketFromFile.name)
             this._buckets.push(newBucket);

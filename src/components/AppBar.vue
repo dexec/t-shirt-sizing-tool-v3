@@ -47,7 +47,7 @@
     <template #cancelText>Abbrechen</template>
   </ConfirmDialog>
 
-  <input ref="fileRef" accept=".json" hidden type="file" @change="handleFileUpload">
+  <input ref="fileRef" accept=".tsize" hidden type="file" @change="handleFileUpload">
 </template>
 
 <script lang="ts" setup>
@@ -84,7 +84,7 @@ function downloadProject() {
   const exportProject = new ExportProject();
   const link = document.createElement("a");
   link.href = URL.createObjectURL(exportProject.createFile());
-  link.download = "test";
+  link.download = konfigContainer.projektname+".tsize";
 
   // Simulate a click on the link
   const clickEvent = new MouseEvent("click", {
@@ -140,7 +140,8 @@ function loadProject() {
 
 function handleFileUpload(event: any) {
   const file = event.target.files[0];
-  if (file.type == "application/json") {
+  if (file.name.endsWith(".tsize")) {
+    console.log("hier")
     const reader = new FileReader();
     reader.onload = () => {
       const fileContents = reader.result;
